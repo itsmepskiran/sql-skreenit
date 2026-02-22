@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Details – Skreenit</title>
+
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      // CACHE BUSTER
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+
+  <script>
+    loadSharedCSS('core.css');    
+    loadSharedCSS('layout.css');  
+    loadSharedCSS('components.css');  
+    loadSharedCSS('special.css'); /* Our new, clean external file! */
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+         <div class="logo">
+            <img src="" id="logoImg" alt="Skreenit" class="logo-img-constrained" />
+         </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item active" id="navDashboard"><i class="fas fa-home"></i><span>Dashboard</span></li>
+        <li class="nav-item" id="navApplications"><i class="fas fa-briefcase"></i><span>My Applications</span></li>
+        <li class="nav-item" id="navProfile"><i class="fas fa-user"></i><span>My Profile</span></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+             <i class="fas fa-user"></i>
+          </div>
+          <div class="user-details">
+            <span id="userName" class="user-name">Loading...</span>
+            <span id="userDesignation" class="user-role">Candidate</span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <header class="dashboard-header job-details-header">
+          </header>
+
+      <div class="dashboard-content">
+        
+        <div class="job-header">
+            <div class="job-title-wrapper">
+                <div>
+                    <h1 id="jobTitle">Loading Job...</h1>
+                    <p id="companyName">Skreenit Platform</p>
+                </div>
+                <button class="btn btn-outline-primary" onclick="document.getElementById('applyBtn').click()">Quick Apply</button>
+            </div>
+            
+            <div class="job-meta-grid">
+                <div class="meta-item"><i class="fas fa-map-marker-alt"></i> <span id="jobLocation">-</span></div>
+                <div class="meta-item"><i class="fas fa-briefcase"></i> <span id="jobType">-</span></div>
+                <div class="meta-item"><i class="fas fa-money-bill-wave"></i> <span id="salaryRange">-</span></div>
+                <div class="meta-item"><i class="far fa-clock"></i> Posted: <span id="postedDate">-</span></div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h3>Job Description</h3>
+            <div id="jobDescription" class="content-text">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h3>Requirements</h3>
+            <div id="jobRequirements" class="content-text">
+                <p>No specific requirements listed.</p>
+            </div>
+        </div>
+        
+        <div class="job-action-bar">
+            <button id="backBtn" class="btn-back-ghost" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </button>
+            
+            <button id="applyBtn" class="btn-apply-massive">
+                Apply Now <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  
+  <script type="module" src="js/job-details.js"></script>
+</body>
+</html>

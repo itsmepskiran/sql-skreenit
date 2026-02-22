@@ -1,0 +1,11 @@
+fastapi>=0.110,<0.117
+uvicorn[standard]>=0.23,<0.36
+httpx>=0.24,<0.29
+python-dotenv>=1.0,<2.0
+pydantic>=2.6,<3
+python-multipart>=0.0.6,<0.0.21
+email-validator>=2.0,<3.0
+resend>=2.0,<3.0
+supabase>=2.4,<3.0
+PyJWT>=2.0.0,<3.0.0
+python-jose[cryptography]>=3.3.0,<4.0.0

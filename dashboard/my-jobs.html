@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Jobs – Skreenit</title>
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+  <script>
+    loadSharedCSS('core.css');   
+    loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css'); /* Contains our modern search bar and grid cards */
+    loadSharedCSS('special.css'); 
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+         <div class="logo">
+            <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+         </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
+        <li class="nav-item active" id="navJobs"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+        <li class="nav-item" id="navApplications"><i class="fas fa-users"></i><span>Applications</span></li>
+        <li class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="user-details">
+             <span id="recruiterName" class="user-name">Loading...</span>
+             <span id="companyId" class="user-role">---</span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <header class="dashboard-header" style="justify-content: space-between;">
+        <h1>My Posted Jobs</h1>
+        <button class="btn-apply-massive" id="postJobBtn" style="padding: 10px 24px; font-size: 0.95rem;">
+            <i class="fas fa-plus"></i> Post New Job
+        </button>
+      </header>
+
+      <div class="dashboard-content">
+        <div class="search-container-modern">
+          <div style="margin-right: auto; display: flex; align-items: center;">
+            <span style="font-weight: 600; color: var(--text-light); margin-right: 8px;">Active Jobs:</span>
+            <span id="activeJobCount" class="job-status-badge status-active">0</span>
+          </div>
+
+      <div class="search-input-wrapper">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="jobSearch" placeholder="Search jobs by title or location...">
+      </div>
+      </div>
+
+        <div id="myJobsList" class="grid-cards">
+             <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="js/my-jobs.js"></script>
+</body>
+</html>

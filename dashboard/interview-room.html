@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Interview Room – Skreenit</title>
+  
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+    })();
+  </script>
+
+  <script>
+    loadSharedCSS('core.css');
+    loadSharedCSS('layout.css');
+    loadSharedCSS('components.css');
+    loadSharedCSS('special.css'); /* Contains all of our extracted interview room styling */
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body class="interview-body">
+
+  <header class="interview-header">
+      <div class="interview-logo"><img src="" id="logoImg" alt="Skreenit" /></div>
+      <button id="exitBtn" class="btn btn-secondary text-danger">
+          <i class="fas fa-times me-2"></i>Exit Interview
+      </button>
+  </header>
+
+  <div class="interview-container">
+      
+      <div class="question-panel">
+          <div id="loadingQuestions" class="loading-spinner"></div>
+          
+          <div id="instructionContent" style="display: none;">
+            <h2 class="interview-title">Ready to start?</h2>
+            
+            <div class="instruction-box">
+                <ul class="instruction-list">
+                    <li><i class="fas fa-video me-2 text-muted"></i> Questions will appear here one by one.</li>
+                    <li><i class="fas fa-microphone me-2 text-muted"></i> Record your answer using the controls below.</li>
+                    <li><i class="fas fa-redo me-2 text-muted"></i> You can retake any answer before submitting.</li>
+                    <li><i class="fas fa-shield-alt me-2 text-muted"></i> Your video is stored securely for the recruiter.</li>
+                </ul>
+            </div>
+            
+            <button id="startInterviewBtn" class="btn btn-primary btn-start-interview">
+                Begin Interview
+            </button>
+          </div>
+
+          <div id="questionContent" style="display: none;">
+              <div class="step-indicator" id="stepDots"></div>
+              
+              <h4 class="question-meta">
+                Question <span id="currentQNum">1</span> of <span id="totalQNum">3</span>
+              </h4>
+              
+              <h2 id="questionText" class="question-text">
+                  Tell us about yourself.
+              </h2>
+              
+              <p class="text-muted mb-4">When you're ready, click <b>Start Recording</b> to begin your answer.</p>
+
+              <div class="action-footer">
+                <div id="recordingControls" class="controls-wrapper">
+                    <button id="recordBtn" class="record-btn-modern">
+                        <span class="record-icon"></span>
+                        <span id="recordBtnText">Start Recording</span>
+                    </button>
+                    <span id="timerDisplay" class="timer-display" style="display: none;">00:00</span>
+                </div>
+
+                <div id="reviewControls" class="controls-wrapper" style="display: none;">
+                    <button id="retakeBtn" class="btn btn-secondary" style="flex: 1; padding: 14px;">
+                        <i class="fas fa-redo"></i> Retake
+                    </button>
+                    <button id="submitAnswerBtn" class="btn btn-primary" style="flex: 2; padding: 14px;">
+                        <i class="fas fa-check"></i> Submit Answer
+                    </button>
+                </div>
+
+                <div id="uploadProgress" class="progress-container" style="display: none;">
+                    <div class="progress-header">
+                        <span>Uploading response...</span>
+                        <span id="progressPercent" class="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div id="progressBar" class="progress-fill"></div>
+                    </div>
+                </div>
+              </div>
+          </div>
+          
+          <div id="completionContent" class="completion-container" style="display: none;">
+              <div class="success-icon-large">
+                  <i class="fas fa-check"></i>
+              </div>
+              <h2 class="completion-title">All set!</h2>
+              <p class="completion-text">Your interview has been successfully recorded and sent to the recruiter.</p>
+              <button id="backToDashBtn" class="btn btn-primary" style="padding: 15px 40px;">Return to Dashboard</button>
+          </div>
+      </div>
+
+      <div class="video-panel">
+          <video id="cameraFeed" autoplay muted playsinline></video>
+          <video id="playbackFeed" controls style="display: none;"></video>
+      </div>
+  </div>
+
+  <script type="module" src="js/interview-room.js"></script>
+</body>
+</html>

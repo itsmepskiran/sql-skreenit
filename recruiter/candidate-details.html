@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candidate Details – Skreenit</title>
+
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      // CACHE BUSTER
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+
+  <script>
+    loadSharedCSS('core.css');   
+    loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css'); /* Replaced forms.css */
+    loadSharedCSS('special.css');    /* Injects the beautiful profile cards */
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+         <div class="logo">
+            <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+         </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
+        <li class="nav-item" id="navJobs"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+        <li class="nav-item active" id="navApplications"><i class="fas fa-users"></i><span>Applications</span></li>
+        <li class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="user-details">
+             <span id="recruiterName" class="user-name">Loading...</span>
+             <span id="companyId" class="user-role">---</span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <header class="dashboard-header" style="border-bottom: none; margin-bottom: 0;">
+        <button class="btn-back-ghost" onclick="history.back()">
+            <i class="fas fa-arrow-left"></i> Back to Applications
+        </button>
+      </header>
+
+      <div class="dashboard-content" id="candidateDetails">
+          <div class="text-center p-5 w-100 text-muted">
+              <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+              <p>Loading candidate profile...</p>
+          </div>
+      </div>
+    </main>
+  </div>
+  
+  <script type="module" src="js/candidate-details.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Email Confirmed - Skreenit</title>
+
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      // Adjust path if your folder depth is different (Standard is usually ../assets)
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${assetsBase}/assets/css/${file}`; document.head.appendChild(link);
+      };
+      const icon = document.createElement('link'); icon.rel = 'icon'; icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; document.head.appendChild(icon);
+    })();
+  </script>
+
+    <script>
+      loadSharedCSS('core.css');     // Base typography
+      loadSharedCSS('branding.css'); // Premium background
+      loadSharedCSS('forms.css');    // Input and button states
+    </script>
+</head>
+
+<body class="auth-page-body">
+    <img src="" id="brandImg" class="brand" alt="Skreenit" />
+
+    <div class="checkmark">✔</div>
+
+    <div id="message" class="message">
+        Confirming your email...
+    </div>
+
+    <div class="redirect-note">
+        You will be redirected shortly.
+    </div>
+
+    <script type="module" src="js/confirm-email.js"></script>
+</body>
+</html>

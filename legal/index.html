@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legal – Skreenit</title>
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      // Adjust path if your folder depth is different (Standard is usually ../assets)
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${assetsBase}/assets/css/${file}`; document.head.appendChild(link);
+      };
+      const icon = document.createElement('link'); icon.rel = 'icon'; icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; document.head.appendChild(icon);
+    })();
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+  <script>
+  loadSharedCSS('core.css');     // Base typography
+  loadSharedCSS('branding.css'); // Premium background
+</script>
+</head>
+
+<body class="auth-page-body">
+
+  <!-- HEADER -->
+  <header class="header">
+    <img src="https://assets.skreenit.com/assets/images/logobrand.png" alt="Skreenit Logo" />
+    <h1>Legal Information</h1>
+    <p>Your privacy and trust matter to us. Explore our legal policies below.</p>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="container">
+    <div class="legal-grid">
+
+      <div class="legal-card">
+        <h2><i class="fas fa-file-contract"></i> Terms & Conditions</h2>
+        <p>Understand the rules and guidelines that govern your use of Skreenit’s platform and services.</p>
+        <a href="terms-conditions.html" class="btn">View Terms</a>
+      </div>
+
+      <div class="legal-card">
+        <h2><i class="fas fa-shield-alt"></i> Privacy Policy</h2>
+        <p>Learn how Skreenit collects, uses, and protects your personal information.</p>
+        <a href="privacy-policy.html" class="btn">View Privacy Policy</a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2024 Skreenit. All rights reserved.</p>
+    <p><a href="https://www.skreenit.com">Back to Skreenit</a></p>
+  </footer>
+
+</body>
+</html>

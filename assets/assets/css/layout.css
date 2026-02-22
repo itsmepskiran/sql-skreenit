@@ -1,0 +1,326 @@
+/* =========================================
+   3. LAYOUT.CSS - Dashboard Structure
+   ========================================= */
+
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--light-gray, #f4f7f6);
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    width: 260px;
+    background: linear-gradient(135deg, var(--primary-color, #6366f1), #4338ca);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    z-index: 100;
+    color: white
+}
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sidebar-header img { 
+    height: 40px; 
+    width: 40px; 
+    border-radius: 50%; /* Force round shape */
+    object-fit: cover;
+    border: none;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.nav-item {
+    padding: 0.875rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.7); /* Slightly dimmed white for inactive links */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-item:hover, .nav-item.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border-left: 4px solid white;
+}
+.nav-item.active { font-weight: 700; }
+
+.sidebar-footer {
+    margin-top: auto; /* Pushes footer to the very bottom */
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Pushes profile to left, logout to right */
+}
+.user-avatar { 
+    width: 36px; 
+    height: 36px; 
+    border-radius: 50%; 
+    background: #e0e7ff; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: var(--primary-color); 
+}
+.user-details {
+    display: flex;
+    flex-direction: column; /* Forces items to stack top-to-bottom */
+    align-items: flex-start; /* Aligns text to the left */
+    justify-content: center;
+    overflow: hidden;
+}
+
+.user-name {
+    display: block; /* Physically prevents anything from sitting next to it */
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: white; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2; /* Keeps the text tightly stacked */
+}
+
+.user-role {
+    display: block; /* Physically prevents anything from sitting next to it */
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7); 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px; /* Adds a tiny breathing room between name and ID */
+}
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden; /* Prevents long names from breaking layout */
+}
+
+.avatar-circle {
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%; 
+    background: rgba(255, 255, 255, 0.2); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: white;
+    flex-shrink: 0;
+}
+
+/* --- Main Content --- */
+.main-content {
+    flex: 1;
+    margin-left: 260px;
+    padding: 2rem;
+    width: calc(100% - 260px);
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main-content { margin-left: 0; width: 100%; padding: 1rem; }
+}
+/* User Avatar (Sidebar & Topbar) */
+.user-avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--text-light);
+    flex-shrink: 0;
+}
+/* Red Logout Button */
+.logout-btn {
+    background: transparent;
+    border: none;
+    color: #fca5a5;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: var(--radius-sm, 4px);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.2); /* Soft red hover effect */
+}
+/* =========================================
+   Dashboard Main Content & Headers
+   ========================================= */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.dashboard-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark, #1e293b);
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Notification Bell Button */
+.icon-btn {
+    background: white;
+    border: 1px solid var(--border-color, #e2e8f0);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: var(--text-light, #64748b);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.icon-btn:hover {
+    background: var(--light-gray, #f1f5f9);
+    color: var(--primary-color, #4f46e5);
+}
+
+/* =========================================
+   Stats Grid & Stat Cards
+   ========================================= */
+.stats-grid {
+    display: grid;
+    /* Auto-fits columns. 4 on desktop, 2 on tablet, 1 on mobile */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius-lg, 12px);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0,0,0,0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-info h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark, #1e293b);
+    margin: 0 0 0.25rem 0;
+    line-height: 1;
+}
+
+.stat-info p {
+    font-size: 0.875rem;
+    color: var(--text-light, #64748b);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Stat Card Icons & Colors */
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px; /* Soft rounded square */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.bg-blue   { background: #eff6ff; color: #3b82f6; }
+.bg-green  { background: #f0fdf4; color: #22c55e; }
+.bg-purple { background: #faf5ff; color: #a855f7; }
+.bg-orange { background: #fff7ed; color: #f97316; }
+
+/* =========================================
+   Activity Grids (Lower Dashboard)
+   ========================================= */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.section-header h2, .section-header h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-dark, #1e293b);
+    margin: 0;
+}
+
+/* 2-Column layout for Recruiter bottom section */
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Job & Application Card Lists */
+.grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .dashboard-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .activity-grid { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Application Details – Skreenit</title>
+  
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+
+  <script>
+    loadSharedCSS('core.css');    
+    loadSharedCSS('layout.css');  
+    loadSharedCSS('components.css'); 
+    loadSharedCSS('special.css'); 
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+         <div class="logo">
+            <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+         </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
+        <li class="nav-item" id="navJobs"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+        <li class="nav-item active" id="navApplications"><i class="fas fa-users"></i><span>Applications</span></li>
+        <li class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="user-details">
+             <span id="recruiterName" class="user-name">Loading...</span>
+             <span id="companyId" class="user-role">---</span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <header class="dashboard-header" style="border-bottom: none; margin-bottom: 0;">
+        <button id="backBtn" class="btn-back-ghost">
+            <i class="fas fa-arrow-left"></i> Back to Applications
+        </button>
+      </header>
+
+      <div class="dashboard-content">
+        <div id="loadingState" class="loading-spinner"></div>
+        
+        <div id="detailsContent" style="display: none;">
+            
+            <div class="profile-card" style="justify-content: space-between; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div class="profile-avatar" id="avatarInitials" style="width: 70px; height: 70px; font-size: 1.8rem;">C</div>
+                    <div>
+                        <h2 id="candidateName" class="profile-name">Candidate Name</h2>
+                        <div class="profile-role">Applied for: <strong id="jobTitle" style="color: var(--text-dark);">Job Title</strong></div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                    <select id="statusSelect" style="padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600; outline: none;">
+                        <option value="pending">Pending</option>
+                        <option value="reviewed">Reviewed</option>
+                        <option value="interviewing">Interviewing</option>
+                        <option value="hired">Hired</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <button id="updateStatusBtn" class="btn btn-primary">Update Status</button>
+                </div>
+            </div>
+
+<div class="profile-grid">
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="profile-section">
+            <h3><i class="fas fa-info-circle"></i> Contact & Info</h3>
+            <p class="text-muted mb-2"><i class="fas fa-envelope me-2"></i> <span id="candidateEmail">email@example.com</span></p>
+            <p class="text-muted mb-3"><i class="far fa-calendar-alt me-2"></i> Applied: <span id="appliedDate">-</span></p>
+            
+            <div id="linkedinGroup" style="display:none; margin-top: 15px;">
+                <a id="linkedinLink" href="#" target="_blank" style="color:var(--primary-color); text-decoration:none; font-weight: 600;">
+                    <i class="fab fa-linkedin me-1"></i> View LinkedIn Profile
+                </a>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h3><i class="fas fa-tools"></i> Skills</h3>
+            <div id="skillsContainer" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+        </div>
+        
+        <div class="profile-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin:0;"><i class="fas fa-file-pdf"></i> Resume Preview</h3>
+                <a id="resumeLink" href="#" target="_blank" class="btn btn-secondary btn-sm" title="Open in new tab">
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+            
+            <div style="border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); background: #f8fafc; height: 500px;">
+                <iframe id="resumeViewer" src="" width="100%" height="100%" style="border: none; display: none;"></iframe>
+                
+                <div id="noResume" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center;">
+                    <i class="fas fa-file-circle-exclamation fa-3x" style="color: #cbd5e0; margin-bottom: 1rem;"></i>
+                    <p class="text-muted">No resume attached to this application.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-section">
+        <h3><i class="fas fa-align-left"></i> Cover Letter</h3>
+        <div id="coverLetter" style="line-height: 1.8; color: var(--text-light); white-space: pre-wrap;">
+            No cover letter provided.
+        </div>
+    </div>
+</div>
+        </div>
+      </div>
+    </main>
+  </div>
+<div class="custom-modal-backdrop" id="interviewModal">
+    <div class="custom-modal-card" style="max-width: 600px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-video text-primary me-2"></i> Set Interview Questions</h3>
+            <button onclick="document.getElementById('interviewModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        
+        <p class="text-muted mb-4">Add the questions you want the candidate to answer in their video response.</p>
+        
+        <div id="modalQuestionsContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 1.5rem;">
+            </div>
+        
+        <button id="addQuestionBtn" class="btn btn-outline-primary w-100 mb-4" style="border-style: dashed; background: #f8fafc;">
+            <i class="fas fa-plus"></i> Add Another Question
+        </button>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="document.getElementById('interviewModal').classList.remove('active')">Cancel</button>
+            <button id="confirmInterviewBtn" class="btn btn-primary">Save & Request Interview</button>
+        </div>
+    </div>
+</div>
+  <script type="module" src="js/application-details.js"></script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skreenit - AI-Powered Recruitment Platform</title>
+    
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? './assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+    })();
+    </script>
+  
+    <script>
+      loadSharedCSS('core.css');
+      loadSharedCSS('components.css');
+      loadSharedCSS('landing.css');
+    </script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+</head>
+<body>    <header class="header" id="header">
+        <div class="container">
+            <nav class="nav">
+                <a href="#home" class="logo">
+                    <img src="./assets/assets/images/logo.png" alt="Skreenit" class="animate-pulse" />
+                    Skreenit
+                </a>
+                <ul class="nav-menu">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="https://portfolio.pskservices.co.in" target="_blank">Portfolio</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="#contact">Contact Us</a></li>
+                </ul>
+                <div class="nav-buttons">
+                    <button id="loginBtnNav" class="btn btn-secondary">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <button id="registerBtnNav" class="btn btn-primary">
+                        <i class="fas fa-rocket"></i> Get Started
+                    </button>
+                    <button id="hrmsBtnNav" class="btn btn-secondary">
+                        <i class="fas fa-briefcase"></i> HRMS
+                    </button>
+                    <button id="appBtnNav" class="btn btn-secondary">
+                        <i class="fas fa-mobile-alt"></i> App
+                    </button>
+                </div>
+                <button class="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content animate-fadeInUp">
+                <div class="hero-brand">
+                    <img src="./assets/assets/images/logobrand.png" alt="Skreenit Brand" class="animate-float" />
+                </div>
+                <h1>AI-Powered Recruitment Revolution</h1>
+                <p>Transform your hiring process with intelligent candidate matching, automated video screening, and comprehensive analytics. Connect top talent with leading companies seamlessly.</p>
+                <div class="hero-buttons">
+                    <a href="https://login.skreenit.com/registration" class="btn btn-primary btn-large">
+                        <i class="fas fa-rocket"></i> Start Free Trial
+                    </a>
+                    <a href="https://login.skreenit.com/login" class="btn btn-secondary btn-large">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">100K+</span>
+                        <span class="stat-label">Target Users</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">500+</span>
+                        <span class="stat-label">Companies</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">70%</span>
+                        <span class="stat-label">Faster Hiring</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">95%</span>
+                        <span class="stat-label">Success Rate</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="services" id="services">
+        <div class="container">
+            <div class="section-header animate-fadeInUp">
+                <h2>Our Comprehensive Services</h2>
+                <p>Discover how Skreenit revolutionizes recruitment with cutting-edge AI technology and innovative solutions.</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card animate-fadeInUp">
+                    <i class="service-icon fas fa-brain"></i>
+                    <h3>AI-Powered Matching</h3>
+                    <p>Advanced machine learning algorithms analyze candidate profiles, skills, and preferences to match them with the perfect job opportunities and company culture.</p>
+                </div>
+                <div class="service-card animate-fadeInUp">
+                    <i class="service-icon fas fa-video"></i>
+                    <h3>Smart Video Screening</h3>
+                    <p>Automated video interview analysis with sentiment detection, speech pattern recognition, and behavioral assessment to streamline candidate evaluation.</p>
+                </div>
+                <div class="service-card animate-fadeInUp">
+                    <i class="service-icon fas fa-chart-line"></i>
+                    <h3>Advanced Analytics</h3>
+                    <p>Comprehensive recruitment analytics with real-time dashboards, performance metrics, and predictive insights to optimize your hiring strategy.</p>
+                </div>
+                <div class="service-card animate-fadeInUp">
+                    <i class="service-icon fas fa-users-cog"></i>
+                    <h3>Talent Pool Management</h3>
+                    <p>Build and manage extensive talent databases with advanced search filters, candidate tracking, and automated engagement workflows.</p>
+                </div>
+                <div class="service-card animate-fadeInUp">
+                    <i class="service-icon fas fa-robot"></i>
+                    <h3>Automated Workflows</h3>
+                    <p>Streamline your recruitment process with automated candidate sourcing, screening, scheduling, and communication management.</p>
+                </div>
+                <div class="service-card animate-fadeInUp">
+                    <i class="service-icon fas fa-shield-check"></i>
+                    <h3>Compliance & Security</h3>
+                    <p>Enterprise-grade security with GDPR compliance, data encryption, and comprehensive audit trails for all recruitment activities.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header animate-fadeInUp">
+                <h2>Choose Your Perfect Plan</h2>
+                <p>Flexible pricing options designed to scale with your recruitment needs.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card animate-fadeInUp">
+                    <div class="plan-name">Starter</div>
+                    <div class="plan-price">TBD</div>
+                    <div class="plan-period">per month</div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check check"></i> Up to 50 job postings</li>
+                        <li><i class="fas fa-check check"></i> Basic AI matching</li>
+                        <li><i class="fas fa-check check"></i> Standard video screening</li>
+                        <li><i class="fas fa-check check"></i> Email support</li>
+                        <li><i class="fas fa-check check"></i> Basic analytics</li>
+                        <li><i class="fas fa-times cross"></i> Advanced AI features</li>
+                        <li><i class="fas fa-times cross"></i> Priority support</li>
+                    </ul>
+                    <a href="https://login.skreenit.com/registration" class="btn btn-outline-primary" style="width: 100%; display: inline-block;">Get Started</a>
+                </div>
+                
+                <div class="pricing-card featured animate-fadeInUp">
+                    <div class="plan-name">Professional</div>
+                    <div class="plan-price">TBD</div>
+                    <div class="plan-period">per month</div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check check"></i> Unlimited job postings</li>
+                        <li><i class="fas fa-check check"></i> Advanced AI matching</li>
+                        <li><i class="fas fa-check check"></i> Premium video screening</li>
+                        <li><i class="fas fa-check check"></i> Priority support</li>
+                        <li><i class="fas fa-check check"></i> Advanced analytics</li>
+                        <li><i class="fas fa-check check"></i> Custom workflows</li>
+                        <li><i class="fas fa-check check"></i> API access</li>
+                    </ul>
+                    <a href="https://login.skreenit.com/registration" class="btn btn-primary" style="width: 100%; display: inline-block;">Most Popular</a>
+                </div>
+                
+                <div class="pricing-card animate-fadeInUp">
+                    <div class="plan-name">Enterprise</div>
+                    <div class="plan-price" style="font-size: 2rem; margin: 1rem 0;">Custom</div>
+                    <div class="plan-period">Contact Sales</div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check check"></i> Everything in Professional</li>
+                        <li><i class="fas fa-check check"></i> White-label solution</li>
+                        <li><i class="fas fa-check check"></i> Advanced AI features</li>
+                        <li><i class="fas fa-check check"></i> Dedicated account manager</li>
+                        <li><i class="fas fa-check check"></i> Custom integrations</li>
+                        <li><i class="fas fa-check check"></i> Advanced security features</li>
+                        <li><i class="fas fa-check check"></i> 24/7 phone support</li>
+                    </ul>
+                    <a href="https://login.skreenit.com/registration" class="btn btn-outline-primary" style="width: 100%; display: inline-block;">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="about" id="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text animate-fadeInUp">
+                    <h2>Revolutionizing Recruitment with AI</h2>
+                    <p>Skreenit is at the forefront of recruitment technology, leveraging artificial intelligence and machine learning to transform how companies find and hire top talent.</p>
+                    <p>Our platform combines advanced algorithms with intuitive design to create a seamless experience for both recruiters and candidates, reducing time-to-hire while improving match quality.</p>
+                    <p>Founded by industry experts with decades of experience in HR technology and AI development, we're committed to making recruitment more efficient, fair, and effective for everyone.</p>
+                    <a href="https://portfolio.pskservices.co.in" target="_blank" class="btn btn-primary" style="margin-top: 1rem;">
+                        <i class="fas fa-external-link-alt me-2"></i> View Our Portfolio
+                    </a>
+                </div>
+                <div class="about-image animate-fadeInUp">
+                    <img src="./assets/assets/images/logobrand.png" alt="Skreenit Technology" class="animate-float" />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <div class="animate-fadeInUp">
+                <h2>Ready to Transform Your Hiring Process?</h2>
+                <p>Join thousands of companies and candidates who trust Skreenit for their recruitment needs. Start your free trial today and experience the future of hiring.</p>
+                <div class="hero-buttons" style="margin-bottom: 0;">
+                    <a href="https://login.skreenit.com/registration" class="btn btn-primary btn-large" style="background: white; color: var(--primary-color);">
+                        <i class="fas fa-rocket"></i> Start Free Trial
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Skreenit</h3>
+                    <p>AI-powered recruitment platform transforming how companies hire top talent. Streamline your hiring process with intelligent matching and automated screening.</p>
+                    <div style="margin-top: 1rem;">
+                        <img src="./assets/assets/images/logo.png" alt="Skreenit" class="footer-logo-clean">
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Services</h3>
+                    <p><a href="#services">AI-Powered Matching</a></p>
+                    <p><a href="#services">Video Screening</a></p>
+                    <p><a href="#services">Analytics Dashboard</a></p>
+                    <p><a href="#services">Talent Management</a></p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <p><a href="#about">About Us</a></p>
+                    <p><a href="https://portfolio.pskservices.co.in" target="_blank">Portfolio</a></p>
+                    <p><a href="#pricing">Pricing</a></p>
+                    <p><a href="#contact">Contact</a></p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <h4>Email Us</h4>
+                                <p>support@skreenit.com</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <div>
+                                <h4>Call Us</h4>
+                                <p>+91 4035730309</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <h4>Location</h4>
+                                <p>
+                                    <b>Corporate Office:</b><br>
+                                    BMG Group, Flat 304,<br>
+                                    New Bowenpally,<br>
+                                    Secunderabad, 500009, India
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Enquiry</h3>
+                    <form id="enquiryForm" class="contact-form">
+                        <div class="form-group">
+                            <input type="text" id="enquiryName" placeholder="Your Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="enquiryEmail" placeholder="Your Email" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="enquiryMessage" rows="3" placeholder="Your Message" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%;">
+                            <i class="fas fa-paper-plane me-2"></i> Send Enquiry
+                        </button>
+                    </form>
+                    <div id="enquirySuccess" style="display:none; margin-top:1rem; color:#10b981; font-weight:600;">
+                        Thank you! Your enquiry has been submitted.
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>
+                    &copy; 2024 Skreenit. Product of BMG Group and PSK Services. All rights reserved.
+                    <span style="margin: 0 10px; opacity: 0.5;">|</span>
+                    <a href="https://legal.skreenit.com/privacy-policy.html">Privacy Policy</a>
+                    <span style="margin: 0 10px; opacity: 0.5;">|</span>
+                    <a href="https://legal.skreenit.com/terms-conditions.html">Terms & Conditions</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+<script type="module">
+    import { CONFIG } from './assets/assets/js/config.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. DYNAMIC ROUTING LOGIC
+        const routeToLogin = () => window.location.href = CONFIG.PAGES.LOGIN;
+        const routeToRegister = () => window.location.href = CONFIG.PAGES.REGISTER; // Ensure this matches your config key
+        const routeToHRMS = () => alert("HRMS Features Coming Soon!"); // Placeholder for HRMS routing";
+        const routeToApp = () => alert("Mobile App coming to Play Store and App store soon!");
+
+        // Navigation Bar
+        document.getElementById('loginBtnNav')?.addEventListener('click', routeToLogin);
+        document.getElementById('registerBtnNav')?.addEventListener('click', routeToRegister);
+        document.getElementById('hrmsBtnNav')?.addEventListener('click', routeToHRMS);
+        document.getElementById('appBtnNav')?.addEventListener('click', routeToApp);
+        
+        // Hero & CTA Sections
+        document.getElementById('heroLoginBtn')?.addEventListener('click', routeToLogin);
+        document.getElementById('heroRegisterBtn')?.addEventListener('click', routeToRegister);
+        document.getElementById('ctaRegisterBtn')?.addEventListener('click', routeToRegister);
+
+        // 2. MOBILE MENU TOGGLE (Moved inside DOMContentLoaded)
+        const mobileToggle = document.querySelector('.mobile-menu-toggle');
+        const navMenu = document.querySelector('.nav-menu');
+        
+        if (mobileToggle && navMenu) {
+            mobileToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+            });
+        }
+
+        // 3. ENQUIRY FORM HANDLING (Moved inside DOMContentLoaded)
+        const enquiryForm = document.getElementById('enquiryForm');
+        const enquirySuccess = document.getElementById('enquirySuccess');
+        
+        if (enquiryForm) {
+            enquiryForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                enquiryForm.style.display = 'none';
+                enquirySuccess.style.display = 'block';
+                
+                setTimeout(() => {
+                    enquiryForm.reset();
+                    enquiryForm.style.display = 'block';
+                    enquirySuccess.style.display = 'none';
+                }, 5000);
+            });
+        }
+    });
+</script>
+</body>
+</html>

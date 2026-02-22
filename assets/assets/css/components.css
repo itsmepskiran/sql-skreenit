@@ -1,0 +1,502 @@
+/* =========================================
+   2. COMPONENTS.CSS - Reusable UI Elements
+   ========================================= */
+
+/* --- Buttons --- */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+    font-size: 0.95rem;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-primary {
+    background: var(--gradient-secondary);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+.btn-secondary:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+.btn-danger:hover { background: #c53030; }
+
+.btn-large { padding: 1rem 2rem; font-size: 1.1rem; }
+
+/* --- Forms (Merged from forms.css) --- */
+.form-group { margin-bottom: 1.5rem; }
+.form-group label {
+    display: block;
+    text-align: left;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.9rem;
+}
+.form-group input, .form-group select, .form-group textarea {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: var(--text-dark);
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Side-by-side inputs */
+.form-row { display: flex; gap: 1rem; }
+.form-row .form-group { flex: 1; }
+@media (max-width: 600px) { .form-row { flex-direction: column; gap: 0; } }
+
+/* Password Toggle */
+.input-group { position: relative; width: 100%; display: block;}
+.input-group input { padding-right: 2.5rem; }
+.toggle-password {
+    position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text-light); cursor: pointer;
+}
+
+/* --- Badges --- */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    display: inline-block;
+}
+.status-active, .status-interviewing, .status-hired { background: #dcfce7; color: #166534; }
+.status-pending, .status-applied { background: #fef3c7; color: #92400e; }
+.status-rejected { background: #fee2e2; color: #991b1b; }
+
+/* --- Modals (Generic) --- */
+.modal {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
+}
+.modal-content {
+    background-color: white; margin: 5% auto; border-radius: var(--radius-md);
+    width: 90%; max-width: 600px; padding: 2rem;
+    box-shadow: var(--shadow-xl); animation: fadeInUp 0.3s ease-out;
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
+
+/* --- Stepper (From special.css) --- */
+.stepper-wrapper { display: flex; justify-content: space-between; margin-bottom: 2rem; position: relative; }
+.stepper-wrapper::before {
+    content: ''; position: absolute; top: 15px; left: 0; width: 100%; height: 2px; background: var(--border-color); z-index: 0;
+}
+.step-item { position: relative; z-index: 1; text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; }
+.step-circle {
+    width: 32px; height: 32px; border-radius: 50%; background: white; border: 2px solid var(--border-color);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem; color: var(--text-light); font-weight: bold;
+}
+.step-item.active .step-circle { border-color: var(--primary-color); background: var(--primary-color); color: white; }
+.step-item.completed .step-circle { border-color: var(--secondary-color); background: var(--secondary-color); color: white; }
+
+/* --- Animations --- */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+.animate-fadeInUp { animation: fadeInUp 0.5s ease-out; }
+/* --- Multi-Step Form Progress & Uploads --- */
+.progress-container { max-width: 1100px; margin: 1rem auto; padding: 0 1rem; }
+.progress-bar { height: 6px; background: var(--border-color); border-radius: 999px; overflow: hidden; }
+.progress-fill { height: 6px; background: var(--gradient-primary); width: 0; transition: width 0.3s ease; }
+.progress-steps { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.step { display: flex; align-items: center; gap: 0.35rem; color: var(--text-light); font-size: 0.9rem;}
+.step.active { color: var(--text-dark); font-weight: 600; }
+
+.upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.file-upload { 
+    border: 2px dashed var(--border-color); 
+    border-radius: var(--radius-sm); 
+    padding: 1.5rem; 
+    text-align: center; 
+    color: var(--text-light); 
+    cursor: pointer; 
+    transition: all 0.3s; 
+}
+.file-upload:hover { 
+    border-color: var(--primary-color); 
+    background: rgba(79, 70, 229, 0.05); 
+}
+
+.form-navigation { display: flex; justify-content: space-between; gap: 0.5rem; margin: 2rem 0 1rem; }
+@media (max-width: 900px) { .upload-grid { grid-template-columns: 1fr; } }
+/* --- Notification Toasts --- */
+.notification-toast {
+    background: white;
+    border-left: 4px solid var(--primary-color);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    animation: slideInRight 0.3s ease forwards;
+    min-width: 250px;
+}
+.notification-toast.success { border-left-color: #10b981; }
+.notification-toast.success i { color: #10b981; }
+.notification-toast.error { border-left-color: #ef4444; }
+.notification-toast.error i { color: #ef4444; }
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+/* =========================================
+   Standard Data Cards (Injected by JS)
+   ========================================= */
+.card {
+    background: white;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--border-color, #e2e8f0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 1rem;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* =========================================
+   Standard Data Cards (Injected by JS)
+   ========================================= */
+.card {
+    background: white;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--border-color, #e2e8f0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+}
+
+.card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* =========================================
+   Modern Search Bar 
+   ========================================= */
+.search-container-modern {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.search-input-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 350px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+}
+/* Styling the actual input inside your existing wrapper */
+.search-input-wrapper input {
+    width: 100%;
+    padding: 12px 16px 12px 45px; /* Spacing for your .search-icon */
+    font-size: 0.95rem;
+    color: var(--text-dark, #1e293b);
+    background-color: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 10px; /* Matching your new job cards */
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Polished Focus State */
+.search-input-wrapper input:focus {
+    outline: none;
+    border-color: var(--primary-color, #4f46e5);
+    background-color: #ffffff;
+    /* Subtle brand glow */
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Active Icon Color */
+.search-input-wrapper:focus-within .search-icon {
+    color: var(--primary-color, #4f46e5);
+}
+
+/* Placeholder Styling */
+.search-input-wrapper input::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+}
+#jobSearchInput {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#jobSearchInput:focus {
+    border-color: var(--primary-color, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.btn-search {
+    background: var(--primary-color, #4f46e5);
+    color: white;
+    border: none;
+    padding: 0 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-search:hover {
+    background: var(--primary-hover, #4338ca);
+}
+
+/* =========================================
+   View All & Outline Buttons
+   ========================================= */
+.btn-outline-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-color, #4f46e5);
+    background: transparent;
+    border: 1.5px solid var(--primary-color, #4f46e5);
+    border-radius: 20px; /* Modern Pill Shape */
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-color, #4f46e5);
+    color: white;
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+}
+
+.btn-outline-primary i {
+    font-size: 0.75rem;
+    transition: transform 0.3s ease; /* Prepares the arrow for animation */
+}
+
+.btn-outline-primary:hover i {
+    transform: translateX(4px); /* Cute arrow slide effect on hover */
+}
+/* =========================================
+   Job Details Action Bar
+   ========================================= */
+.job-action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.btn-back-ghost {
+    color: var(--text-light, #64748b);
+    background: transparent;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-back-ghost:hover {
+    color: var(--primary-color, #4f46e5);
+    transform: translateX(-4px); /* Slides arrow left gracefully */
+}
+
+.btn-apply-massive {
+    background: var(--primary-color, #4f46e5);
+    color: white;
+    font-size: 1.05rem;
+    font-weight: 600;
+    padding: 12px 32px;
+    border-radius: 30px; /* Big elegant pill shape */
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-apply-massive:hover {
+    background: var(--primary-hover, #4338ca);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+}
+/* Premium Job Grid */
+.grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+/* Modern Card Styling */
+.job-card-premium {
+    background: white;
+    border-radius: var(--radius-lg, 12px);
+    border: 1px solid var(--border-color, #e2e8f0);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.job-card-premium:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color, #4f46e5);
+}
+
+.job-status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-active { background: #dcfce7; color: #166534; }
+.status-closed { background: #fee2e2; color: #991b1b; }
+.form-select-modern {
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    background-color: #ffffff;
+    font-size: 0.9rem;
+    color: var(--text-dark, #1e293b);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    min-width: 180px;
+}
+
+.form-select-modern:focus {
+    border-color: var(--primary-color, #4f46e5);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+.app-row-item:last-child {
+    border-bottom: none;
+}
+
+.app-row-item:hover {
+    background-color: #f8fafc;
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.app-grid-header div {
+    display: flex;
+    align-items: center;
+}

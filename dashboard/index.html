@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Skreenit Dashboard</title>
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+  <script type="module">
+    import { supabase } from '@shared/js/supabase-config.js';
+    import { redirectByRole } from '@shared/js/auth-pages.js';
+    import { CONFIG } from '@shared/js/config.js';
+
+    async function init() {
+       await redirectByRole();
+    }
+    init();
+  </script>
+</body>
+</html>

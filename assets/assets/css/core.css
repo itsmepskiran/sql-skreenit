@@ -1,0 +1,67 @@
+/* =========================================
+   1. CORE.CSS - Design Tokens & Base Styles
+   ========================================= */
+
+:root {
+    /* Brand Colors */
+    --primary-color: #4f46e5;
+    --primary-dark: #4338ca;
+    --primary-light: #6366f1;
+    --secondary-color: #10b981;
+    --accent-color: #f59e0b;
+    --danger-color: #e53e3e;
+    
+    /* Neutrals */
+    --dark-color: #1f2937;
+    --light-gray: #f8fafc;
+    --text-dark: #1f2937;
+    --text-light: #6b7280;
+    --border-color: #e2e8f0;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+}
+
+/* Reset & Base */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: var(--light-gray);
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+/* =========================================
+   UTILITY CLASSES (Replaces inline styles)
+   ========================================= */
+.w-100 { width: 100% !important; }
+.mt-1 { margin-top: 1rem !important; }
+.mt-2 { margin-top: 2rem !important; }
+.mb-1 { margin-bottom: 1rem !important; }
+.mb-2 { margin-bottom: 2rem !important; }
+.d-none { display: none !important; }
+.text-center { text-align: center !important; }
+.text-muted { color: var(--text-light) !important; }

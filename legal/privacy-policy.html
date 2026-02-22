@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Skreenit</title>
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      // Adjust path if your folder depth is different (Standard is usually ../assets)
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${assetsBase}/assets/css/${file}`; document.head.appendChild(link);
+      };
+      const icon = document.createElement('link'); icon.rel = 'icon'; icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; document.head.appendChild(icon);
+    })();
+  </script>
+</head>
+<body class="auth-page-body">
+  <div class="container">
+    <a href="https://login.skreenit.com/login.html" class="back-link">← Back to Login</a>
+    <h1>Privacy Policy</h1>
+    <p><em>Last Updated: January 19, 2024</em></p>
+
+    <h2>1. Introduction</h2>
+    <p>Welcome to Skreenit. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you about how we look after your personal data when you visit our website or use our services.</p>
+
+    <h2>2. Information We Collect</h2>
+    <p>We may collect, use, store, and transfer different kinds of personal data about you, including:</p>
+    <ul>
+      <li>Identity Data: Name, username, title, date of birth, and gender.</li>
+      <li>Contact Data: Email address, telephone numbers, and address.</li>
+      <li>Profile Data: Your username and password, preferences, feedback, and survey responses.</li>
+      <li>Usage Data: Information about how you use our website and services.</li>
+      <li>Technical Data: IP address, login data, browser type and version, time zone, and location.</li>
+    </ul>
+
+    <h2>3. How We Use Your Data</h2>
+    <p>We will only use your personal data for the purposes for which we collected it, including:</p>
+    <ul>
+      <li>To register you as a new customer</li>
+      <li>To provide and maintain our services</li>
+      <li>To manage our relationship with you</li>
+      <li>To improve our website and services</li>
+      <li>To administer and protect our business</li>
+    </ul>
+
+    <h2>4. Data Security</h2>
+    <p>We have implemented appropriate security measures to prevent your personal data from being accidentally lost, used, or accessed in an unauthorized way. We limit access to your personal data to those employees and other staff who have a business need to know.</p>
+
+    <h2>5. Your Legal Rights</h2>
+    <p>Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to:</p>
+    <ul>
+      <li>Request access to your personal data</li>
+      <li>Request correction of your personal data</li>
+      <li>Request erasure of your personal data</li>
+      <li>Object to processing of your personal data</li>
+      <li>Request restriction of processing your personal data</li>
+      <li>Request transfer of your personal data</li>
+      <li>Right to withdraw consent</li>
+    </ul>
+
+    <h2>6. Contact Us</h2>
+    <p>If you have any questions about this privacy policy or our privacy practices, please contact us at:</p>
+    <p>
+      <strong>Email:</strong> <a href="mailto:support@skreenit.com">support@skreenit.com</a><br>
+      <strong>Address:</strong> Plot No 20, Survey No 98, Ramalingaraju Nagar Colony, Near ORR, Muthangi, Hyderabad, Telangana 502300, India
+    </p>
+  </div>
+</body>
+</html>

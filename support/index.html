@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skreenit – Redirecting...</title>
+
+  <link rel="icon" type="image/x-icon" href="https://auth.skreenit.com/assets/images/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="https://auth.skreenit.com/assets/images/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="https://auth.skreenit.com/assets/images/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="https://auth.skreenit.com/assets/images/apple-touch-icon.png" />
+  <link rel="manifest" href="https://auth.skreenit.com/assets/images/site.webmanifest" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Inter, sans-serif;
+      background: #f9fafb;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+    }
+    .container {
+      text-align: center;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #ddd;
+      border-top-color: #0066ff;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .logo {
+      height: 40px;
+      margin-bottom: 16px;
+    }
+    .text {
+      font-size: 16px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <img src="https://auth.skreenit.com/assets/images/logo.png" class="logo" alt="Skreenit" />
+    <div class="spinner"></div>
+    <div class="text">Under Maintenance. Redirecting to login...</div>
+  </div>
+
+  <script>
+    // Fast redirect (no delay)
+    window.location.href = "https://login.skreenit.com/login.html";
+  </script>
+</body>
+</html>

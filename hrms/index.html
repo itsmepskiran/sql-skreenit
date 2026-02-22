@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS - Human Resource Management System | Skreenit</title>
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      // Adjust path if your folder depth is different (Standard is usually ../assets)
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${assetsBase}/assets/css/${file}`; document.head.appendChild(link);
+      };
+      const icon = document.createElement('link'); icon.rel = 'icon'; icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; document.head.appendChild(icon);
+    })();
+  </script>
+
+    <!-- Fonts and Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+  loadSharedCSS('core.css');     // Base typography
+  loadSharedCSS('branding.css'); // Premium background
+</script>
+</head>
+<body class="auth-page-body">
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <a href="../index.html" class="logo">
+                    <img src="../assets/assets/images/logo.png" alt="Skreenit">
+                    Skreenit HRMS
+                </a>
+                <div class="nav-buttons">
+                    <a href="../assets/login/login.html" class="btn btn-secondary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </a>
+                    <a href="#contact" class="btn btn-primary">
+                        <i class="fas fa-envelope"></i>
+                        Contact Sales
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Streamline Your HR Operations - Updated</h1>
+            <p>Transform your human resource management with our comprehensive HRMS solution. Automate processes, manage employees efficiently, and make data-driven decisions.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="#features" class="btn btn-primary" style="padding: 1rem 2rem;">
+                    <i class="fas fa-chart-line"></i>
+                    Explore Features
+                </a>
+                <a href="#contact" class="btn btn-secondary" style="padding: 1rem 2rem;">
+                    <i class="fas fa-headset"></i>
+                    Request Demo
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Add more sections here -->
+    
+</body>
+</html>

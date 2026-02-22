@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skreenit – Redirecting...</title>
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      // Adjust path if your folder depth is different (Standard is usually ../assets)
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${assetsBase}/assets/css/${file}`; document.head.appendChild(link);
+      };
+      const icon = document.createElement('link'); icon.rel = 'icon'; icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; document.head.appendChild(icon);
+    })();
+  </script>
+
+
+<script>
+  loadSharedCSS('core.css');     // Base typography
+  loadSharedCSS('branding.css'); // Premium background
+  loadSharedCSS('forms.css');    // Input and button states
+</script>
+</head>
+
+<body class="auth-page-body">
+  <div class="container">
+    <div id="logoContainer"></div>
+    <div class="spinner"></div>
+    <div class="text">Redirecting to recruiter dashboard...</div>
+  </div>
+
+  <script type="module">
+  import { supabase } from "@shared/js/supabase-config.js";
+  import { CONFIG } from "@shared/js/config.js";
+
+  // Set Logo
+  const isLocal = CONFIG.IS_LOCAL;
+  const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+  const logo = document.createElement('img');
+  logo.src = `${assetsBase}/assets/images/logo.png`;
+  logo.className = 'logo';
+  document.getElementById('logoContainer').appendChild(logo);
+
+  async function init() {
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error || !data?.user) {
+      window.location.href = CONFIG.PAGES.LOGIN;
+      return;
+    }
+
+    const user = data.user;
+    const role = user.user_metadata?.role;
+
+    if (role === "recruiter") {
+      window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+      return;
+    }
+    if (role === "candidate") {
+      window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; // or Applicant portal
+      return;
+    }
+
+    window.location.href = CONFIG.PAGES.LOGIN;
+  }
+
+  init();
+</script>
+</body>
+</html>

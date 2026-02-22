@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Skreenit Applicant</title>
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+    })();
+  </script>
+  <script>
+  loadSharedCSS('core.css');     // Base typography
+  loadSharedCSS('branding.css'); // Premium background
+  loadSharedCSS('forms.css');    // Input and button states
+</script>
+</head>
+<body class="auth-page-body">
+  <p>Redirecting...</p>
+  <script type="module">
+    import { supabase } from '@shared/js/supabase-config.js';
+    import { CONFIG } from '@shared/js/config.js';
+
+    async function init() {
+       const { data: { session } } = await supabase.auth.getSession();
+       
+       if (!session?.user) {
+           window.location.href = CONFIG.PAGES.LOGIN;
+           return;
+       }
+
+       if (session.user.user_metadata?.role !== 'candidate') {
+           window.location.href = CONFIG.PAGES.LOGIN;
+           return;
+       }
+
+       const onboarded = session.user.user_metadata?.onboarded;
+       if (onboarded && onboarded !== "false") {
+           window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
+       } else {
+           window.location.href = CONFIG.PAGES.APPLY_FORM;
+       }
+    }
+    init();
+  </script>
+</body>
+</html>

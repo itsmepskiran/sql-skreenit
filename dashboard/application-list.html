@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Received Applications – Skreenit</title>
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+  <script>
+    loadSharedCSS('core.css');   
+    loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css'); 
+    loadSharedCSS('special.css'); 
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+    <div class="dashboard-container">
+        
+        <nav class="sidebar">
+          <div class="sidebar-header">
+             <div class="logo">
+                <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+             </div>
+          </div>
+          <ul class="nav-menu">
+            <li class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
+            <li class="nav-item" id="navJobs"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+            <li class="nav-item active" id="navApplications"><i class="fas fa-users"></i><span>Applications</span></li>
+            <li class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
+          </ul>
+          
+          <div class="sidebar-footer">
+            <div class="user-info">
+              <div id="userAvatar" class="avatar-circle">
+                <i class="fas fa-user-tie"></i>
+              </div>
+              <div class="user-details">
+                 <span id="recruiterName" class="user-name">Loading...</span>
+                 <span id="companyId" class="user-role">---</span>
+              </div>
+            </div>
+            <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+          </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="dashboard-header" style="border-bottom: none; margin-bottom: 0;">
+                <button id="backBtn" class="btn-back-ghost">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </header>
+
+            <div class="dashboard-content">
+              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <h1 id="pageHeaderTitle" style="font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--text-dark);">Received Applications</h1>
+        
+                <div class="search-container-modern" style="display: flex; gap: 12px; align-items: center;">
+                  <div class="search-input-wrapper" style="max-width: 250px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="appSearch" placeholder="Search candidates...">
+                  </div>
+                  <select id="jobFilter" class="form-select-modern">
+                    <option value="all">All Jobs</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="selectionToolbar" style="display: none; background: #eff6ff; padding: 12px 20px; border-radius: 8px; margin-bottom: 1rem; align-items: center; gap: 15px; border: 1px solid #bfdbfe;">
+                <span id="selectedCount" style="font-weight: 600; color: #1e40af;">0 selected</span>
+                <button id="bulkRejectBtn" class="btn btn-secondary btn-sm" style="color: #ef4444; border-color: #fecaca; background: #fff5f5;">Reject Selected</button>
+                <button id="bulkInterviewBtn" class="btn btn-primary btn-sm">
+                  <i class="fas fa-video"></i> Schedule Video Interview
+                </button>
+              </div>
+
+              <div class="app-grid-header" style="display: grid; grid-template-columns: 40px 2.5fr 2fr 1.5fr 1.2fr 50px; padding: 12px 20px; background: #f8fafc; border-radius: 8px 8px 0 0; border: 1px solid #e2e8f0; font-weight: 700; font-size: 0.85rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                <div style="display: flex; align-items: center;"><input type="checkbox" id="selectAll"></div>
+                <div>Candidate</div>
+                <div>Applied For</div>
+                <div>Date</div>
+                <div>Status</div>
+                <div></div>
+              </div>
+
+              <div id="applicationListContainer" style="border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; background: white;">
+                <div class="loading-spinner"></div>
+              </div>
+            </div>
+          </main>
+    </div>
+<div class="custom-modal-backdrop" id="interviewModal">
+    <div class="custom-modal-card" style="max-width: 600px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-video text-primary me-2"></i> Set Interview Questions</h3>
+            <button onclick="document.getElementById('interviewModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        
+        <p class="text-muted mb-4">Add the questions you want the candidate to answer in their video response.</p>
+        
+        <div id="modalQuestionsContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 1.5rem;">
+            </div>
+        
+        <button id="addQuestionBtn" class="btn btn-outline-primary w-100 mb-4" style="border-style: dashed; background: #f8fafc;">
+            <i class="fas fa-plus"></i> Add Another Question
+        </button>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="document.getElementById('interviewModal').classList.remove('active')">Cancel</button>
+            <button id="confirmInterviewBtn" class="btn btn-primary">Save & Request Interview</button>
+        </div>
+    </div>
+</div>
+    <script type="module" src="js/application-list.js"></script>
+</body>
+</html>
