@@ -3,6 +3,17 @@ import { supabase } from '@shared/js/supabase-config.js';
 import { redirectByRole } from '@shared/js/auth-pages.js';
 import { CONFIG } from '@shared/js/config.js';
 
+const isLocal = CONFIG.IS_LOCAL;
+// Points to the root assets folder
+const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+
+// Update Logo
+const logoImg = document.getElementById('logoImg');
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+
+// Update Brand Logo (if you have an ID for it)
+const brandImg = document.getElementById('brandImg');
+if(brandImg) brandImg.src = `${assetsBase}/assets/images/logobrand.png`;
 // 1. Setup Dynamic Links (Images removed because HTML handles them now!)
 document.getElementById('homeLink').href = CONFIG.PAGES.INDEX;
 document.getElementById('registerLink').href = CONFIG.PAGES.REGISTER;
