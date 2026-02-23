@@ -163,6 +163,22 @@ async function handleRegistrationSubmit(event) {
 // ---------------------------------------------------------
 // ✅ ATTACH LISTENER
 // ---------------------------------------------------------
+function setupLinks() {
+    const links = {
+        loginLink: CONFIG.PAGES.LOGIN,
+        termsLink: CONFIG.PAGES.TERMS,
+        privacyLink: CONFIG.PAGES.PRIVACY,
+        homeLink: CONFIG.PAGES.INDEX
+    }
+
+    Object.entries(links).forEach(([id, href]) => {
+        const el = document.getElementById(id);
+        if (el && href) {
+            el.href = href};
+            if(id==='loginLink') el.remove(target);
+    })
+}
+document.addEventListener('DOMContentLoaded', () => setupLinks());
 const regForm = document.getElementById("registrationForm");
 if (regForm) {
     console.log("✅ Form listener attached.");
@@ -170,17 +186,3 @@ if (regForm) {
 } else {
     console.error("❌ form#registrationForm not found!");
 }
-
-function setupLinks() {
-    const loginLink = document.getElementById('loginLink');
-    const termsLink = document.getElementById('termsLink');
-    const privacyLink = document.getElementById('privacyLink');
-
-    // Dynamically set hrefs based on the detected environment
-    if (loginLink) loginLink.href = CONFIG.PAGES.LOGIN;
-    if (termsLink) termsLink.href = CONFIG.PAGES.TERMS;
-    if (privacyLink) privacyLink.href = CONFIG.PAGES.PRIVACY;
-}
-
-// Call this function inside your initialization block
-setupLinks();
