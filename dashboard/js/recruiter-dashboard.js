@@ -31,7 +31,7 @@ async function checkAuth() {
 
 function updateSidebarProfile(meta, email) {
     // 1. Update Name
-    const nameEl = document.getElementById('recruiterName');
+    const nameEl = document.getElementById('userName');
     if(nameEl) nameEl.textContent = meta.full_name || email.split('@')[0];
 
     // 2. Set default loading state (Just "Loading..." without prefixes)
@@ -50,7 +50,7 @@ async function updateUserInfo() {
     if (profile) {
         // Update Name if contact_name exists
         if (profile.contact_name) {
-            const el = document.getElementById('recruiterName');
+            const el = document.getElementById('userName');
             if (el) el.textContent = profile.contact_name;
         }
 
@@ -158,9 +158,9 @@ function renderApplications(apps) {
         } else if (status === 'interviewing') {
             displayStatus = 'Interviewing';
             badgeClass = "badge-interviewing";
-            actionButton = `<a href="application-details.html?id=${app.id}" class="btn btn-sm btn-outline-primary w-100 mt-2">Manage Interview</a>`;
+            actionButton = `<a href "${CONFIG.PAGES.APPLICATION_DETAILS}?id=${app.id}" class="btn btn-sm btn-outline-primary w-100 mt-2">Manage Interview</a>`;
         } else {
-            actionButton = `<a href="application-details.html?id=${app.id}" class="btn btn-sm btn-secondary w-100 mt-2">View Details</a>`;
+            actionButton = `<a href"${CONFIG.PAGES.APPLICATION_DETAILS}?id=${app.id}" class="btn btn-sm btn-secondary w-100 mt-2">View Details</a>`;
         }
 
         return `
