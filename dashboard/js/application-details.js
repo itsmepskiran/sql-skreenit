@@ -32,7 +32,7 @@ async function checkAuth() {
     
     if(!appId) {
         alert("Invalid Application ID");
-        window.location.href = `${window.location.origin}/dashboard/application-list.html`;
+        window.location.href = CONFIG.PAGES.APPLICATION_LIST;
         return;
     }
 
@@ -69,18 +69,18 @@ function setupNavigation() {
     const logoutBtn = document.getElementById('logoutBtn');
     const backBtn = document.getElementById('backBtn');
 
-    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = `${origin}/dashboard/recruiter-dashboard.html`);
-    if(navJobs) navJobs.addEventListener('click', () => window.location.href = `${origin}/dashboard/my-jobs.html`);
-    if(navApplications) navApplications.addEventListener('click', () => window.location.href = `${origin}/dashboard/application-list.html`);
-    if(navProfile) navProfile.addEventListener('click', () => window.location.href = `${origin}/recruiter/recruiter-profile.html`);
+    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER);
+    if(navJobs) navJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_JOBS);
+    if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
+    if(navProfile) navProfile.addEventListener('click', () => window.location.href = CONFIG.PAGES.RECRUITER_PROFILE);
     
     if(backBtn) {
         backBtn.addEventListener('click', () => {
             // Smart Redirect: Return to the filtered list if we have the job_id
             if(currentApplicationData && currentApplicationData.job_id) {
-                window.location.href = `application-list.html?job_id=${currentApplicationData.job_id}`;
+                window.location.href = CONFIG.PAGES.APPLICATION_LIST + `?job_id=${currentApplicationData.job_id}`;
             } else {
-                window.location.href = `application-list.html`;
+                window.location.href = CONFIG.PAGES.APPLICATION_LIST;
             }
         });
     }

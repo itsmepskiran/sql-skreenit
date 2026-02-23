@@ -71,11 +71,11 @@ function setupNavigation() {
     const logoutBtn = document.getElementById('logoutBtn');
     const postBtn = document.getElementById('postJobBtn');
 
-    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = `${origin}/dashboard/recruiter-dashboard.html`);
-    if(navJobs) navJobs.addEventListener('click', () => window.location.href = `${origin}/dashboard/my-jobs.html`);
-    if(navApplications) navApplications.addEventListener('click', () => window.location.href = `${origin}/dashboard/application-list.html`);
-    if(navProfile) navProfile.addEventListener('click', () => window.location.href = `${origin}/recruiter/recruiter-profile.html`);
-    if(postBtn) postBtn.addEventListener('click', () => window.location.href = `${origin}/recruiter/job-create.html`);
+    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER);
+    if(navJobs) navJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY-JOBS);
+    if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
+    if(navProfile) navProfile.addEventListener('click', () => window.location.href = CONFIG.PAGES.RECRUITER_PROFILE);
+    if(postBtn) postBtn.addEventListener('click', () => window.location.href = CONFIG.PAGES.JOB_CREATE);
 
     if(logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
@@ -137,7 +137,7 @@ function renderJobs(jobs) {
             <div style="grid-column: 1/-1; text-align: center; padding: 4rem; background: white; border-radius: 12px; border: 2px dashed #e2e8f0;">
                 <i class="fas fa-briefcase fa-3x" style="color: #cbd5e0; margin-bottom: 1rem;"></i>
                 <p class="text-muted">You haven't posted any jobs yet.</p>
-                <button class="btn btn-primary" onclick="window.location.href='job-create.html'" style="margin-top:1rem;">Post Your First Job</button>
+                <button class="btn btn-primary" onclick="window.location.href='${CONFIG.PAGES.JOB_CREATE}'" style="margin-top:1rem;">Post Your First Job</button>
             </div>`;
         return;
     }
@@ -162,12 +162,12 @@ function renderJobs(jobs) {
             </p>
 
             <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.75rem;">
-                <a href="../dashboard/application-list.html?job_id=${job.id}" class="btn btn-primary w-100" style="text-align: center; justify-content: center;">
+                <a href="${CONFIG.PAGES.APPLICATION_LIST}?job_id=${job.id}" class="btn btn-primary w-100" style="text-align: center; justify-content: center;">
                     <i class="fas fa-users me-2"></i> View Applicants
                 </a>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                    <a href="job-edit.html?job_id=${job.id}" class="btn btn-secondary w-100" style="text-align: center; justify-content: center; font-size: 0.85rem;">
+                    <a href="${CONFIG.PAGES.JOB_EDIT}?job_id=${job.id}" class="btn btn-secondary w-100" style="text-align: center; justify-content: center; font-size: 0.85rem;">
                         <i class="fas fa-edit me-1"></i> Edit
                     </a>
                     <button onclick="deleteJob('${job.id}')" class="btn btn-secondary w-100" style="text-align: center; justify-content: center; font-size: 0.85rem; color: #ef4444; border-color: #fee2e2;">

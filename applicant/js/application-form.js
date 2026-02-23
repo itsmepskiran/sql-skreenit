@@ -203,14 +203,14 @@ function setupEventListeners() {
     if(form) form.addEventListener('submit', handleFormSubmit);
     
     if(logoutBtn) logoutBtn.addEventListener('click', async () => { await supabase.auth.signOut(); window.location.href = CONFIG.PAGES.LOGIN; });
-    if(goToDashboardBtn) goToDashboardBtn.addEventListener('click', () => { window.location.href = `${origin}/dashboard/candidate-dashboard.html`; });
+    if(goToDashboardBtn) goToDashboardBtn.addEventListener('click', () => { window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; });
     
     document.querySelectorAll('.nav-item').forEach(item => { 
         item.addEventListener('click', () => { 
             const text = item.textContent.trim().toLowerCase();
-            if(text.includes('dashboard')) window.location.href = `${origin}/dashboard/candidate-dashboard.html`; 
-            if(text.includes('applications')) window.location.href = `${origin}/applicant/my-applications.html`; 
-            if(text.includes('profile')) window.location.href = `${origin}/applicant/detailed-application-form.html`; 
+            if(text.includes('dashboard')) window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; 
+            if(text.includes('applications')) window.location.href = CONFIG.PAGES.MY_APPLICATIONS; 
+            if(text.includes('profile')) window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; 
         }); 
     });
 }

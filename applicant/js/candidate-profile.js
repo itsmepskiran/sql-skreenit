@@ -195,17 +195,17 @@ function setupNavigation() {
 
     const editBtn = document.getElementById("editProfileBtn");
     if(editBtn) editBtn.addEventListener("click", () => {
-        window.location.href = `${origin}/applicant/detailed-application-form.html`;
+        window.location.href = CONFIG.PAGES.APPLY_FORM;
     });
 
     const navDash = document.getElementById("navDashboard");
     if(navDash) navDash.addEventListener("click", () => {
-        window.location.href = `${origin}/dashboard/candidate-dashboard.html`;
+        window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
     });
 
     const navApps = document.getElementById("navApplications");
     if(navApps) navApps.addEventListener("click", () => {
-        window.location.href = `${origin}/applicant/my-applications.html`; 
+        window.location.href = CONFIG.PAGES.MY_APPLICATIONS; 
     });
 
     const logoutBtn = document.getElementById("logoutBtn");

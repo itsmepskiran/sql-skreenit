@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     if (!applicationId) { 
         alert("Invalid Interview Link."); 
-        window.location.href = `${window.location.origin}/dashboard/candidate-dashboard.html`; 
+        window.location.href = CONFIG.PAGES.CANDIDATE_DASHBOARD; 
         return; 
     }
 

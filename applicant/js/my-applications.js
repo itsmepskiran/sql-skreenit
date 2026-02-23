@@ -217,17 +217,17 @@ function setupNavigation() {
     // Absolute Paths for Sidebar
     if (navDashboard) {
         navDashboard.addEventListener('click', () => {
-            window.location.href = `${origin}/dashboard/candidate-dashboard.html`;
+            window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
         });
     }
     if (navProfile) {
         navProfile.addEventListener('click', () => {
-            window.location.href = `${origin}/applicant/candidate-profile.html`;
+            window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
         });
     }
     if (navApplications) {
         navApplications.addEventListener('click', () => {
-            window.location.href = `${origin}/applicant/my-applications.html`;
+            window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
         });
     }
 

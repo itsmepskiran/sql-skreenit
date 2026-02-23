@@ -82,13 +82,13 @@ function setupEventListeners() {
 
     // --- BANNER CLICK EVENTS ---
     const btnJobs = document.getElementById('btnActiveJobs');
-    if(btnJobs) btnJobs.addEventListener('click', () => window.location.href = 'my-jobs.html');
+    if(btnJobs) btnJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_JOBS);
 
     const btnCands = document.getElementById('btnCandidates');
-    if(btnCands) btnCands.addEventListener('click', () => window.location.href = 'application-list.html');
+    if(btnCands) btnCands.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
 
     const btnApps = document.getElementById('btnNewApps');
-    if(btnApps) btnApps.addEventListener('click', () => window.location.href = 'application-list.html');
+    if(btnApps) btnApps.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS);
 }
 
 async function loadDashboardData(userId) {
@@ -236,7 +236,7 @@ function renderJobs(jobs) {
     }
     
     list.innerHTML = jobs.map(job => `
-        <div class="card" onclick="window.location.href='job-details.html?job_id=${job.id}'" style="cursor:pointer;">
+        <div class="card" onclick="window.location.href=${CONFIG.PAGES.JOB_DETAILS}?job_id=${job.id}'" style="cursor:pointer;">
             <div class="card-body">
                 <h4 style="margin:0 0 4px 0; font-size:1.1rem; color: var(--text-dark, #1e293b);">${job.title}</h4>
                 <p class="text-muted" style="margin:0 0 12px 0; font-size:0.9rem;">

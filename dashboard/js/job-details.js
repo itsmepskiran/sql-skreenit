@@ -21,7 +21,7 @@ async function init() {
 
     if (!jobId || jobId === "null" || jobId === "undefined") { 
         alert("Invalid Job Link. Returning to Dashboard."); 
-        window.location.href = "candidate-dashboard.html"; 
+        window.location.href = CONFIG.PAGES.CANDIDATE_DASHBOARD; 
         return; 
     }
 
@@ -212,9 +212,9 @@ function setupNavigation() {
     const navApplications = document.getElementById("navApplications"); 
     const logoutBtn = document.getElementById("logoutBtn");
 
-    if (navDashboard) navDashboard.onclick = () => window.location.href = "candidate-dashboard.html";
-    if (navProfile) navProfile.onclick = () => window.location.href = "../applicant/candidate-profile.html";
-    if (navApplications) navApplications.onclick = () => window.location.href = "../applicant/my-applications.html";
+    if (navDashboard) navDashboard.onclick = () => window.location.href = CONFIG.PAGES.CANDIDATE_DASHBOARD;
+    if (navProfile) navProfile.onclick = () => window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
+    if (navApplications) navApplications.onclick = () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
 
     if (logoutBtn) {
         logoutBtn.onclick = async () => {

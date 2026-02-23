@@ -53,10 +53,10 @@ function setupEventListeners() {
     const origin = window.location.origin;
 
     // Navigation
-    document.getElementById('navDashboard')?.addEventListener('click', () => window.location.href = `${origin}/dashboard/recruiter-dashboard.html`);
-    document.getElementById('navJobs')?.addEventListener('click', () => window.location.href = `${origin}/dashboard/my-jobs.html`);
-    document.getElementById('navApplications')?.addEventListener('click', () => window.location.href = `${origin}/dashboard/application-list.html`);
-    document.getElementById('navProfile')?.addEventListener('click', () => window.location.href = `${origin}/recruiter/recruiter-profile.html`);
+    document.getElementById('navDashboard')?.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER);
+    document.getElementById('navJobs')?.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_JOBS);
+    document.getElementById('navApplications')?.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
+    document.getElementById('navProfile')?.addEventListener('click', () => window.location.href = CONFIG.PAGES.RECRUITER_PROFILE);
     document.getElementById('backBtn')?.addEventListener("click", () => window.history.back());
 
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {

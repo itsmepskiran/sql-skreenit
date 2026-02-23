@@ -286,13 +286,13 @@ function setupEventListeners() {
     const origin = window.location.origin;
     // 1. Sidebar Navigation
     if (navApplications) {
-        navApplications.onclick = () => window.location.href = `${origin}/applicant/my-applications.html`;
+        navApplications.onclick = () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
     }
     if (navProfile) {
-        navProfile.onclick = () => window.location.href = `${origin}/applicant/candidate-profile.html`;
+        navProfile.onclick = () => window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
     }
     if (navDashboard) {
-        navDashboard.onclick = () => window.location.href = `${origin}/dashboard/candidate-dashboard.html`;
+        navDashboard.onclick = () => window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
     }
 
     // FIXED: Added Logout functionality
@@ -307,7 +307,7 @@ function setupEventListeners() {
     const appsSentCard = document.getElementById('applicationsSentCard');
     if (appsSentCard) {
         appsSentCard.style.cursor = 'pointer';
-        appsSentCard.onclick = () => window.location.href = `${origin}/applicant/my-applications.html`;
+        appsSentCard.onclick = () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
     }
 
     // 3. Search Functionality (FIXED ID mismatches)

@@ -74,7 +74,7 @@ async function initJobEditForm() {
   const jobId = getJobId();
   if (!jobId) { 
       alert("No Job ID found."); 
-      window.location.href = `${window.location.origin}/dashboard/recruiter-dashboard.html`; 
+      window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`; 
       return; 
   }
 
@@ -143,7 +143,7 @@ async function initJobEditForm() {
         btn.style.borderColor = '#10b981';
 
         setTimeout(() => {
-            window.location.href = `${window.location.origin}/dashboard/recruiter-dashboard.html`;
+            window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`;
         }, 1000);
 
     } catch (err) { 
@@ -164,7 +164,7 @@ async function initJobEditForm() {
         try {
             const res = await backendDelete(`/recruiter/jobs/${jobId}`);
             await handleResponse(res);
-            window.location.href = `${window.location.origin}/dashboard/recruiter-dashboard.html`;
+            window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`;
         } catch(err) { 
             alert(`Delete failed: ${err.message}`); 
             deleteBtn.innerHTML = originalText;
@@ -183,15 +183,15 @@ function setupNavigation() {
     const logoutBtn = document.getElementById('logoutBtn');
     const backBtn = document.getElementById("backBtn");
 
-    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = `${origin}/dashboard/recruiter-dashboard.html`);
-    if(navJobs) navJobs.addEventListener('click', () => window.location.href = `${origin}/dashboard/my-jobs.html`);
-    if(navApplications) navApplications.addEventListener('click', () => window.location.href = `${origin}/dashboard/application-list.html`);
-    if(navProfile) navProfile.addEventListener('click', () => window.location.href = `${origin}/recruiter/recruiter-profile.html`);
+    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`);
+    if(navJobs) navJobs.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.MY_JOBS}`);
+    if(navApplications) navApplications.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.APPLICATION_LIST}`);
+    if(navProfile) navProfile.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.RECRUITER_PROFILE}`);
     
     if(backBtn) {
         backBtn.addEventListener("click", () => {
             if (confirm("Changes made will be lost. Are you sure you want to leave?")) {
-                window.location.href = `${origin}/dashboard/recruiter-dashboard.html`;
+                window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`;
             }
         });
     }
