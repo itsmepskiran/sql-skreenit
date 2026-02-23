@@ -170,3 +170,17 @@ if (regForm) {
 } else {
     console.error("❌ form#registrationForm not found!");
 }
+
+function setupLinks() {
+    const loginLink = document.getElementById('loginLink');
+    const termsLink = document.getElementById('termsLink');
+    const privacyLink = document.getElementById('privacyLink');
+
+    // Dynamically set hrefs based on the detected environment
+    if (loginLink) loginLink.href = CONFIG.PAGES.LOGIN;
+    if (termsLink) termsLink.href = CONFIG.PAGES.TERMS;
+    if (privacyLink) privacyLink.href = CONFIG.PAGES.PRIVACY;
+}
+
+// Call this function inside your initialization block
+setupLinks();
