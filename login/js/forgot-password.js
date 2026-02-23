@@ -49,7 +49,7 @@ form.addEventListener("submit", async (e) => {
         btnLoader.classList.remove("d-none");
 
         // ✅ DYNAMIC REDIRECT LINK
-        const redirectUrl = window.location.origin + CONFIG.PAGES.UPDATE_PASSWORD;
+        const redirectUrl = window.location.origin + CONFIG.PAGES.UPDATE_PASSWORD + CONFIG.PAGES.UPDATE_PASSWORD;
 
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: redirectUrl

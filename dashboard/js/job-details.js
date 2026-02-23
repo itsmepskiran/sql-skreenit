@@ -68,7 +68,7 @@ async function init() {
                     <h3 class="text-dark fw-bold">Job Not Found</h3>
                     <p class="text-muted">Could not load job details. (ID: ${jobId})</p>
                     <p class="small text-muted mb-4">Error: ${err.message}</p>
-                    <button onclick="window.history.back()" class="btn btn-primary px-4 py-2">Return to Dashboard</button>
+                    <button onclick="window.history.href=${CONFIG.PAGES.DASHBOARD_CANDIDATE}" class="btn btn-primary px-4 py-2">Return to Dashboard</button>
                 </div>
             </div>`;
     }

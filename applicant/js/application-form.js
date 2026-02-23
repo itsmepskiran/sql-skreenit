@@ -210,7 +210,7 @@ function setupEventListeners() {
             const text = item.textContent.trim().toLowerCase();
             if(text.includes('dashboard')) window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; 
             if(text.includes('applications')) window.location.href = CONFIG.PAGES.MY_APPLICATIONS; 
-            if(text.includes('profile')) window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; 
+            if(text.includes('profile')) window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE; 
         }); 
     });
 }

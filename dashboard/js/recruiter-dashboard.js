@@ -88,7 +88,7 @@ function setupEventListeners() {
     if(btnCands) btnCands.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
 
     const btnApps = document.getElementById('btnNewApps');
-    if(btnApps) btnApps.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS);
+    if(btnApps) btnApps.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.APPLICATION_LIST}?status=pending`);
 }
 
 async function loadDashboardData(userId) {

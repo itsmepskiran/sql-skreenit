@@ -267,10 +267,10 @@ function setupControls() {
         'startInterviewBtn': startInterview,
         'exitBtn': () => {
             if (stream) stream.getTracks().forEach(track => track.stop());
-            window.location.href = dashPath;
+            window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
         },
         'backToDashBtn': () => {
-            window.location.href = dashPath;
+            window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
         }
     };
     
