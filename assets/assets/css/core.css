@@ -65,3 +65,18 @@ h1, h2, h3, h4, h5, h6 {
 .d-none { display: none !important; }
 .text-center { text-align: center !important; }
 .text-muted { color: var(--text-light) !important; }
+/* Add this to the bottom of Skreenit-V.0/assets/assets/css/core.css */
+
+@media (max-width: 640px) {
+    body {
+        font-size: 14px; /* Reduces base size from 16px */
+        line-height: 1.5;
+    }
+
+    h1 { font-size: 1.5rem !important; }
+    h2 { font-size: 1.25rem !important; }
+    h3 { font-size: 1.1rem !important; }
+    h4 { font-size: 1rem !important; }
+    h5 { font-size: 0.875rem !important; }
+    h6 { font-size: 0.75rem !important; }
+}

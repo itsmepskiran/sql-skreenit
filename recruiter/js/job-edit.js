@@ -1,11 +1,12 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendGet, backendPut, backendDelete, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
+import '@shared/js/mobile.js';
 
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 document.addEventListener("DOMContentLoaded", async () => {
     await checkAuth();
@@ -19,13 +20,11 @@ async function checkAuth() {
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
     }
-    
     const user = session.user;
     if ((user.user_metadata?.role || '').toLowerCase() !== 'recruiter') {
         window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; 
         return;
     }
-
     updateSidebarProfile(user.user_metadata, user.email);
     updateUserInfo(); 
 }
@@ -33,9 +32,7 @@ async function checkAuth() {
 function updateSidebarProfile(meta, email) {
     const nameEl = document.getElementById('recruiterName');
     const avatarEl = document.getElementById('userAvatar'); 
-    
     if(nameEl) nameEl.textContent = meta.full_name || meta.contact_name || email.split('@')[0];
-    
     if(avatarEl) {
         if (meta.avatar_url) {
             avatarEl.innerHTML = `<img src="${meta.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
@@ -52,7 +49,6 @@ async function updateUserInfo() {
         const res = await backendGet('/recruiter/profile');
         const data = await handleResponse(res);
         const profile = data.data || data; 
-        
         if (profile) {
             if (profile.contact_name) {
                 const el = document.getElementById('recruiterName');
@@ -63,110 +59,115 @@ async function updateUserInfo() {
                 if (companyIdEl) companyIdEl.textContent = profile.company_id || profile.company_name;
             }
         }
-    } catch (error) { 
-        // Silent fail
+    } catch (error) { /* silent fail */ }
+}
+
+async function initJobEditForm() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const jobId = urlParams.get('job_id');
+
+    if (!jobId) {
+        alert("No Job ID provided.");
+        window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+        return;
+    }
+
+    try {
+        const res = await backendGet(`/recruiter/jobs/${jobId}`);
+        const result = await handleResponse(res);
+        const job = result.data || result;
+
+        // Populate fields
+        document.getElementById("job_title").value = job.title || "";
+        document.getElementById("job_location").value = job.location || "";
+        document.getElementById("job_type").value = job.job_type || "";
+        document.getElementById("job_description").value = job.description || "";
+        document.getElementById("requirements").value = job.requirements || "";
+
+        // ✅ THE FIX: Pre-select the salary range dropdown
+        const salarySelect = document.getElementById("salary_range");
+        if (salarySelect) {
+            const min = job.salary_min;
+            const max = job.salary_max === null ? 0 : job.salary_max;
+            if (min !== null) {
+                salarySelect.value = `${min}-${max}`;
+            }
+        }
+
+        const editForm = document.getElementById("editJobForm");
+        if(editForm) editForm.addEventListener("submit", (e) => handleJobUpdate(e, jobId));
+
+        setupDeleteButton(jobId);
+
+    } catch (error) {
+        console.error("Load job error:", error);
+        alert("Failed to load job details.");
     }
 }
 
-function getJobId() { return new URLSearchParams(window.location.search).get("job_id"); }
-
-async function initJobEditForm() {
-  const jobId = getJobId();
-  if (!jobId) { 
-      alert("No Job ID found."); 
-      window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`; 
-      return; 
-  }
-
+async function handleJobUpdate(event, jobId) {
+  event.preventDefault();
+  const submitBtn = event.target.querySelector("button[type='submit']");
+  const originalText = submitBtn.innerHTML;
+  
   try {
-    const res = await backendGet(`/recruiter/jobs/${jobId}`);
-    const data = await handleResponse(res);
-    const job = data.data || data; 
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...';
 
-    if (job) {
-        document.getElementById("job_title").value = job.title || "";
-        document.getElementById("job_location").value = job.location || "";
-        if(job.job_type) document.getElementById("job_type").value = job.job_type.toLowerCase();
+    const title = document.getElementById("job_title").value.trim();
+    const location = document.getElementById("job_location").value.trim();
+    const job_type = document.getElementById("job_type").value;
+    const salary_range = document.getElementById("salary_range").value;
+    const description = document.getElementById("job_description").value.trim();
+    const requirements = document.getElementById("requirements").value.trim();
 
-        let salaryStr = "";
-        if (job.salary_min !== null) {
-            salaryStr = `${job.salary_min}`;
-            if (job.salary_max !== null) salaryStr += ` - ${job.salary_max}`;
-        }
-        document.getElementById("salary_range").value = salaryStr;
-        document.getElementById("job_description").value = job.description || "";
-        document.getElementById("requirements").value = job.requirements || "";
-    }
-  } catch (err) { 
-      console.error("Error loading job:", err); 
-      alert("Could not load job details."); 
-  }
-
-  const form = document.getElementById("editJobForm");
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const salaryInput = document.getElementById("salary_range").value.trim();
+    // ✅ THE FIX: Correctly parse salary from dropdown
     let salary_min = null;
     let salary_max = null;
-
-    if (salaryInput) {
-        const parts = salaryInput.split('-').map(s => s.trim());
-        if(parts.length >= 2) {
-             const min = parseInt(parts[0]); const max = parseInt(parts[1]);
-             if (!isNaN(min)) salary_min = min; if (!isNaN(max)) salary_max = max;
-             if (salary_max === 0) salary_max = null; 
-        } else if (parts.length === 1 && !isNaN(parseInt(parts[0]))) { 
-            salary_min = parseInt(parts[0]); 
-        }
+    if (salary_range) {
+        const parts = salary_range.split('-');
+        salary_min = parseInt(parts[0]) || null;
+        salary_max = parseInt(parts[1]) || null;
+        if (salary_max === 0) salary_max = null; 
     }
 
     const payload = {
-      title: document.getElementById("job_title").value.trim(),
-      location: document.getElementById("job_location").value.trim(),
-      job_type: document.getElementById("job_type").value,
-      salary_min, salary_max,
-      description: document.getElementById("job_description").value.trim(),
-      requirements: document.getElementById("requirements").value.trim()
+      title, location, job_type, salary_min, salary_max, description, requirements, status: 'active'
     };
 
-    const btn = form.querySelector("button[type='submit']");
-    const originalText = btn.innerHTML; 
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...'; 
-    btn.disabled = true;
+    const response = await backendPut(`/recruiter/jobs/${jobId}`, payload);
+    await handleResponse(response);
 
-    try {
-        const res = await backendPut(`/recruiter/jobs/${jobId}`, payload);
-        await handleResponse(res);
-        
-        btn.innerHTML = '<i class="fas fa-check"></i> Updated!';
-        btn.style.backgroundColor = '#10b981';
-        btn.style.borderColor = '#10b981';
+    submitBtn.innerHTML = '<i class="fas fa-check"></i> Updated!';
+    setTimeout(() => {
+        window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+    }, 1000);
 
-        setTimeout(() => {
-            window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`;
-        }, 1000);
+  } catch (error) {
+    alert(`Update failed: ${error.message}`);
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+  }
+}
 
-    } catch (err) { 
-        alert(`Update failed: ${err.message}`); 
-        btn.innerHTML = originalText; 
-        btn.disabled = false;
-    } 
-  });
-
+function setupDeleteButton(jobId) {
   const deleteBtn = document.getElementById("deleteJobBtn");
-  if(deleteBtn) {
+  if (deleteBtn) {
       deleteBtn.addEventListener("click", async () => {
-        if(!confirm("Are you sure? This cannot be undone.")) return;
+        if (!confirm("Are you sure you want to delete this job listing? This cannot be undone.")) return;
         
         const originalText = deleteBtn.innerHTML;
-        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
         try {
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            
             const res = await backendDelete(`/recruiter/jobs/${jobId}`);
             await handleResponse(res);
-            window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`;
-        } catch(err) { 
+            
+            window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+        } catch (err) {
             alert(`Delete failed: ${err.message}`); 
+            deleteBtn.disabled = false;
             deleteBtn.innerHTML = originalText;
         }
       });
@@ -174,32 +175,19 @@ async function initJobEditForm() {
 }
 
 function setupNavigation() {
-    const origin = window.location.origin;
-
-    const navDashboard = document.getElementById('navDashboard');
-    const navJobs = document.getElementById('navJobs');
-    const navApplications = document.getElementById('navApplications');
-    const navProfile = document.getElementById('navProfile');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const backBtn = document.getElementById("backBtn");
-
-    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`);
-    if(navJobs) navJobs.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.MY_JOBS}`);
-    if(navApplications) navApplications.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.APPLICATION_LIST}`);
-    if(navProfile) navProfile.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.RECRUITER_PROFILE}`);
+    document.getElementById('navDashboard')?.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER);
+    document.getElementById('navJobs')?.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_JOBS);
+    document.getElementById('navApplications')?.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
+    document.getElementById('navProfile')?.addEventListener('click', () => window.location.href = CONFIG.PAGES.RECRUITER_PROFILE);
     
-    if(backBtn) {
-        backBtn.addEventListener("click", () => {
-            if (confirm("Changes made will be lost. Are you sure you want to leave?")) {
-                window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`;
-            }
-        });
-    }
+    document.getElementById("backBtn")?.addEventListener("click", () => {
+        if (confirm("Changes made will be lost. Are you sure you want to leave?")) {
+            window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+        }
+    });
 
-    if(logoutBtn) {
-        logoutBtn.addEventListener("click", async () => {
-            await supabase.auth.signOut();
-            window.location.href = CONFIG.PAGES.LOGIN;
-        });
-    }
+    document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        window.location.href = CONFIG.PAGES.LOGIN;
+    });
 }

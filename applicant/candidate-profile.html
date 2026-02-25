@@ -32,7 +32,8 @@
     loadSharedCSS('core.css');   
     loadSharedCSS('layout.css'); 
     loadSharedCSS('components.css');  
-    loadSharedCSS('special.css'); 
+    loadSharedCSS('special.css');
+    loadSharedCSS('mobile.css');
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -72,7 +73,10 @@
       <div class="dashboard-content">
         
         <div class="profile-card">
-            <div class="profile-avatar" id="viewAvatar">?</div>
+            <div class="profile-avatar" id="viewAvatar" style="position: relative; overflow: hidden;">
+                <span id="avatarInitials">?</span>
+                <img id="profileImage" src="" alt="Profile" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; position: absolute; top: 0; left: 0;">
+            </div>
             <div class="profile-info">
                 <h2 class="profile-name" id="viewName">Loading Name...</h2>
                 <div class="profile-role" id="viewRole">Candidate / Role</div>
@@ -86,6 +90,50 @@
         </div>
 
         <div class="profile-grid">
+            <!-- Introduction Video Section -->
+            <div class="profile-section" id="introVideoSection" style="grid-column: 1 / -1; margin-bottom: 1.5rem;">
+                <h3><i class="fas fa-video"></i> Introduction Video</h3>
+                <div id="videoContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Video Player (shown when video exists) -->
+                    <div id="videoPlayer" style="display: none; position: relative; width: 100%; max-width: 600px;">
+                        <video id="introVideoElement" controls style="width: 100%; border-radius: 12px; box-shadow: var(--shadow-md);">
+                            <source src="" type="video/webm">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem;">
+                            <button id="replaceVideoBtn" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-upload"></i> Replace Video
+                            </button>
+                            <button id="deleteVideoBtn" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Area (shown when no video) -->
+                    <div id="videoUploadArea" style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 2rem; text-align: center; background: #f8fafc;">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                        <h4 style="margin-bottom: 0.5rem; color: var(--text-dark);">Upload Introduction Video</h4>
+                        <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.9rem;">
+                            Introduce yourself in 60-90 seconds. WebM, MP4 format (Max 50MB)
+                        </p>
+                        <input type="file" id="introVideoFile" accept="video/webm,video/mp4" hidden />
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('introVideoFile').click()">
+                            <i class="fas fa-plus"></i> Choose Video File
+                        </button>
+                        <p id="videoFileName" class="mt-2" style="font-size: 0.85rem; color: var(--text-light);"></p>
+                    </div>
+                    
+                    <!-- Upload Progress -->
+                    <div id="videoUploadProgress" style="display: none;">
+                        <div style="background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                            <div id="videoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                        <p id="videoProgressText" class="mt-1" style="font-size: 0.85rem; color: var(--text-light); text-align: center;">Uploading... 0%</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="profile-section">
                 <h3><i class="fas fa-briefcase"></i> Experience</h3>
                 <div id="viewExperienceList">
@@ -173,6 +221,77 @@
         
     </div>
 </div>
+
+<!-- Inline Video Recorder Modal -->
+<div class="custom-modal-backdrop" id="videoRecorderModal">
+    <div class="custom-modal-card" style="max-width: 700px; width: 95%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;">
+                <i class="fas fa-video text-primary" style="margin-right: 10px;"></i> 
+                Record Introduction Video
+            </h3>
+            <button id="closeVideoRecorderBtn" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 1.2rem; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                &times;
+            </button>
+        </div>
+        
+        <p style="color: #666; margin-bottom: 1rem; font-size: 0.9rem;">
+            Introduce yourself in 60-90 seconds. Mention your name, experience, and what you're looking for!
+        </p>
+        
+        <!-- Camera Preview -->
+        <div style="position: relative; background: #1a1a1a; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
+            <video id="inlineRecorderVideo" autoplay muted playsinline style="width: 100%; max-height: 350px; display: block;"></video>
+            <div id="inlineRecordingIndicator" style="display: none; position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 5px;"></i> REC
+            </div>
+            <div id="inlineRecordingTimer" style="display: none; position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 8px; font-size: 1rem; font-weight: 600;">
+                00:00 / 01:30
+            </div>
+        </div>
+        
+        <!-- Preview after recording -->
+        <div id="inlineRecordingPreview" style="display: none; margin-bottom: 1rem;">
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Preview your recording:</p>
+            <video id="inlinePreviewVideo" controls style="width: 100%; max-height: 300px; border-radius: 8px;"></video>
+        </div>
+        
+        <!-- Recording Controls -->
+        <div id="inlineRecordingControls" style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-primary" id="inlineStartRecordBtn" style="background: #ef4444; border-color: #ef4444;">
+                <i class="fas fa-circle"></i> Start Recording
+            </button>
+            <button class="btn btn-secondary" id="inlineStopRecordBtn" style="display: none;">
+                <i class="fas fa-stop"></i> Stop Recording
+            </button>
+            <button class="btn btn-outline" id="inlineRetakeBtn" style="display: none;">
+                <i class="fas fa-redo"></i> Retake
+            </button>
+            <button class="btn btn-primary" id="inlineSaveVideoBtn" style="display: none;">
+                <i class="fas fa-check"></i> Save & Continue
+            </button>
+        </div>
+        
+        <!-- Upload Option -->
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; text-align: center;">
+            <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">Or upload a pre-recorded video (Max 50MB):</p>
+            <input type="file" id="inlineUploadVideoFile" accept="video/webm,video/mp4" hidden />
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('inlineUploadVideoFile').click()">
+                <i class="fas fa-upload"></i> Choose Video File
+            </button>
+            <p id="inlineUploadFileName" style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;"></p>
+        </div>
+        
+        <!-- Upload Progress -->
+        <div id="inlineVideoUploadProgress" style="display: none; margin-top: 1rem;">
+            <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; margin-bottom: 0.5rem;">
+                <div id="inlineVideoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <p id="inlineVideoProgressText" style="font-size: 0.85rem; color: #666; text-align: center;">Uploading... 0%</p>
+        </div>
+    </div>
+</div>
+
   <script type="module" src="js/candidate-profile.js"></script>
 </body>
 </html>

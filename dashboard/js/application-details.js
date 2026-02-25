@@ -1,15 +1,16 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
+import '@shared/js/mobile.js';
 
 // Configuration & Global State
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
-let currentApplicationData = null; // Stores data for smart "Back" navigation
+let currentApplicationData = null; 
 
 // Initialize Logo
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
@@ -60,8 +61,6 @@ async function updateUserInfo() {
 
 // --- ABSOLUTE NAVIGATION ---
 function setupNavigation() {
-    const origin = window.location.origin;
-
     const navDashboard = document.getElementById('navDashboard');
     const navJobs = document.getElementById('navJobs');
     const navApplications = document.getElementById('navApplications');
@@ -74,14 +73,10 @@ function setupNavigation() {
     if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
     if(navProfile) navProfile.addEventListener('click', () => window.location.href = CONFIG.PAGES.RECRUITER_PROFILE);
     
+    // ✅ FIX: "Back to List" now explicitly passes status=all to bypass the Pending filter
     if(backBtn) {
         backBtn.addEventListener('click', () => {
-            // Smart Redirect: Return to the filtered list if we have the job_id
-            if(currentApplicationData && currentApplicationData.job_id) {
-                window.location.href = CONFIG.PAGES.APPLICATION_LIST + `?job_id=${currentApplicationData.job_id}`;
-            } else {
-                window.location.href = CONFIG.PAGES.APPLICATION_LIST;
-            }
+            window.location.href = `${CONFIG.PAGES.APPLICATION_LIST}?status=all`;
         });
     }
 
@@ -102,9 +97,7 @@ async function loadApplicationDetails(appId) {
 
         if (!app) throw new Error("Application not found");
 
-        // Store data globally for the "Back" button and other functions
         currentApplicationData = app;
-
         renderDetails(app);
         setupStatusUpdate(appId);
 
@@ -121,20 +114,34 @@ function renderDetails(app) {
     if(loadingState) loadingState.style.display = 'none';
     if(content) content.style.display = 'block';
 
+    // ✅ FIX: Sync the dropdown with the actual candidate status
+    const statusSelect = document.getElementById('statusSelect');
+    if (statusSelect) {
+        let dbStatus = (app.status || 'pending').toLowerCase();
+        
+        // Map all interview sub-statuses to the "interviewing" dropdown option
+        if (['interview_submitted', 'responses ready', 'completed'].includes(dbStatus)) {
+            dbStatus = 'interviewing';
+        }
+        
+        // Ensure the status exists in the dropdown, otherwise fallback to pending
+        const validOptions = ['pending', 'reviewed', 'interviewing', 'hired', 'rejected'];
+        statusSelect.value = validOptions.includes(dbStatus) ? dbStatus : 'pending';
+    }
+
     // Basic Info
     document.getElementById('candidateName').textContent = app.candidate_name || "Candidate";
     document.getElementById('jobTitle').textContent = app.job_title || "Unknown Job";
     document.getElementById('candidateEmail').textContent = app.candidate_email || "-";
     document.getElementById('appliedDate').textContent = new Date(app.applied_at).toLocaleDateString();
 
-    // ✅ RESUME EMBED LOGIC
+    // RESUME EMBED LOGIC
     const viewer = document.getElementById('resumeViewer');
     const noResume = document.getElementById('noResumeState');
     const downloadBtn = document.getElementById('resumeDownloadBtn');
 
     if (app.resume_link) {
-        // We use Google Docs viewer or direct iframe if the browser supports it
-        const isGoogleViewer = !app.resume_link.endsWith('.pdf'); // Simple heuristic
+        const isGoogleViewer = !app.resume_link.endsWith('.pdf'); 
         const src = isGoogleViewer 
             ? `https://docs.google.com/gview?url=${encodeURIComponent(app.resume_link)}&embedded=true` 
             : app.resume_link;
@@ -147,6 +154,24 @@ function renderDetails(app) {
     } else {
         if(viewer) viewer.style.display = 'none';
         if(noResume) noResume.style.display = 'flex';
+    }
+
+    // INTRO VIDEO SECTION
+    const introVideoSection = document.getElementById('introVideoSection');
+    const introVideoPlayer = document.getElementById('introVideoPlayer');
+    const noIntroVideo = document.getElementById('noIntroVideo');
+    
+    if (introVideoSection) {
+        if (app.intro_video_url) {
+            introVideoSection.style.display = 'block';
+            if(noIntroVideo) noIntroVideo.style.display = 'none';
+            
+            // Get signed URL for video
+            loadIntroVideo(app.intro_video_url, introVideoPlayer);
+        } else {
+            introVideoSection.style.display = 'none';
+            if(noIntroVideo) noIntroVideo.style.display = 'block';
+        }
     }
 
     const skillsContainer = document.getElementById('skillsContainer');
@@ -197,10 +222,7 @@ async function performStatusUpdate(appId, newStatus, questions) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-    const payload = { 
-        status: newStatus,
-        questions: questions 
-    };
+    const payload = { status: newStatus, questions: questions };
 
     try {
         await backendPost(`/recruiter/applications/${appId}/status`, payload);
@@ -224,13 +246,11 @@ function openInterviewModal(onConfirmCallback) {
 
     if(!modal) return;
 
-    // 1. Reset inputs to default 2 questions
     container.innerHTML = `
         <input type="text" class="form-control mb-3 interview-q-input" placeholder="1. e.g. Tell me about yourself." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
         <input type="text" class="form-control mb-3 interview-q-input" placeholder="2. e.g. Walk me through your resume." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
     `;
 
-    // 2. Add Question Button Logic
     addBtn.onclick = () => {
         const count = container.querySelectorAll('.interview-q-input').length + 1;
         container.insertAdjacentHTML('beforeend', `
@@ -238,11 +258,9 @@ function openInterviewModal(onConfirmCallback) {
         `);
     };
 
-    // 3. Clear old event listeners from Confirm button
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
-    // 4. Handle Confirm Action
     newConfirmBtn.onclick = () => {
         const inputs = document.querySelectorAll('.interview-q-input');
         const questions = Array.from(inputs).map(i => i.value.trim()).filter(v => v !== '');
@@ -256,6 +274,38 @@ function openInterviewModal(onConfirmCallback) {
         modal.classList.remove('active');
     };
 
-    // 5. Open Modal
     modal.classList.add('active');
+}
+async function sendInterviewInvite(appId, status, questions) {
+    try {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/recruiter/applications/${appId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+            },
+            body: JSON.stringify({
+                status: status,
+                questions: questions
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.ok) {
+            // --- ADD THIS ALERT ---
+            alert("✅ Interview questions posted successfully! The candidate can now see the 'Start Interview' button.");
+            
+            // Optionally close the modal if you are using one
+            if (window.inviteModal) window.inviteModal.hide(); 
+            
+            // Refresh the page to show updated status
+            window.location.reload();
+        } else {
+            alert("❌ Failed to post questions: " + result.error);
+        }
+    } catch (error) {
+        console.error("Error posting questions:", error);
+        alert("An error occurred while sending the invite.");
+    }
 }

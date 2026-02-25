@@ -14,7 +14,6 @@
       im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
       document.head.appendChild(im);
       
-      // CACHE BUSTER
       window.loadSharedCSS = function(file) {
         const link = document.createElement('link'); 
         link.rel = 'stylesheet'; 
@@ -33,7 +32,8 @@
     loadSharedCSS('core.css');    
     loadSharedCSS('layout.css');  
     loadSharedCSS('components.css');  
-    loadSharedCSS('special.css'); /* Our new, clean external file! */
+    loadSharedCSS('special.css'); 
+    loadSharedCSS('mobile.css');
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -47,10 +47,12 @@
             <img src="" id="logoImg" alt="Skreenit" class="logo-img-constrained" />
          </div>
       </div>
-      <ul class="nav-menu">
+      
+      <ul class="nav-menu" id="navMenu">
         <li class="nav-item active" id="navDashboard"><i class="fas fa-home"></i><span>Dashboard</span></li>
-        <li class="nav-item" id="navApplications"><i class="fas fa-briefcase"></i><span>My Applications</span></li>
-        <li class="nav-item" id="navProfile"><i class="fas fa-user"></i><span>My Profile</span></li>
+        <li class="nav-item" id="navJobs" style="display:none;"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+        <li class="nav-item" id="navApplications"><i class="fas fa-file-alt"></i><span>Applications</span></li>
+        <li class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
       </ul>
       
       <div class="sidebar-footer">
@@ -60,7 +62,9 @@
           </div>
           <div class="user-details">
             <span id="userName" class="user-name">Loading...</span>
-            <span id="userDesignation" class="user-role">Candidate</span>
+            <span id="recruiterName" class="user-name" style="display:none;">Loading...</span>
+            <span id="userDesignation" class="user-role">User</span>
+            <span id="companyId" class="user-role" style="display:none;">---</span>
           </div>
         </div>
         <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
@@ -68,9 +72,6 @@
     </nav>
 
     <main class="main-content">
-      <header class="dashboard-header job-details-header">
-          </header>
-
       <div class="dashboard-content">
         
         <div class="job-header">
@@ -79,7 +80,7 @@
                     <h1 id="jobTitle">Loading Job...</h1>
                     <p id="companyName">Skreenit Platform</p>
                 </div>
-                <button class="btn btn-outline-primary" onclick="document.getElementById('applyBtn').click()">Quick Apply</button>
+                <button id="quickApplyBtn" class="btn btn-outline-primary" style="display:none;">Quick Apply</button>
             </div>
             
             <div class="job-meta-grid">
@@ -105,11 +106,11 @@
         </div>
         
         <div class="job-action-bar">
-            <button id="backBtn" class="btn-back-ghost" onclick="history.back()">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            <button id="backBtn" class="btn-back-ghost">
+                <i class="fas fa-arrow-left"></i> Back to My Jobs
             </button>
             
-            <button id="applyBtn" class="btn-apply-massive">
+            <button id="applyBtn" class="btn-apply-massive" style="display:none;">
                 Apply Now <i class="fas fa-paper-plane"></i>
             </button>
         </div>
@@ -117,7 +118,50 @@
       </div>
     </main>
   </div>
-  
+
+  <!-- Intro Video Modal for Candidates -->
+  <div class="custom-modal-backdrop" id="introVideoModal" style="display: none;">
+    <div class="custom-modal-card" style="max-width: 500px; text-align: center;">
+        <div class="auth-modal-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+            <i class="fas fa-video" style="font-size: 1.5rem; color: white;"></i>
+        </div>
+        <h2 style="margin-bottom: 0.5rem;">Add Introduction Video?</h2>
+        <p style="color: #666; margin-bottom: 1.5rem;">Stand out to recruiters by adding a 60-90 second video introduction to your application!</p>
+        
+        <!-- Existing Video Info -->
+        <div id="existingVideoInfo" style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 8px;">
+            <p style="font-size: 0.9rem; color: #16a34a; margin: 0;">
+                <i class="fas fa-check-circle"></i> You have an existing intro video
+            </p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div id="videoActionButtons" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+            <button class="btn btn-primary" id="useExistingVideoBtn" style="display: none;">
+                <i class="fas fa-check"></i> Yes, Use My Existing Video
+            </button>
+            <button class="btn btn-secondary" id="recordNewVideoBtn">
+                <i class="fas fa-video"></i> Record/Upload New Video
+            </button>
+            <button class="btn btn-outline" id="skipVideoBtn">
+                <i class="fas fa-times"></i> No, Apply Without Video
+            </button>
+        </div>
+        
+        <!-- Upload Progress -->
+        <div id="videoUploadProgress" style="display: none;">
+            <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; margin-bottom: 0.5rem;">
+                <div id="videoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <p id="videoProgressText" style="font-size: 0.85rem; color: #666; text-align: center;">Submitting application...</p>
+        </div>
+        
+        <button class="btn-close-modal" id="closeVideoModalBtn" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.9rem;">
+            Cancel Application
+        </button>
+    </div>
+  </div>
+
   <script type="module" src="js/job-details.js"></script>
 </body>
 </html>

@@ -29,7 +29,8 @@
     loadSharedCSS('core.css');   
     loadSharedCSS('layout.css'); 
     loadSharedCSS('components.css'); 
-    loadSharedCSS('special.css'); 
+    loadSharedCSS('special.css');
+    loadSharedCSS('mobile.css');
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -64,8 +65,11 @@
         </nav>
 
         <main class="main-content">
-            <header class="dashboard-header" style="border-bottom: none; margin-bottom: 0;">
-                <button id="backBtn" class="btn-back-ghost">
+            <header class="dashboard-header" style="border-bottom: none; margin-bottom: 0; display: flex; align-items: center; justify-content: flex-start; gap: 15px;">
+              <button id="mobileMenuToggle" class="btn-menu-mobile" style="display: none; background: none; border: none; font-size: 1.5rem; color: #1e293b; cursor: pointer; padding: 5px;">
+                <i class="fas fa-bars"></i>
+              </button>  
+              <button id="backBtn" class="btn-back-ghost">
                     <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </button>
             </header>
@@ -82,6 +86,14 @@
                   <select id="jobFilter" class="form-select-modern">
                     <option value="all">All Jobs</option>
                   </select>
+                  <select id="statusFilter" class="form-select-modern">
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="reviewing">Reviewed</option>
+                    <option value="interviewing">Interviewing</option>
+                    <option value="hired">Hired</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
                 </div>
               </div>
 
@@ -93,15 +105,14 @@
                 </button>
               </div>
 
-              <div class="app-grid-header" style="display: grid; grid-template-columns: 40px 2.5fr 2fr 1.5fr 1.2fr 50px; padding: 12px 20px; background: #f8fafc; border-radius: 8px 8px 0 0; border: 1px solid #e2e8f0; font-weight: 700; font-size: 0.85rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
-                <div style="display: flex; align-items: center;"><input type="checkbox" id="selectAll"></div>
+              <div class="app-grid-header" style="display: grid; grid-template-columns: 40px 2.5fr 1.5fr 1fr 1fr 120px; padding: 12px 20px; background: #f8fafc; border-radius: 8px 8px 0 0; border: 1px solid #e2e8f0; font-weight: 700; font-size: 0.85rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; align-items: center;">
+                <div><input type="checkbox" id="selectAll"></div>
                 <div>Candidate</div>
                 <div>Applied For</div>
                 <div>Date</div>
                 <div>Status</div>
-                <div></div>
+                <div style="text-align: right;">Actions</div>
               </div>
-
               <div id="applicationListContainer" style="border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; background: white;">
                 <div class="loading-spinner"></div>
               </div>

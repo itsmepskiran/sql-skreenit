@@ -2,6 +2,7 @@
 import { supabase } from './supabase-config.js';
 import { CONFIG } from './config.js';
 
+
 class BackendClient {
   constructor() {
     this.backendUrls = [CONFIG.API_BASE]; // Get URL from Config

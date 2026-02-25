@@ -67,7 +67,9 @@ async def update_profile(
     skills: str = Form("[]"), # JSON string
     experience: str = Form("[]"), # JSON string
     education: str = Form("[]"), # JSON string
-    resume: UploadFile = File(None)
+    resume: UploadFile = File(None),
+    profile_image: UploadFile = File(None),
+    intro_video: UploadFile = File(None)
 ):
     current_user = request.state.user
     # Parse the JSON strings back into Python lists
@@ -76,18 +78,30 @@ async def update_profile(
     parsed_edu = json.loads(education)
     
     # Read file content if a new resume was uploaded
-    file_content = await resume.read() if resume else None
-    filename = resume.filename if resume else None
+    resume_content = await resume.read() if resume else None
+    resume_filename = resume.filename if resume else None
+    
+    # Read profile image content if uploaded
+    profile_image_content = await profile_image.read() if profile_image else None
+    profile_image_filename = profile_image.filename if profile_image else None
+    
+    # Read intro video content if uploaded
+    intro_video_content = await intro_video.read() if intro_video else None
+    intro_video_filename = intro_video.filename if intro_video else None
 
-    # Pass to the applicant_service.py method we fixed yesterday!
+    # Pass to the applicant_service.py method
     app_svc.update_profile(
         candidate_id=current_user["id"],
         profile_data={"full_name": full_name, "phone": phone, "location": location, "bio": summary, "linkedin_url": linkedin_url, "portfolio_url": portfolio_url},
         education=parsed_edu,
         experience=parsed_exp,
         skills=parsed_skills,
-        resume_file=file_content,
-        resume_filename=filename
+        resume_file=resume_content,
+        resume_filename=resume_filename,
+        profile_image_file=profile_image_content,
+        profile_image_filename=profile_image_filename,
+        intro_video_file=intro_video_content,
+        intro_video_filename=intro_video_filename
     )
     return {"ok": True, "message": "Profile updated"}      
 
@@ -148,7 +162,6 @@ async def get_interview_setup(request: Request, application_id: str):
 # ---------------------------------------------------------
 # 2. SAVE VIDEO RESPONSE
 # ---------------------------------------------------------
-# ...existing code...
 
 @router.post("/applications/{application_id}/response")
 async def save_interview_response(request: Request, application_id: str, payload: dict):
@@ -164,7 +177,29 @@ async def save_interview_response(request: Request, application_id: str, payload
         if v_path is None:
             raise HTTPException(status_code=400, detail="Video path is required")
 
-        # Call Service
+        db = get_client()
+        
+        # Check if a response already exists for this question and application
+        existing = db.table("video_responses") \
+            .select("id, video_url") \
+            .eq("application_id", application_id) \
+            .eq("question", q_text) \
+            .eq("candidate_id", current_user["id"]) \
+            .execute()
+        
+        # Delete old video from storage if exists
+        if existing.data and len(existing.data) > 0:
+            old_video_path = existing.data[0].get("video_url")
+            if old_video_path:
+                try:
+                    db.storage.from_("video-responses").remove([old_video_path])
+                except Exception as e:
+                    print(f"Warning: Failed to delete old video {old_video_path}: {e}")
+            
+            # Delete old database record
+            db.table("video_responses").delete().eq("id", existing.data[0]["id"]).execute()
+
+        # Call Service to create new record
         saved_row = vd_svc.save_video_response(
             application_id=application_id,
             question=q_text,      

@@ -28,11 +28,13 @@
     gap: 0.5rem;
 }
 .sidebar-header img { 
-    height: 40px; 
-    width: 40px; 
-    border-radius: 50%; /* Force round shape */
-    object-fit: cover;
+    width: 90%;        /* Forces it to stretch across 90% of the container */
+    height: auto;      /* Automatically scales the height to keep it proportional */
+    max-height: 70px;  /* Safety limit so it doesn't push your menu items down too far */
+    border-radius: 0; 
+    object-fit: contain; 
     border: none;
+    margin-left: 5%;   /* Centers it perfectly if the width is 90% */
 }
 
 .nav-menu {
@@ -132,6 +134,7 @@
     margin-left: 260px;
     padding: 2rem;
     width: calc(100% - 260px);
+    transition: margin-left 0.3s ease;
 }
 
 .dashboard-header {
@@ -143,9 +146,15 @@
 
 /* --- Responsive --- */
 @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
-    .sidebar.open { transform: translateX(0); }
-    .main-content { margin-left: 0; width: 100%; padding: 1rem; }
+    .sidebar { left: -280px; transition: left 0.3s ease; width: 280px;}
+    .sidebar.active { left: 0; }
+    .main-content { margin-left: 0; width: 100%;}
+    .sidebar-overlay{display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 99; /* Just below sidebar */}
+    .sidebar-overlay-active{display: block;}
 }
 /* User Avatar (Sidebar & Topbar) */
 .user-avatar-circle {
@@ -318,9 +327,109 @@
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
 }
-
-/* Mobile Responsiveness */
+/* Hide mobile branding on Desktop */
+.mobile-header-brand {
+    display: none;
+}
+/* =========================================
+   GLOBAL MOBILE DASHBOARD FIX
+   ========================================= */
 @media (max-width: 768px) {
-    .dashboard-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    /* 1. Sidebar sliding logic */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px; /* Hidden off-screen */
+        width: 260px;
+        height: 100vh;
+        z-index: 1050;
+        transition: left 0.3s ease;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+    }
+    .dashboard-header h1 {
+        font-size: 1.1rem !important; /* Shorter, cleaner titles for mobile */
+    }
+
+    .stat-info h3 {
+        font-size: 1.25rem !important; /* Smaller numbers in stats cards */
+    }
+    
+    .stat-info p {
+        font-size: 0.75rem !important; /* Smaller labels */
+    }
+    .sidebar.active {
+        left: 0; /* Slide in */
+    }
+
+    /* 2. Main content takes full width */
+    .main-content {
+        margin-left: 0 !important;
+        width: 100%;
+        padding-top: 10px; /* Space for mobile header */
+    }
+
+    /* 3. Force dashboard header to act as a proper Mobile Navbar */
+    .dashboard-header {
+        display: flex !important;
+        flex-direction: row !important; /* Keep items side-by-side */
+        align-items: center !important;
+        justify-content: flex-start;
+        gap: 15px;
+        background: transparent;
+        padding: 0.5rem 1rem;
+    }
+
+    /* 4. The Hamburger Button */
+    .btn-menu-mobile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1.25rem;
+        color: #1e293b;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* 6. Dark overlay for when menu is open */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(2px);
+        z-index: 1000;
+    }
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    /* 7. General fixes for grids on mobile */
     .activity-grid { grid-template-columns: 1fr; }
+    /* 5. Mobile Brand Logo (Shows in header when sidebar is hidden) */
+    .mobile-header-brand {
+        display: block !important;
+        height: 35px;
+        width: auto;
+        object-fit: contain;
+    }
+}
+/* ADD THIS TO THE BOTTOM OF layout.css */
+
+/* Isolated padding for the main content area */
+.dashboard-main-area {
+    padding: 2rem !important; /* Forces the gap from sidebar and screen edges */
+    max-width: 1400px; /* Prevents it from stretching too far on ultra-wide screens */
+    margin: 0 auto; /* Centers the content if it hits max-width */
+}
+
+@media (max-width: 768px) {
+    .dashboard-main-area {
+        padding: 1rem !important;
+        padding-top: 85px !important; /* Space for the mobile header */
+    }
 }

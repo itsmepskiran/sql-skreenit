@@ -36,6 +36,7 @@
     loadSharedCSS('layout.css'); 
     loadSharedCSS('components.css'); 
     loadSharedCSS('special.css');
+    loadSharedCSS('mobile.css');
   </script>
 </head>
 <body>
@@ -59,27 +60,27 @@
           </div>
           <div class="user-details">
             <span id="userName" class="user-name">Loading...</span>
-            <span id="userDesignation" class="user-role">Fresher</span>
+            <span id="candidateRole" class="user-role">Fresher</span>
           </div>
         </div>
         <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
       </div>
     </nav>
 
-    <main class="main-content">
-      <header class="dashboard-header">
+    <main class="main-content dashb">
+      <header class="dashboard-header" style="justify-content: flex-end;">
         <h1>Welcome Back!</h1>
       </header>
 
       <div class="dashboard-content">
         <div class="stats-grid">
-            <div class="stat-card" id="applicationsSentCard">
+            <div class="stat-card" id="btnAppSent">
                 <div class="stat-icon bg-blue"><i class="fas fa-paper-plane"></i></div>
-                <div class="stat-info"><h3 id="totalApplications">0</h3><p>Applications Sent</p></div>
+                <div class="stat-info"><h3 id="statTotalApplications">0</h3><p>Applications Sent</p></div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" id="btnActiveJobs">
                 <div class="stat-icon bg-green"><i class="fas fa-briefcase"></i></div>
-                <div class="stat-info"><h3 id="activeJobs">0</h3><p>Active Jobs</p></div>
+                <div class="stat-info"><h3 id="statActiveJobs">0</h3><p>Active Jobs</p></div>
             </div>
         </div>
 

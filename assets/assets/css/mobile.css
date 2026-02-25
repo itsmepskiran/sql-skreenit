@@ -1,0 +1,490 @@
+/* =========================================
+   MOBILE.CSS - Global Mobile & Tablet Responsive Styles
+   ========================================= */
+
+/* =========================================
+   1. MOBILE NAVIGATION (Hamburger Menu)
+   ========================================= */
+.btn-menu-mobile {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-right: 0.75rem;
+}
+
+.mobile-header-brand {
+    display: none;
+    height: 32px;
+    width: auto;
+    margin-left: 0.5rem;
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* =========================================
+   2. TABLET BREAKPOINT (max-width: 1024px)
+   ========================================= */
+@media (max-width: 1024px) {
+    /* Dashboard Layout */
+    .dashboard-container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        position: fixed;
+        height: auto;
+        max-height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding-top: 60px;
+    }
+
+    /* Mobile Header Adjustments */
+    .dashboard-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    /* Jobs Grid */
+    .jobs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Cards */
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    /* Form Layouts */
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-row .form-group {
+        width: 100%;
+    }
+}
+
+/* =========================================
+   3. MOBILE BREAKPOINT (max-width: 768px)
+   ========================================= */
+@media (max-width: 768px) {
+    /* Show Mobile Menu Toggle */
+    .btn-menu-mobile {
+        display: block;
+    }
+
+    .mobile-header-brand {
+        display: block;
+    }
+
+    /* Header Adjustments */
+    .header-content {
+        padding: 0 1rem;
+    }
+
+    .header-actions {
+        gap: 0.5rem;
+    }
+
+    .header-actions .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    /* Hide desktop logo text on mobile */
+    .logo-section span {
+        display: none;
+    }
+
+    /* Dashboard Stats - Single Column */
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    /* Jobs Page */
+    .jobs-page-container {
+        padding: 1rem;
+        grid-template-columns: 1fr;
+    }
+
+    .filters-sidebar {
+        position: static;
+        order: 2;
+        margin-top: 1rem;
+    }
+
+    .jobs-content {
+        order: 1;
+    }
+
+    .jobs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .jobs-search-bar {
+        flex-direction: column;
+    }
+
+    .jobs-search-bar .search-input-wrapper {
+        max-width: none;
+    }
+
+    /* Job Cards */
+    .job-card {
+        padding: 1rem;
+    }
+
+    .job-card-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .job-card-title {
+        font-size: 1.1rem;
+    }
+
+    /* Interview Room */
+    .interview-container {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .question-panel {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .video-panel {
+        width: 100%;
+        height: 50vh;
+    }
+
+    .interview-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .interview-header .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    /* Search Containers */
+    .search-container-modern {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .search-input-wrapper {
+        max-width: none;
+    }
+
+    /* Grid Cards */
+    .grid-cards {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Application Cards */
+    .application-card {
+        padding: 1rem;
+    }
+
+    .application-card .card-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    /* Modal */
+    .auth-modal {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    /* Forms */
+    .form-card {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    /* Stepper */
+    .stepper-wrapper {
+        padding: 0 10px;
+    }
+
+    .step-circle {
+        width: 36px;
+        height: 36px;
+        font-size: 0.875rem;
+    }
+
+    .step-label {
+        font-size: 0.75rem;
+    }
+
+    /* Filters */
+    .filter-group {
+        margin-bottom: 1rem;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+    }
+
+    .filter-actions .btn {
+        width: 100%;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.625rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+        left: 1rem;
+        right: 1rem;
+        top: 1rem;
+    }
+
+    .toast {
+        min-width: auto;
+        max-width: none;
+    }
+
+    /* Page Headers */
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .dashboard-content {
+        padding: 1rem;
+    }
+
+    /* Section Headers */
+    .section-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    .section-header h2 {
+        font-size: 1.25rem;
+    }
+
+    /* Tables (make them scrollable) */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 600px;
+    }
+
+    /* Back Buttons - Standardize Position */
+    .back-button-container {
+        position: fixed;
+        top: 70px;
+        left: 1rem;
+        z-index: 90;
+    }
+
+    .back-button-container .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        background: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* User Info in Header */
+    .user-info .user-name {
+        display: none;
+    }
+
+    .user-info .user-avatar {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* =========================================
+   4. SMALL MOBILE BREAKPOINT (max-width: 480px)
+   ========================================= */
+@media (max-width: 480px) {
+    /* Further reduce padding */
+    .dashboard-content,
+    .jobs-page-container,
+    .interview-container {
+        padding: 0.75rem;
+    }
+
+    /* Smaller headers */
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .page-header p {
+        font-size: 1rem;
+    }
+
+    /* Compact job cards */
+    .job-card {
+        padding: 0.875rem;
+    }
+
+    .job-card-details {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Compact buttons */
+    .btn {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.875rem;
+    }
+
+    /* Interview Room - Full width controls */
+    .controls-wrapper {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .controls-wrapper .btn {
+        width: 100%;
+    }
+
+    /* Form Cards */
+    .form-card {
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+
+    /* Stepper - Hide labels on very small screens */
+    .step-label {
+        display: none;
+    }
+
+    .stepper-wrapper::before {
+        left: 20px;
+        right: 20px;
+    }
+}
+
+/* =========================================
+   5. LANDSCAPE ORIENTATION FIXES
+   ========================================= */
+@media (max-height: 600px) and (orientation: landscape) {
+    .interview-container {
+        flex-direction: row;
+    }
+
+    .question-panel {
+        width: 40%;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .video-panel {
+        width: 60%;
+        height: 100vh;
+    }
+
+    .interview-header {
+        position: relative;
+    }
+}
+
+/* =========================================
+   6. TOUCH DEVICE OPTIMIZATIONS
+   ========================================= */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .btn,
+    .nav-item,
+    .filter-group input,
+    .filter-group select {
+        min-height: 44px;
+    }
+
+    /* Remove hover effects on touch devices */
+    .card:hover,
+    .job-card:hover,
+    .stat-card:hover {
+        transform: none;
+    }
+
+    /* Larger checkboxes/radio buttons */
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* =========================================
+   7. SAFE AREA INSETS (Notch Devices)
+   ========================================= */
+@supports (padding-top: env(safe-area-inset-top)) {
+    .dashboard-header {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    .sidebar {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    .main-content {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}

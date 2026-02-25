@@ -1,7 +1,7 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
-
+import '@shared/js/mobile.js';
 // --- State Management ---
 let questions = [];
 let currentIndex = 0;
@@ -12,13 +12,14 @@ let applicationId;
 let isRecording = false;
 let timerInterval;
 let seconds = 0;
+let currentVideoPath = null; // Track current video path for cleanup on retake
 
 // --- Initialize Page ---
 document.addEventListener('DOMContentLoaded', async () => {
     const isLocal = CONFIG.IS_LOCAL;
     const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
     const logoImg = document.getElementById('logoImg');
-    if (logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+    if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = CONFIG.PAGES.LOGIN; return; }
@@ -168,16 +169,44 @@ function stopRecording() {
 }
 
 function retakeVideo() {
+    // Delete previous video from storage if it exists
+    if (currentVideoPath) {
+        deleteVideoFromStorage(currentVideoPath);
+        currentVideoPath = null;
+    }
+    
     toggleDisplay('playbackFeed', 'none');
     toggleDisplay('cameraFeed', 'block');
     toggleDisplay('reviewControls', 'none');
     toggleDisplay('recordingControls', 'flex');
     resetTimer();
+    recordedChunks = []; // Clear recorded chunks
+}
+
+async function deleteVideoFromStorage(videoPath) {
+    try {
+        const { error } = await supabase.storage
+            .from('video-responses')
+            .remove([videoPath]);
+        
+        if (error) {
+            console.warn('Failed to delete previous video:', error);
+        } else {
+            console.log('Previous video deleted:', videoPath);
+        }
+    } catch (err) {
+        console.warn('Error deleting video:', err);
+    }
 }
 
 async function uploadAnswer() {
     const blob = new Blob(recordedChunks, { type: 'video/webm' });
     const fileName = `${applicationId}/q_${currentIndex}_${Date.now()}.webm`;
+    
+    // Delete any previous video for this question before uploading new one
+    if (currentVideoPath) {
+        await deleteVideoFromStorage(currentVideoPath);
+    }
     
     toggleDisplay('uploadProgress', 'block');
     toggleDisplay('reviewControls', 'none');
@@ -197,22 +226,33 @@ async function uploadAnswer() {
 
         if (uploadError) throw new Error('Failed to upload video to storage');
 
+        // Store the path for potential retake cleanup
+        currentVideoPath = uploadData.path;
+
         updateProgress(bar, progressText, 70);
 
         const response = await backendPost(
             `/applicant/applications/${applicationId}/response`, 
             {
                 question: questions[currentIndex],
-                video_path: uploadData.path
+                video_path: uploadData.path,
+                question_index: currentIndex // Add question index for deduplication
             }
         );
 
         if (!response.ok) {
+            // If backend save failed, delete the uploaded video
+            await deleteVideoFromStorage(uploadData.path);
+            currentVideoPath = null;
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.detail || 'Failed to save response metadata');
         }
 
         updateProgress(bar, progressText, 100);
+        
+        // Clear current video path after successful submission
+        currentVideoPath = null;
+        
         await handleQuestionTransition();
 
     } catch (error) {

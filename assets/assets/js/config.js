@@ -48,6 +48,7 @@ export const CONFIG = {
         // HRMS AND APP
         HRMS: isLocal ? '/hrms/index.html' : 'https://hrms.skreenit.com/index.html',
         APP: isLocal ? '/app/index.html' : 'https://app.skreenit.com/index.html',
-        IN: isLocal ? '/in/index.html' : 'https://in.skreenit.com/index.html'
+        IN: isLocal ? '/in/index.html' : 'https://in.skreenit.com/index.html',
+        JOBS: isLocal ? '/jobs/index.html' : 'https://jobs.skreenit.com/index.html'
     }
 };

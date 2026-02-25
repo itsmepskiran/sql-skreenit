@@ -115,19 +115,21 @@
 }
 
 .logo-link img {
-    height: 50px; /* Increased slightly for better visibility */
-    width: 50px;  /* Force width to match height for a perfect circle */
-    object-fit: cover; /* Ensures logo doesn't stretch */
-    border-radius: 50%; /* This makes it round */
-    border: none; /* Explicitly removes borders */
-    box-shadow: none; /* Optional: Removed shadow for flat look */
+    height: 60px; /* Slightly larger for the login screen */
+    width: 60px;  /* Force width = height for a circle */
+    object-fit: cover; 
+    border-radius: 50%; /* Restore the perfect circle */
+    border: 2px solid #e0e7ff; /* Optional: adds a nice subtle border */
+    background: white;
 }
 
 /* Hide the logo on very small mobile screens so it doesn't overlap the form */
 @media (max-width: 480px) {
     .auth-body{padding: 1.5rem;}
+    .auth-page-body{padding: 1rem 0.5rem;}
+    .auth-wrapper{margin: 1rem auto; padding: 1.5rem;}
     .logo-link {
-        top: 15px;
+        top: 20px;
         left: 50%;
         transform: translateX(-50%); /* Centers it on mobile */
     }

@@ -32,6 +32,7 @@
     loadSharedCSS('core.css');   
     loadSharedCSS('layout.css'); 
     loadSharedCSS('components.css'); // Swapped forms.css to components.css
+    loadSharedCSS('mobile.css');
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -64,7 +65,7 @@
         <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
       </div>
     </nav>
-    <main class="main-content">
+    <main class="main-content dashb">
       <header class="dashboard-header" style="justify-content: flex-end;">
         <div class="header-actions">
           <button class="icon-btn"><i class="far fa-bell"></i></button>
@@ -95,34 +96,40 @@
               <h3 id="statNewApplications">0</h3><p>New Applications</p>
             </div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" id="btnInterviews">
             <div class="stat-icon bg-orange"><i class="fas fa-video"></i></div>
             <div class="stat-info">
               <h3 id="statInterviews">0</h3><p>Interviews</p>
             </div>
           </div>
         </div>
-        <div class="activity-grid">
-          <div class="activity-card card">
-            <div class="section-header" style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-              <h3 style="margin:0; font-size: 1.15rem; color: var(--text-dark, #1e293b);">Recent Jobs</h3>
-              <a href="my-jobs.html" class="btn-outline-primary">View All <i class="fas fa-arrow-right"></i></a>
+        <div class="dashboard-activity-wrapper" style="margin: 2rem 0; padding: 0 10px;">
+        <div class="row" style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between;">
+        
+        <div class="activity-column" style="flex: 1; min-width: 320px;">
+            <div class="activity-card card" style="padding: 24px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; height: 100%;">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+                    <h3 style="font-size: 1.1rem; margin: 0;"><i class="fas fa-briefcase me-2 text-primary"></i>Recent Jobs</h3>
+                    <a href="my-jobs.html" style="font-size: 0.85rem; color: #4f46e5; text-decoration: none; font-weight: 500;">View All</a>
+                </div>
+                <div class="dashboard-list" id="recentJobsList" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="loading-spinner"></div>
+                </div>
             </div>
-            <div class="grid-cards" id="recentJobsList">
-                <div class="loading-spinner"></div>
+        </div>
+        <div class="activity-column" style="flex: 1; min-width: 320px;">
+            <div class="activity-card card" style="padding: 24px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; height: 100%;">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+                    <h3 style="font-size: 1.1rem; margin: 0;"><i class="fas fa-file-alt me-2 text-primary"></i>Recent Applications</h3>
+                    <a href="application-list.html" style="font-size: 0.85rem; color: #4f46e5; text-decoration: none; font-weight: 500;">View All</a>
+                </div>
+                <div class="dashboard-list" id="recentAppsList" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="loading-spinner"></div>
+                </div>
             </div>
-          </div>
-          <div class="activity-card card">
-            <div class="section-header" style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-              <h3 style="margin:0; font-size: 1.15rem; color: var(--text-dark, #1e293b);">Recent Applications</h3>
-              <a href="application-list.html" class="btn-outline-primary">View All <i class="fas fa-arrow-right"></i></a>
-            </div>
-          <div class="grid-cards" id="recentAppsList">
-          <div class="loading-spinner"></div>
-          </div>
-         </div>
         </div>
       </div>
+    </div>
     </main>
   </div>
 

@@ -1,11 +1,11 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendGet, backendDelete, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
-
+import '@shared/js/mobile.js';
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 let allJobs = [];
 
@@ -70,7 +70,8 @@ function setupNavigation() {
     const navProfile = document.getElementById('navProfile');
     const logoutBtn = document.getElementById('logoutBtn');
     const postBtn = document.getElementById('postJobBtn');
-
+    const backToDashboardBtn = document.getElementById('backToDashboardBtn');
+    if (backToDashboardBtn) backToDashboardBtn.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER);
     if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER);
     if(navJobs) navJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY-JOBS);
     if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
@@ -91,7 +92,12 @@ function setupNavigation() {
 
 async function loadJobs(userId) {
     const container = document.getElementById('myJobsList');
-    container.innerHTML = '<div class="loading-spinner"></div>';
+    // Ensure we also check for your other container ID just in case
+    const targetContainer = container || document.getElementById('jobsContainer');
+    
+    if (targetContainer) {
+        targetContainer.innerHTML = '<div class="loading-spinner"></div>';
+    }
 
     try {
         const res = await backendGet(`/recruiter/jobs?user_id=${userId}`);
@@ -100,13 +106,20 @@ async function loadJobs(userId) {
         allJobs = json.data?.jobs || json.data || [];
         if(!Array.isArray(allJobs)) allJobs = [];
 
-        const activeCount = allJobs.filter(j => j.status === 'active').length;
-        document.getElementById('activeJobCount').textContent = activeCount;
+        const activeCount = allJobs.filter(j => {
+            const s = (j.status || 'active').toLowerCase();
+            return s === 'active' || s === 'published' || s === 'live';
+        }).length;
+
+        const countEl = document.getElementById('activeJobCount');
+        if (countEl) countEl.textContent = activeCount;
 
         renderJobs(allJobs);
 
     } catch (err) {
-        container.innerHTML = `<div class="alert alert-danger w-100 text-center">Failed to load jobs. ${err.message}</div>`;
+        if (targetContainer) {
+            targetContainer.innerHTML = `<div class="alert alert-danger w-100 text-center">Failed to load jobs. ${err.message}</div>`;
+        }
     }
 }
 function filterJobs(searchTerm) {
@@ -130,9 +143,16 @@ function filterJobs(searchTerm) {
     renderJobs(filtered);
 }
 function renderJobs(jobs) {
-    const container = document.getElementById('myJobsList');
-    
-    if (jobs.length === 0) {
+    // 1. Identify the correct container from your HTML
+    const container = document.getElementById('jobsContainer') || document.getElementById('myJobsList');
+    if (!container) return;
+
+    // 2. Clear container and set the grid class
+    container.innerHTML = "";
+    container.className = 'grid-cards'; 
+
+    // 3. Handle Empty State
+    if (!jobs || jobs.length === 0) {
         container.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 4rem; background: white; border-radius: 12px; border: 2px dashed #e2e8f0;">
                 <i class="fas fa-briefcase fa-3x" style="color: #cbd5e0; margin-bottom: 1rem;"></i>
@@ -142,54 +162,117 @@ function renderJobs(jobs) {
         return;
     }
 
-    // This uses the new .grid-cards architecture
-    container.className = 'grid-cards'; 
-
+    // 4. Generate the Grid HTML
     container.innerHTML = jobs.map(job => {
         const status = (job.status || 'active').toLowerCase();
         
         return `
-        <div class="job-card-premium">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <span class="job-status-badge status-${status}">${status}</span>
-                <small class="text-muted"><i class="far fa-calendar-alt"></i> ${new Date(job.created_at).toLocaleDateString()}</small>
-            </div>
-            
-            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; color: var(--text-dark); font-weight: 700;">${job.title}</h3>
-            
-            <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.5rem;">
+<div class="job-card-premium" onclick="window.location.href='${CONFIG.PAGES.JOB_DETAILS}?job_id=${job.id}'" style="cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease;" onmouseover="this.style.borderColor='var(--primary-color)'; this.style.transform='translateY(-3px)';" onmouseout="this.style.borderColor='transparent'; this.style.transform='translateY(0)';">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span class="job-status-badge status-${status}">${status}</span>
+        <small class="text-muted"><i class="far fa-calendar-alt"></i> ${new Date(job.created_at).toLocaleDateString()}</small>
+    </div>
+    
+    <div style="display: flex; gap: 15px; margin-bottom: 1.5rem;">
+        <div id="qr-container-${job.id}" class="qr-grid-box" style="background: white; padding: 5px; border-radius: 8px; border: 1px solid #e2e8f0; height: 70px; width: 70px; display: flex; align-items: center; justify-content: center;"></div>
+        
+        <div style="flex: 1;">
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; color: var(--text-dark); font-weight: 700;">${job.title}</h3>
+            <p style="color: var(--text-light); font-size: 0.85rem; margin: 0;">
                 <i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i> ${job.location || 'Remote'}
             </p>
-
-            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.75rem;">
-                <a href="${CONFIG.PAGES.APPLICATION_LIST}?job_id=${job.id}" class="btn btn-primary w-100" style="text-align: center; justify-content: center;">
-                    <i class="fas fa-users me-2"></i> View Applicants
-                </a>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                    <a href="${CONFIG.PAGES.JOB_EDIT}?job_id=${job.id}" class="btn btn-secondary w-100" style="text-align: center; justify-content: center; font-size: 0.85rem;">
-                        <i class="fas fa-edit me-1"></i> Edit
-                    </a>
-                    <button onclick="deleteJob('${job.id}')" class="btn btn-secondary w-100" style="text-align: center; justify-content: center; font-size: 0.85rem; color: #ef4444; border-color: #fee2e2;">
-                        <i class="fas fa-trash me-1"></i> Delete
-                    </button>
-                </div>
-            </div>
         </div>
-    `}).join('');
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.75rem;" onclick="event.stopPropagation();" style="cursor: default;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <a href="${CONFIG.PAGES.APPLICATION_LIST}?job_id=${job.id}" class="btn btn-primary" onclick="event.stopPropagation();">Applicants</a>
+            <a href="${CONFIG.PAGES.JOB_EDIT}?job_id=${job.id}" class="btn btn-secondary" onclick="event.stopPropagation();">Edit</a>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem;">
+            <button onclick="event.stopPropagation(); deleteJob('${job.id}')" class="btn btn-outline-danger" style="font-size: 0.85rem;">Delete Job</button>
+        </div>
+    </div>
+</div>`;
+    }).join('');
+
+    // 5. Generate the actual QR codes for each card
+    jobs.forEach(job => {
+        const qrBox = document.getElementById(`qr-container-${job.id}`);
+        const jobUrl = `${CONFIG.PAGES.JOB_DETAILS}?job_id=${job.id}`;
+        
+        if (qrBox) {
+            const canvas = document.createElement('canvas');
+            QRCode.toCanvas(canvas, jobUrl, {
+                width: 60,
+                margin: 0,
+                color: {
+                    dark: '#1e293b',
+                    light: '#ffffff'
+                }
+            }, function (error) {
+                if (error) console.error("QR Grid Error:", error);
+                qrBox.appendChild(canvas);
+            });
+        }
+    });
 }
 window.deleteJob = async function(jobId) {
     if(!confirm("Are you sure you want to delete this job? This action cannot be undone.")) return;
 
     try {
         await backendDelete(`/recruiter/jobs/${jobId}`);
+        
+        // Remove from the local array
         allJobs = allJobs.filter(j => j.id !== jobId);
         
-        const activeCount = allJobs.filter(j => j.status === 'active').length;
-        document.getElementById('activeJobCount').textContent = activeCount;
+        // ✅ RE-COUNT: Use the standard "Live" statuses only
+        const activeCount = allJobs.filter(j => {
+            const s = (j.status || 'active').toLowerCase();
+            // Removed 'archived' to match standard dashboard logic
+            return s === 'active' || s === 'published' || s === 'live';
+        }).length;
+
+        const countEl = document.getElementById('activeJobCount');
+        if (countEl) countEl.textContent = activeCount;
         
+        // Refresh the grid
         renderJobs(allJobs);
     } catch (err) {
         alert("Failed to delete job: " + err.message);
+    }
+};
+window.showJobQR = async function(jobId, title) {
+    const modal = document.getElementById('qrModal');
+    const container = document.getElementById('qrcodeDisplay');
+    const jobUrl = `${CONFIG.PAGES.JOB_DETAILS}?job_id=${jobId}`;
+
+    container.innerHTML = ""; // Clear old QR
+    
+    try {
+        const canvas = document.createElement('canvas');
+        await QRCode.toCanvas(canvas, jobUrl, { width: 250, margin: 2 });
+        container.appendChild(canvas);
+        
+        document.getElementById('qrModalTitle').textContent = title;
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+
+        // Setup Download
+        document.getElementById('downloadQrBtn').onclick = () => {
+            const link = document.createElement('a');
+            link.download = `QR_${title.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        };
+
+        // Setup Close
+        document.getElementById('closeQrModal').onclick = () => {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        };
+    } catch (err) {
+        console.error(err);
     }
 };

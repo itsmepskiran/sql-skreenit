@@ -1,11 +1,12 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendGet, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
+import '@shared/js/mobile.js';
 
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 let appliedJobIds = new Set(); // Track applied job IDs
 
@@ -90,7 +91,6 @@ async function fetchJobs(query = '') {
     }
 }
 // --- RENDERING UI ---
-// REPLACE THESE TWO FUNCTIONS IN candidate-dashboard.js
 
 function renderApplications(apps) {
     const container = document.getElementById("myApplicationsList");
@@ -183,8 +183,6 @@ function renderJobs(jobs) {
         </div>
     `).join('');
 }
-// --- VIDEO REVIEW LOGIC ---
-// --- VIDEO REVIEW LOGIC (Fixed for Duplicates) ---
 async function viewMyResponse(applicationId) {
     const modalEl = document.getElementById('responseModal');
     const modalBody = document.getElementById('responseModalBody');
@@ -243,30 +241,39 @@ async function viewMyResponse(applicationId) {
         modalBody.innerHTML = '<div class="alert alert-danger text-center border-0">Failed to load videos. Please try again.</div>';
     }
 }
-// --- SIDEBAR PROFILE ---
 async function updateSidebarProfile(user) {
     const nameEl = document.getElementById("userName");
-    const designationEl = document.getElementById("userDesignation");
+    const designationEl = document.getElementById("userDesignation"); // Sidebar ID
+    const dashboardRoleEl = document.getElementById("candidateRole"); // Dashboard Main Area ID
     const avatarEl = document.getElementById("userAvatar"); 
 
+    // 1. Set Name
     if(nameEl) nameEl.textContent = user.user_metadata.full_name || user.email.split('@')[0];
 
-    if(designationEl) {
-        designationEl.textContent = "Candidate"; 
-        try {
-            const res = await backendGet('/applicant/profile');
-            const json = await handleResponse(res);
-            const profile = json.data || {};
+    // 2. Set Default Role
+    const defaultTitle = "Candidate";
+    if(designationEl) designationEl.textContent = defaultTitle;
+    if(dashboardRoleEl) dashboardRoleEl.textContent = defaultTitle;
 
-            // ✅ Look for profile.experience[0].title
-            if (profile.experience && profile.experience.length > 0) {
-                designationEl.textContent = profile.experience[0].title || "Candidate";
-            }
-        } catch (err) {
-            // Silent fail
+    try {
+        const res = await backendGet('/applicant/profile');
+        const json = await handleResponse(res);
+        const profile = json.data || {};
+
+        if (profile.experience && profile.experience.length > 0) {
+            const expTitle = profile.experience[0].title || defaultTitle;
+            
+            // ✅ Update Sidebar
+            if (designationEl) designationEl.textContent = expTitle;
+            
+            // ✅ Update Dashboard/My Applications Main Section
+            if (dashboardRoleEl) dashboardRoleEl.textContent = expTitle;
         }
+    } catch (err) {
+        console.warn("Profile fetch failed, using defaults");
     }
 
+    // 3. Avatar logic remains the same
     if(avatarEl) {
         if (user.user_metadata.avatar_url) {
             avatarEl.innerHTML = `<img src="${user.user_metadata.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
@@ -277,7 +284,6 @@ async function updateSidebarProfile(user) {
         }
     }
 }
-// --- EVENT LISTENERS (NAVIGATION & ACTIONS) ---
 function setupEventListeners() {
     const navDashboard = document.getElementById('navDashboard');
     const navProfile = document.getElementById('navProfile');
@@ -304,10 +310,17 @@ function setupEventListeners() {
     }
 
     // 2. Dashboard Cards Navigation (FIXED ID mismatch)
-    const appsSentCard = document.getElementById('applicationsSentCard');
+    const appsSentCard = document.getElementById('btnAppSent') || document.getElementById('totalApplied')?.closest('.stat-card');
     if (appsSentCard) {
         appsSentCard.style.cursor = 'pointer';
-        appsSentCard.onclick = () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
+        appsSentCard.addEventListener('click', () => {window.location.href = CONFIG.PAGES.MY_APPLICATIONS;});
+    }
+
+    // Active Jobs card - redirect to public jobs page
+    const activeJobsCard = document.getElementById('btnActiveJobs');
+    if (activeJobsCard) {
+        activeJobsCard.style.cursor = 'pointer';
+        activeJobsCard.addEventListener('click', () => {window.location.href = CONFIG.PAGES.JOBS;});
     }
 
     // 3. Search Functionality (FIXED ID mismatches)

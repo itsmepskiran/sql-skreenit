@@ -32,9 +32,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
   <script>
-    loadSharedCSS('core.css');   
-    loadSharedCSS('layout.css'); 
-    loadSharedCSS('components.css'); 
+    loadSharedCSS('core.css'); loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css'); loadSharedCSS('special.css'); 
+    loadSharedCSS('mobile.css');
   </script>
 </head>
 
@@ -59,7 +59,7 @@
           </div>
           <div class="user-details">
             <span id="userName" class="user-name">Loading...</span>
-            <span id="userDesignation" class="user-role">Candidate</span>
+            <span id="candidateRole" class="user-role">Candidate</span>
           </div>
         </div>
         <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>

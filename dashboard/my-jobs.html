@@ -29,7 +29,8 @@
     loadSharedCSS('core.css');   
     loadSharedCSS('layout.css'); 
     loadSharedCSS('components.css'); /* Contains our modern search bar and grid cards */
-    loadSharedCSS('special.css'); 
+    loadSharedCSS('mobile.css');
+    loadSharedCSS('special.css');
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -64,6 +65,11 @@
     </nav>
 
     <main class="main-content">
+      <div style="margin-bottom: 1.5rem;">
+        <button id="backToDashboardBtn" class="btn btn-outline-secondary" style="padding: 0.5rem 1rem; border-radius: 8px;">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+        </button>
+      </div>
       <header class="dashboard-header" style="justify-content: space-between;">
         <h1>My Posted Jobs</h1>
         <button class="btn-apply-massive" id="postJobBtn" style="padding: 10px 24px; font-size: 0.95rem;">
@@ -90,7 +96,24 @@
       </div>
     </main>
   </div>
+  <div id="qrModal" class="modal">
+    <div class="modal-content text-center" style="position: relative; max-width: 400px;">
+        <button id="closeQrModal" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer;">
+            <i class="fas fa-times"></i>
+        </button>
+        <h3 id="qrModalTitle" class="mb-3" style="font-size: 1.2rem; color: var(--text-dark);">Job QR Code</h3>
+        
+        <div id="qrcodeDisplay" class="my-4 d-flex justify-content-center"></div>
+        
+        <div class="d-grid gap-2">
+            <button id="downloadQrBtn" class="btn btn-primary">
+                <i class="fas fa-download me-2"></i> Download PNG
+            </button>
+        </div>
+    </div>
+</div>
 
-  <script type="module" src="js/my-jobs.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+<script type="module" src="js/my-jobs.js"></script>
 </body>
 </html>

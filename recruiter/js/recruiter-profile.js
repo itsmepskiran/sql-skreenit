@@ -1,12 +1,13 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendPut, backendGet, handleResponse } from '@shared/js/backend-client.js'; 
 import { CONFIG } from '@shared/js/config.js';
+import '@shared/js/mobile.js';
 
 // Setup Assets
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 // Store original data to revert if user clicks Cancel
 let originalProfileData = {};
@@ -33,10 +34,14 @@ async function ensureRecruiter() {
 }
 
 function updateSidebarProfile(meta, email) {
-    const nameEl = document.getElementById("userName");
+    // ✅ FIX: Changed 'userName' to 'recruiterName' to match HTML
+    const nameEl = document.getElementById("recruiterName"); 
     const avatarEl = document.getElementById("userAvatar"); 
     
-    if(nameEl) nameEl.textContent = meta.full_name || meta.contact_name || email.split('@')[0];
+    if(nameEl) {
+        // Fallback: Custom metadata -> Email prefix -> 'Recruiter'
+        nameEl.textContent = meta.full_name || meta.contact_name || email.split('@')[0] || 'Recruiter';
+    }
     
     if(avatarEl) {
         if (meta.avatar_url) {
@@ -44,7 +49,7 @@ function updateSidebarProfile(meta, email) {
         } else {
             const initials = (meta.full_name || email).match(/\b\w/g) || [];
             const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-            avatarEl.innerHTML = text; // Cleaned up inline styles!
+            avatarEl.innerHTML = text; 
         }
     }
 }
@@ -162,15 +167,15 @@ async function handleProfileSubmit(event) {
     
     await supabase.auth.refreshSession();
     
-    // Update cache and lock form
     originalProfileData = { ...originalProfileData, ...payload, about_company: payload.about }; 
     
-    // Brief success animation
     btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
     btn.style.backgroundColor = '#10b981';
-    btn.style.borderColor = '#10b981';
 
-    // Update Sidebar dynamically
+    // ✅ FIX: Also update 'recruiterName' in the sidebar on save success
+    const sidebarNameEl = document.getElementById('recruiterName');
+    if (sidebarNameEl) sidebarNameEl.textContent = payload.contact_name;
+
     const companyIdEl = document.getElementById('companyId');
     if (companyIdEl) companyIdEl.textContent = payload.company_name;
 
@@ -178,7 +183,6 @@ async function handleProfileSubmit(event) {
         toggleEditMode(false);
         btn.innerHTML = originalText;
         btn.style.backgroundColor = '';
-        btn.style.borderColor = '';
         btn.disabled = false;
     }, 1000);
 
@@ -189,7 +193,6 @@ async function handleProfileSubmit(event) {
     btn.disabled = false;
   }
 }
-
 // --- ABSOLUTE NAVIGATION LOGIC ---
 function setupNavigation() {
     const origin = window.location.origin;

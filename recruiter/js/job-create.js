@@ -1,11 +1,12 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendPost, backendGet, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
+import '@shared/js/mobile.js';
 
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 document.addEventListener("DOMContentLoaded", async () => {
     await checkAuth();
@@ -35,7 +36,6 @@ async function checkAuth() {
 function updateSidebarProfile(meta, email) {
     const nameEl = document.getElementById('recruiterName');
     const avatarEl = document.getElementById('userAvatar'); 
-    
     if(nameEl) nameEl.textContent = meta.full_name || meta.contact_name || email.split('@')[0];
     
     if(avatarEl) {
@@ -54,20 +54,15 @@ async function updateUserInfo() {
         const res = await backendGet('/recruiter/profile');
         const data = await handleResponse(res);
         const profile = data.data || data; 
-        
         if (profile) {
-            if (profile.contact_name) {
-                const el = document.getElementById('recruiterName');
-                if (el) el.textContent = profile.contact_name;
-            }
-            if (profile.company_id || profile.company_name) {
-                const companyIdEl = document.getElementById('companyId');
-                if (companyIdEl) companyIdEl.textContent = profile.company_id || profile.company_name;
+            const el = document.getElementById('recruiterName');
+            if (el && profile.contact_name) el.textContent = profile.contact_name;
+            const companyIdEl = document.getElementById('companyId');
+            if (companyIdEl && (profile.company_id || profile.company_name)) {
+                companyIdEl.textContent = profile.company_id || profile.company_name;
             }
         }
-    } catch (error) { 
-        // Silent fail
-    }
+    } catch (error) { /* Silent fail */ }
 }
 
 async function handleJobCreate(event) {
@@ -88,38 +83,47 @@ async function handleJobCreate(event) {
     const description = document.getElementById("job_description").value.trim();
     const requirements = document.getElementById("requirements").value.trim();
 
-    if (!title || !location || !job_type || !description || !requirements) {
-      throw new Error("Please fill out all required fields.");
-    }
-    
-    let salary_min = null;
-    let salary_max = null;
+    const payload = {
+      title, location, job_type, description, requirements,
+      currency: "INR", status: "active" 
+    };
 
     if (salary_range) {
         const parts = salary_range.split('-').map(s => s.trim());
         if(parts.length >= 2) {
-             const min = parseInt(parts[0]);
-             const max = parseInt(parts[1]);
-             if (!isNaN(min)) salary_min = min;
-             if (!isNaN(max)) salary_max = max;
-             if (salary_max === 0) salary_max = null; 
+             payload.salary_min = parseInt(parts[0]) || null;
+             payload.salary_max = parseInt(parts[1]) || null;
+             if (payload.salary_max === 0) payload.salary_max = null; 
         }
     }
 
-    const payload = {
-      title, location, job_type, salary_min, salary_max, description, requirements,
-      currency: "INR", status: "active" 
+    const response = await backendPost('/recruiter/jobs', payload);
+    const result = await handleResponse(response);
+
+    // ✅ ROBUST SEARCH FOR ID
+    const findId = (obj) => {
+        if (!obj || typeof obj !== 'object') return null;
+        if (obj.id) return obj.id;
+        if (obj.job_id) return obj.job_id;
+        for (let key in obj) {
+            const found = findId(obj[key]);
+            if (found) return found;
+        }
+        return null;
     };
 
-    const response = await backendPost('/recruiter/jobs', payload);
-    await handleResponse(response);
+    const jobId = findId(result);
+
+    if(!jobId) {
+        console.error("Debug Response:", result);
+        throw new Error("Job published, but ID was not found in the response.");
+    }
 
     submitBtn.innerHTML = '<i class="fas fa-check"></i> Published!';
     submitBtn.style.backgroundColor = '#10b981';
     
-    setTimeout(() => {
-        window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`;
-    }, 1000);
+    const jobUrl = `${CONFIG.PAGES.JOB_DETAILS}?job_id=${jobId}`;
+    generateJobQR(jobUrl, title);
 
   } catch (error) {
     console.error("Job create failed:", error);
@@ -131,9 +135,47 @@ async function handleJobCreate(event) {
   } 
 }
 
-function setupNavigation() {
-    const origin = window.location.origin;
+async function generateJobQR(url, title) {
+    const modal = document.getElementById('shareJobModal');
+    const qrContainer = document.getElementById('qrcode');
+    if (!modal || !qrContainer) return;
 
+    qrContainer.innerHTML = ""; 
+
+    try {
+        const canvas = document.createElement('canvas');
+        await QRCode.toCanvas(canvas, url, {
+            width: 200, margin: 2,
+            color: { dark: '#1e293b', light: '#ffffff' }
+        });
+        qrContainer.appendChild(canvas);
+
+        document.getElementById('shareJobTitle').textContent = title;
+        document.getElementById('copyLinkInput').value = url;
+
+        modal.classList.add('active');
+        modal.style.display = 'flex'; 
+
+        // Set up interactions
+        document.getElementById('modalXClose').onclick = () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+        document.getElementById('backToDashBtn').onclick = () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+
+        document.getElementById('copyLinkBtn').onclick = () => {
+            navigator.clipboard.writeText(url);
+            alert("Link copied!");
+        };
+
+        document.getElementById('downloadQRBtn').onclick = () => {
+            const link = document.createElement('a');
+            link.download = `Skreenit_QR_${title.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        };
+
+    } catch (err) { console.error("QR Generation failed:", err); }
+}
+
+function setupNavigation() {
     const navDashboard = document.getElementById('navDashboard');
     const navJobs = document.getElementById('navJobs');
     const navApplications = document.getElementById('navApplications');
@@ -141,15 +183,15 @@ function setupNavigation() {
     const logoutBtn = document.getElementById('logoutBtn');
     const backBtn = document.getElementById("backBtn");
 
-    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`);
-    if(navJobs) navJobs.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.MY_JOBS}`);
-    if(navApplications) navApplications.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.APPLICATION_LIST}`);
-    if(navProfile) navProfile.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.RECRUITER_PROFILE}`);
+    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER);
+    if(navJobs) navJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_JOBS);
+    if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
+    if(navProfile) navProfile.addEventListener('click', () => window.location.href = CONFIG.PAGES.RECRUITER_PROFILE);
     
     if(backBtn) {
         backBtn.addEventListener("click", () => {
             if (confirm("Changes made will be lost. Are you sure you want to leave?")) {
-                window.location.href = `${CONFIG.PAGES.DASHBOARD_RECRUITER}`;
+                window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
             }
         });
     }

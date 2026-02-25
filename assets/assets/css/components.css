@@ -500,3 +500,64 @@ input[type="checkbox"] {
     display: flex;
     align-items: center;
 }
+/* =========================================
+   MOBILE RESPONSIVENESS: APPLICATION LIST
+   ========================================= */
+/* Update the Mobile Media Query at the bottom of components.css */
+@media (max-width: 768px) {
+    .app-grid-header {
+        display: none !important; /* Hide the headers */
+    }
+
+    .talent-card-row {
+        display: flex !important;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.25rem !important;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+        gap: 12px;
+        position: relative;
+    }
+
+    /* Move Checkbox to top right */
+    .card-selection {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+
+    /* Column Widths to Full */
+    .talent-card-row > div {
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    /* Action Toolbar Divider */
+    .card-actions-toolbar {
+        border-top: 1px solid #f1f5f9;
+        padding-top: 1rem;
+        margin-top: 5px;
+        justify-content: flex-start !important;
+    }
+}
+/* Add to the bottom of Skreenit-V.0/assets/assets/css/components.css */
+
+@media (max-width: 640px) {
+    .btn {
+        padding: 0.5rem 1rem; /* Smaller buttons */
+        font-size: 0.85rem;
+    }
+
+    .form-group label {
+        font-size: 0.75rem; /* Tiny labels to save space */
+        margin-bottom: 0.25rem;
+    }
+
+    .form-group input, .form-group select {
+        padding: 0.6rem 0.75rem; /* Thinner input fields */
+        font-size: 0.9rem;
+    }
+}

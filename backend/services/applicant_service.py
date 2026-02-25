@@ -21,7 +21,11 @@ class ApplicantService:
         experience: Optional[List[Dict[str, Any]]] = None,
         skills: Optional[List[str]] = None,
         resume_file: Optional[bytes] = None,
-        resume_filename: Optional[str] = None
+        resume_filename: Optional[str] = None,
+        profile_image_file: Optional[bytes] = None,
+        profile_image_filename: Optional[str] = None,
+        intro_video_file: Optional[bytes] = None,
+        intro_video_filename: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Updates the candidate's profile by splitting data between 'users' and 'candidate_profiles' tables.
@@ -32,7 +36,17 @@ class ApplicantService:
                 resume_url = self._upload_resume_internal(candidate_id, resume_filename, resume_file)
                 profile_data["resume_url"] = resume_url
 
-            # 2. Split Data for Tables
+            # 2. Handle Profile Image Upload (if provided)
+            if profile_image_file and profile_image_filename:
+                avatar_url = self._upload_profile_image_internal(candidate_id, profile_image_filename, profile_image_file)
+                profile_data["avatar_url"] = avatar_url
+
+            # 3. Handle Introduction Video Upload (if provided)
+            if intro_video_file and intro_video_filename:
+                intro_video_url = self._upload_intro_video_internal(candidate_id, intro_video_filename, intro_video_file)
+                profile_data["intro_video_url"] = intro_video_url
+
+            # 4. Split Data for Tables
             # Fields that belong to the 'users' table
             user_fields = ["full_name", "phone", "location", "avatar_url"]
             user_updates = {k: v for k, v in profile_data.items() if k in user_fields}
@@ -45,21 +59,21 @@ class ApplicantService:
             }
             profile_updates["user_id"] = candidate_id
 
-            # 3. Update 'users' Table
+            # 5. Update 'users' Table
             if user_updates:
                 try:
                     self.supabase.table("users").update(user_updates).eq("id", candidate_id).execute()
                 except Exception as e:
                     logger.error(f"Failed to update users table: {e}")
 
-            # 4. Upsert 'candidate_profiles' Table
+            # 6. Upsert 'candidate_profiles' Table
             # We use on_conflict="user_id" to ensure we update if exists, insert if not
             if profile_updates:
                 self.supabase.table("candidate_profiles").upsert(
                     profile_updates, on_conflict="user_id"
                 ).execute()
 
-            # 5. Update Related Tables (Skills, Edu, Exp)
+            # 7. Update Related Tables (Skills, Edu, Exp)
             if education is not None:
                 self._save_education(candidate_id, education)
 
@@ -69,7 +83,7 @@ class ApplicantService:
             if skills is not None:
                 self._save_skills(candidate_id, skills)
 
-            # 6. Mark Onboarded in Auth
+            # 8. Mark Onboarded in Auth
             try:
                 self.supabase.auth.admin.update_user_by_id(
                     candidate_id, 
@@ -92,6 +106,18 @@ class ApplicantService:
         safe_name = f"{int(time.time())}_{filename.replace(' ', '_')}"
         path = f"{candidate_id}/{safe_name}"
         self.supabase.storage.from_("resumes").upload(path, content, {"upsert": "true"})
+        return path
+    
+    def _upload_profile_image_internal(self, candidate_id: str, filename: str, content: bytes) -> str:
+        safe_name = f"{int(time.time())}_{filename.replace(' ', '_')}"
+        path = f"{candidate_id}/{safe_name}"
+        self.supabase.storage.from_("profile-images").upload(path, content, {"upsert": "true"})
+        return path
+    
+    def _upload_intro_video_internal(self, candidate_id: str, filename: str, content: bytes) -> str:
+        safe_name = f"{int(time.time())}_{filename.replace(' ', '_')}"
+        path = f"{candidate_id}/{safe_name}"
+        self.supabase.storage.from_("intro-videos").upload(path, content, {"upsert": "true"})
         return path
 
     def _save_education(self, candidate_id: str, items: List[Dict[str, Any]]):
@@ -201,6 +227,7 @@ class ApplicantService:
                 "job_id": data["job_id"],
                 "candidate_id": data["candidate_id"],
                 "cover_letter": data.get("cover_letter"),
+                "intro_video_url": data.get("intro_video_url"),
                 "status": "submitted" # Default status
             }
             

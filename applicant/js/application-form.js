@@ -1,15 +1,15 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendGet, backendPut, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
-
+import '@shared/js/mobile.js';
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 // State
 let currentStep = 1;
-const totalSteps = 5;
+const totalSteps = 6;
 let experienceCount = 0;
 let educationCount = 0;
 let skills = [];
@@ -18,6 +18,7 @@ let skills = [];
 let form, nextBtn, prevBtn, submitBtn, steps, sections, successModal, logoutBtn, goToDashboardBtn;
 let resumeInput, skillInput, addSkillBtn, skillsContainer;
 let addExpBtn, addEduBtn;
+let profileImageInput, introVideoInput, removeVideoBtn;
 
 /* -------------------------------------------------------
    MAIN INITIALIZATION
@@ -39,6 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     skillsContainer = document.getElementById('skillsContainer');
     addExpBtn = document.getElementById('addExperience');
     addEduBtn = document.getElementById('addEducation');
+    profileImageInput = document.getElementById('profileImageFile');
+    introVideoInput = document.getElementById('introVideoFile');
+    removeVideoBtn = document.getElementById('removeVideoBtn');
 
     setupEventListeners();
     
@@ -143,6 +147,35 @@ async function loadExistingProfile() {
                 `;
             }
         }
+        
+        // 6. Show Existing Profile Image
+        if(profile.avatar_url) {
+            const img = document.getElementById('profileImageTag');
+            const initials = document.getElementById('avatarInitialsPreview');
+            if(img) {
+                img.src = profile.avatar_url;
+                img.style.display = 'block';
+            }
+            if(initials) initials.style.display = 'none';
+            document.getElementById('profileImageFileName').innerHTML = `<span class="text-success"><i class="fas fa-check-circle"></i> Profile photo uploaded</span>`;
+        }
+        
+        // 7. Show Existing Introduction Video
+        if(profile.intro_video_url) {
+            const video = document.getElementById('previewVideoElement');
+            const uploadArea = document.getElementById('videoUploadArea');
+            const previewArea = document.getElementById('videoPreviewArea');
+            
+            if(video) {
+                video.src = profile.intro_video_url;
+                video.load();
+            }
+            
+            if(uploadArea) uploadArea.style.display = 'none';
+            if(previewArea) previewArea.style.display = 'block';
+            
+            document.getElementById('introVideoFileName').innerHTML = `<span class="text-success"><i class="fas fa-check-circle"></i> Introduction video uploaded</span>`;
+        }
 
     } catch (err) {
         console.warn("No existing profile found or error fetching:", err);
@@ -196,6 +229,85 @@ function setupEventListeners() {
         resumeInput.addEventListener('change', (e) => { 
             if (e.target.files[0]) {
                 document.getElementById('resumeFileName').innerHTML = `<i class="fas fa-file-pdf"></i> ${e.target.files[0].name}`; 
+            }
+        });
+    }
+    
+    // Profile Image Upload Handler
+    if(profileImageInput) {
+        profileImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                // Validate file size (max 2MB)
+                if(file.size > 2 * 1024 * 1024) {
+                    alert('Image size should be less than 2MB');
+                    profileImageInput.value = '';
+                    return;
+                }
+                
+                // Show file name
+                document.getElementById('profileImageFileName').textContent = file.name;
+                
+                // Preview image
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.getElementById('profileImageTag');
+                    const initials = document.getElementById('avatarInitialsPreview');
+                    if(img) {
+                        img.src = e.target.result;
+                        img.style.display = 'block';
+                    }
+                    if(initials) initials.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Introduction Video Upload Handler
+    if(introVideoInput) {
+        introVideoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                // Validate file size (max 50MB)
+                if(file.size > 50 * 1024 * 1024) {
+                    alert('Video size should be less than 50MB');
+                    introVideoInput.value = '';
+                    return;
+                }
+                
+                // Show file name and preview
+                document.getElementById('introVideoFileName').innerHTML = `<i class="fas fa-video"></i> ${file.name}`;
+                
+                // Create preview
+                const videoURL = URL.createObjectURL(file);
+                const video = document.getElementById('previewVideoElement');
+                const uploadArea = document.getElementById('videoUploadArea');
+                const previewArea = document.getElementById('videoPreviewArea');
+                
+                if(video) {
+                    video.src = videoURL;
+                    video.load();
+                }
+                
+                // Switch UI to show preview
+                if(uploadArea) uploadArea.style.display = 'none';
+                if(previewArea) previewArea.style.display = 'block';
+            }
+        });
+    }
+    
+    // Remove Video Button
+    if(removeVideoBtn) {
+        removeVideoBtn.addEventListener('click', () => {
+            introVideoInput.value = '';
+            document.getElementById('introVideoFileName').textContent = '';
+            document.getElementById('videoUploadArea').style.display = 'block';
+            document.getElementById('videoPreviewArea').style.display = 'none';
+            const video = document.getElementById('previewVideoElement');
+            if(video) {
+                video.pause();
+                video.src = '';
             }
         });
     }
@@ -359,6 +471,16 @@ async function handleFormSubmit(e) {
         // Only append the file if a new one was selected
         if(resumeInput.files[0]) {
             payload.append('resume', resumeInput.files[0]);
+        }
+        
+        // Append profile image if selected
+        if(profileImageInput && profileImageInput.files[0]) {
+            payload.append('profile_image', profileImageInput.files[0]);
+        }
+        
+        // Append introduction video if selected
+        if(introVideoInput && introVideoInput.files[0]) {
+            payload.append('intro_video', introVideoInput.files[0]);
         }
 
         const response = await backendPut('/applicant/profile', payload);

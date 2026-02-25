@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs | Skreenit - Find Your Dream Job</title>
+    
+    <script>
+    (function() {
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+        const im = document.createElement('script');
+        im.type = 'importmap';
+        im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+        document.head.appendChild(im);
+        
+        window.loadSharedCSS = function(file) {
+            const link = document.createElement('link'); 
+            link.rel = 'stylesheet'; 
+            link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+            document.head.appendChild(link);
+        };
+        
+        const icon = document.createElement('link'); 
+        icon.rel = 'icon'; 
+        icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+        document.head.appendChild(icon);
+    })();
+    </script>
+
+    <script>
+        loadSharedCSS('core.css');
+        loadSharedCSS('components.css');
+        loadSharedCSS('landing.css');
+        loadSharedCSS('jobs.css');
+        loadSharedCSS('mobile.css');
+    </script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+</head>
+<body class="jobs-page">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/index.html" class="logo-section">
+                <img src="" id="logoImg" alt="Skreenit">
+                <span>Skreenit</span>
+            </a>
+            <div class="header-actions" id="headerActions">
+                <a href="/login/login.html" class="btn btn-outline">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+                <a href="/login/registration.html" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Register
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="jobs-page-container">
+        <div class="page-header">
+            <h1><i class="fas fa-briefcase"></i> Find Your Dream Job</h1>
+            <p>Browse opportunities from top companies and apply with ease</p>
+        </div>
+
+        <!-- Filters Sidebar -->
+        <aside class="filters-sidebar">
+            <h3><i class="fas fa-filter"></i> Filters</h3>
+            
+            <div class="filter-group">
+                <label>Position</label>
+                <input type="text" id="filterPosition" placeholder="e.g. Frontend Developer">
+            </div>
+
+            <div class="filter-group">
+                <label>Skills</label>
+                <input type="text" id="filterSkills" placeholder="e.g. React, Node.js">
+            </div>
+
+            <div class="filter-group">
+                <label>Company</label>
+                <input type="text" id="filterCompany" placeholder="e.g. Google">
+            </div>
+
+            <div class="filter-group">
+                <label>Location</label>
+                <input type="text" id="filterLocation" placeholder="e.g. Hyderabad">
+            </div>
+
+            <div class="filter-group">
+                <label>Job Type</label>
+                <select id="filterType">
+                    <option value="">All Types</option>
+                    <option value="full-time">Full Time</option>
+                    <option value="part-time">Part Time</option>
+                    <option value="remote">Remote</option>
+                    <option value="hybrid">Hybrid</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Salary Range</label>
+                <select id="filterSalary">
+                    <option value="">Any</option>
+                    <option value="0-5">0–5 LPA</option>
+                    <option value="5-10">5–10 LPA</option>
+                    <option value="10-20">10–20 LPA</option>
+                    <option value="20+">20+ LPA</option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn btn-primary" id="applyFiltersBtn">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <button class="btn btn-outline" id="clearFiltersBtn">
+                    <i class="fas fa-undo"></i> Clear All
+                </button>
+            </div>
+        </aside>
+
+        <!-- Jobs Content -->
+        <div class="jobs-content">
+            <!-- Search Section -->
+            <div class="jobs-search-section">
+                <div class="jobs-search-bar">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search by job title, company, or skills...">
+                    </div>
+                    <button class="btn btn-primary" id="searchBtn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+
+            <!-- Jobs Grid -->
+            <div id="jobsContainer">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading jobs...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Required Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="auth-modal">
+            <div class="auth-modal-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2>Sign in Required</h2>
+            <p>To apply for this position, please sign in to your Skreenit account or create a new one. It only takes a minute!</p>
+            <div class="auth-modal-actions">
+                <a href="" id="loginRedirectBtn" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </a>
+                <a href="" id="registerRedirectBtn" class="btn btn-secondary">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </a>
+                <button class="btn-close-modal" id="closeModalBtn">
+                    Maybe later
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Intro Video Modal -->
+    <div class="modal-overlay" id="introVideoModal">
+        <div class="auth-modal" style="max-width: 500px;">
+            <div class="auth-modal-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-video"></i>
+            </div>
+            <h2>Add Introduction Video?</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">Stand out to recruiters by adding a 60-90 second video introduction to your application!</p>
+            
+            <!-- Existing Video Info -->
+            <div id="existingVideoInfo" style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; text-align: center;">
+                <p style="font-size: 0.9rem; color: #16a34a; margin: 0;">
+                    <i class="fas fa-check-circle"></i> You have an existing intro video
+                </p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div id="videoActionButtons" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+                <button class="btn btn-primary" id="useExistingVideoBtn" style="display: none;">
+                    <i class="fas fa-check"></i> Yes, Use My Existing Video
+                </button>
+                <button class="btn btn-secondary" id="recordNewVideoBtn">
+                    <i class="fas fa-video"></i> Record/Upload New Video
+                </button>
+                <button class="btn btn-outline" id="skipVideoBtn">
+                    <i class="fas fa-times"></i> No, Apply Without Video
+                </button>
+            </div>
+            
+            <!-- Upload Progress -->
+            <div id="videoUploadProgress" style="display: none;">
+                <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; margin-bottom: 0.5rem;">
+                    <div id="videoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                </div>
+                <p id="videoProgressText" style="font-size: 0.85rem; color: #666; text-align: center;">Submitting application...</p>
+            </div>
+            
+            <button class="btn-close-modal" id="closeVideoModalBtn">
+                Cancel Application
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script type="module" src="js/jobs.js"></script>
+</body>
+</html>

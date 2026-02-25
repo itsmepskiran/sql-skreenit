@@ -1,11 +1,11 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendGet, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
-
+import '@shared/js/mobile.js';
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -77,14 +77,26 @@ async function loadProfile(userId) {
         }
         setText("viewRole", roleText);
 
-        // 3. Avatar Main Card
-        const avatarEl = document.getElementById("viewAvatar");
+        // 3. Avatar Main Card - Handle Profile Image or Avatar
+        const avatarInitials = document.getElementById("avatarInitials");
+        const profileImage = document.getElementById("profileImage");
+        
         if (profile.avatar_url) {
-            avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+            // Show profile image
+            if(profileImage) {
+                profileImage.src = profile.avatar_url;
+                profileImage.style.display = 'block';
+            }
+            if(avatarInitials) avatarInitials.style.display = 'none';
         } else {
-            const initials = (profile.full_name || "C").match(/\b\w/g) || [];
-            const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-            avatarEl.textContent = text || "C";
+            // Show initials avatar
+            if(profileImage) profileImage.style.display = 'none';
+            if(avatarInitials) {
+                const initials = (profile.full_name || "C").match(/\b\w/g) || [];
+                const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+                avatarInitials.textContent = text || "C";
+                avatarInitials.style.display = 'block';
+            }
         }
 
         // 4. Links
@@ -98,7 +110,10 @@ async function loadProfile(userId) {
              portfolio.innerHTML = `<a href="${profile.portfolio_url}" target="_blank" style="color:var(--primary-color); font-weight:600; text-decoration:none;"><i class="fas fa-globe" style="margin-right:8px;"></i> Portfolio Link</a>`;
         }
 
-        // --- 5. RESUME LOGIC (TARGETING EXISTING HTML IDs) ---
+        // 5. Introduction Video
+        loadIntroductionVideo(profile.intro_video_url);
+
+        // --- 6. RESUME LOGIC (TARGETING EXISTING HTML IDs) ---
         const resumeContainer = document.getElementById("resumeContainer");
         const noResumeContainer = document.getElementById("noResumeContainer");
         const fileNameEl = document.getElementById("resumeFileName");
@@ -190,6 +205,139 @@ function setText(id, val) {
     if(el) el.textContent = val;
 }
 
+// --- INTRODUCTION VIDEO FUNCTIONS ---
+function loadIntroductionVideo(videoUrl) {
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoUploadArea = document.getElementById('videoUploadArea');
+    const videoElement = document.getElementById('introVideoElement');
+    const videoFileName = document.getElementById('videoFileName');
+    
+    if (videoUrl) {
+        // Show video player with existing video
+        if(videoPlayer) videoPlayer.style.display = 'block';
+        if(videoUploadArea) videoUploadArea.style.display = 'none';
+        if(videoElement) {
+            videoElement.src = videoUrl;
+            videoElement.load();
+        }
+        if(videoFileName) {
+            videoFileName.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> Video uploaded</span>';
+        }
+    } else {
+        // Show upload area
+        if(videoPlayer) videoPlayer.style.display = 'none';
+        if(videoUploadArea) videoUploadArea.style.display = 'block';
+        if(videoFileName) videoFileName.textContent = '';
+    }
+}
+
+async function handleVideoUpload(file) {
+    if (!file) return;
+    
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+        alert('Video size should be less than 50MB');
+        return;
+    }
+    
+    const progressBar = document.getElementById('videoProgressBar');
+    const progressText = document.getElementById('videoProgressText');
+    const uploadProgress = document.getElementById('videoUploadProgress');
+    const videoUploadArea = document.getElementById('videoUploadArea');
+    
+    // Show progress
+    if(uploadProgress) uploadProgress.style.display = 'block';
+    if(videoUploadArea) videoUploadArea.style.display = 'none';
+    
+    try {
+        // Update progress UI
+        updateVideoProgress(10, 'Preparing upload...');
+        
+        // Generate safe filename
+        const timestamp = Date.now();
+        const safeName = `${timestamp}_${file.name.replace(/\s+/g, '_')}`;
+        const path = `${(await supabase.auth.getUser()).data.user.id}/${safeName}`;
+        
+        updateVideoProgress(30, 'Uploading to storage...');
+        
+        // Upload to Supabase storage
+        const { data, error } = await supabase.storage
+            .from('intro-videos')
+            .upload(path, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+        
+        if (error) throw error;
+        
+        updateVideoProgress(70, 'Saving to profile...');
+        
+        // Update profile with video URL
+        const { error: updateError } = await supabase
+            .from('candidate_profiles')
+            .update({ intro_video_url: path })
+            .eq('user_id', (await supabase.auth.getUser()).data.user.id);
+        
+        if (updateError) throw updateError;
+        
+        updateVideoProgress(100, 'Complete!');
+        
+        // Reload to show the video
+        setTimeout(() => {
+            loadIntroductionVideo(path);
+            if(uploadProgress) uploadProgress.style.display = 'none';
+        }, 500);
+        
+    } catch (err) {
+        console.error('Video upload failed:', err);
+        alert('Failed to upload video: ' + err.message);
+        if(uploadProgress) uploadProgress.style.display = 'none';
+        if(videoUploadArea) videoUploadArea.style.display = 'block';
+    }
+}
+
+function updateVideoProgress(percent, text) {
+    const progressBar = document.getElementById('videoProgressBar');
+    const progressText = document.getElementById('videoProgressText');
+    if(progressBar) progressBar.style.width = percent + '%';
+    if(progressText) progressText.textContent = text || `Uploading... ${percent}%`;
+}
+
+async function deleteIntroductionVideo() {
+    if (!confirm('Are you sure you want to delete your introduction video?')) return;
+    
+    try {
+        const user = (await supabase.auth.getUser()).data.user;
+        
+        // Get current video path
+        const { data: profile } = await supabase
+            .from('candidate_profiles')
+            .select('intro_video_url')
+            .eq('user_id', user.id)
+            .single();
+        
+        if (profile?.intro_video_url) {
+            // Delete from storage
+            await supabase.storage
+                .from('intro-videos')
+                .remove([profile.intro_video_url]);
+        }
+        
+        // Update profile to remove video URL
+        await supabase
+            .from('candidate_profiles')
+            .update({ intro_video_url: null })
+            .eq('user_id', user.id);
+        
+        // Reload UI
+        loadIntroductionVideo(null);
+        
+    } catch (err) {
+        console.error('Failed to delete video:', err);
+        alert('Failed to delete video: ' + err.message);
+    }
+}
+
 function setupNavigation() {
     const origin = window.location.origin;
 
@@ -213,6 +361,29 @@ function setupNavigation() {
         await supabase.auth.signOut();
         window.location.href = CONFIG.PAGES.LOGIN;
     });
+    
+    // Video Upload Event Listeners
+    const introVideoFile = document.getElementById('introVideoFile');
+    const replaceVideoBtn = document.getElementById('replaceVideoBtn');
+    const deleteVideoBtn = document.getElementById('deleteVideoBtn');
+    
+    if(introVideoFile) {
+        introVideoFile.addEventListener('change', (e) => {
+            if(e.target.files[0]) {
+                handleVideoUpload(e.target.files[0]);
+            }
+        });
+    }
+    
+    if(replaceVideoBtn) {
+        replaceVideoBtn.addEventListener('click', () => {
+            document.getElementById('introVideoFile').click();
+        });
+    }
+    
+    if(deleteVideoBtn) {
+        deleteVideoBtn.addEventListener('click', deleteIntroductionVideo);
+    }
 }
 
 // --- SECURE SIGNED URL GENERATOR ---
@@ -268,4 +439,272 @@ window.handleResumeAction = async function(path, action) {
         document.body.style.cursor = 'default';
     }
 };
-document.addEventListener("DOMContentLoaded", checkAuth);
+// --- INLINE VIDEO RECORDER FUNCTIONS ---
+let inlineMediaRecorder = null;
+let inlineRecordedChunks = [];
+let inlineRecordingInterval = null;
+let inlineCurrentVideoBlob = null;
+
+// Check for pending job application redirect
+function checkPendingJobApplication() {
+    const pendingJobId = sessionStorage.getItem('pendingJobApplication');
+    if (pendingJobId) {
+        // Show notification that they need to record video to continue application
+        const notification = document.createElement('div');
+        notification.style.cssText = 'background: #eff6ff; border: 1px solid #bfdbfe; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;';
+        notification.innerHTML = `
+            <div>
+                <p style="margin: 0; font-weight: 600; color: #1e40af;"><i class="fas fa-info-circle"></i> Complete Your Application</p>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: #64748b;">Record or upload your intro video to complete your job application.</p>
+            </div>
+            <button id="openRecorderFromNotification" class="btn btn-primary btn-sm">
+                <i class="fas fa-video"></i> Record Video
+            </button>
+        `;
+        
+        const dashboardContent = document.querySelector('.dashboard-content');
+        if (dashboardContent) {
+            dashboardContent.insertBefore(notification, dashboardContent.firstChild);
+        }
+        
+        // Auto-open recorder after short delay
+        setTimeout(() => {
+            showInlineVideoRecorder();
+        }, 1000);
+    }
+}
+
+function showInlineVideoRecorder() {
+    const modal = document.getElementById('videoRecorderModal');
+    if (modal) {
+        modal.classList.add('active');
+        resetInlineRecorder();
+        startInlineCamera();
+    }
+}
+
+function hideInlineVideoRecorder() {
+    const modal = document.getElementById('videoRecorderModal');
+    if (modal) {
+        modal.classList.remove('active');
+        stopInlineCamera();
+    }
+}
+
+function resetInlineRecorder() {
+    inlineCurrentVideoBlob = null;
+    document.getElementById('inlineRecordingPreview').style.display = 'none';
+    document.getElementById('inlineRecordingIndicator').style.display = 'none';
+    document.getElementById('inlineRecordingTimer').style.display = 'none';
+    document.getElementById('inlineStartRecordBtn').style.display = 'block';
+    document.getElementById('inlineStopRecordBtn').style.display = 'none';
+    document.getElementById('inlineRetakeBtn').style.display = 'none';
+    document.getElementById('inlineSaveVideoBtn').style.display = 'none';
+    document.getElementById('inlineVideoUploadProgress').style.display = 'none';
+    document.getElementById('inlineUploadFileName').textContent = '';
+}
+
+async function startInlineCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: { ideal: 1280 }, height: { ideal: 720 } }, 
+            audio: true 
+        });
+        document.getElementById('inlineRecorderVideo').srcObject = stream;
+    } catch (err) {
+        console.error('Camera access error:', err);
+        alert('Could not access camera. You can upload a video file instead.');
+    }
+}
+
+function stopInlineCamera() {
+    const video = document.getElementById('inlineRecorderVideo');
+    if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+    }
+    if (inlineMediaRecorder && inlineMediaRecorder.state !== 'inactive') {
+        inlineMediaRecorder.stop();
+    }
+    clearInterval(inlineRecordingInterval);
+}
+
+function startInlineRecording() {
+    const video = document.getElementById('inlineRecorderVideo');
+    if (!video.srcObject) {
+        alert('Camera not available');
+        return;
+    }
+    
+    inlineRecordedChunks = [];
+    inlineMediaRecorder = new MediaRecorder(video.srcObject, { mimeType: 'video/webm' });
+    
+    inlineMediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+            inlineRecordedChunks.push(e.data);
+        }
+    };
+    
+    inlineMediaRecorder.onstop = () => {
+        inlineCurrentVideoBlob = new Blob(inlineRecordedChunks, { type: 'video/webm' });
+        const videoUrl = URL.createObjectURL(inlineCurrentVideoBlob);
+        document.getElementById('inlinePreviewVideo').src = videoUrl;
+    };
+    
+    inlineMediaRecorder.start();
+    
+    // Update UI
+    document.getElementById('inlineStartRecordBtn').style.display = 'none';
+    document.getElementById('inlineStopRecordBtn').style.display = 'block';
+    document.getElementById('inlineRecordingIndicator').style.display = 'block';
+    document.getElementById('inlineRecordingTimer').style.display = 'block';
+    
+    // Start timer
+    let seconds = 0;
+    const maxSeconds = 90;
+    inlineRecordingInterval = setInterval(() => {
+        seconds++;
+        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        document.getElementById('inlineRecordingTimer').textContent = `${mins}:${secs} / 01:30`;
+        
+        if (seconds >= maxSeconds) {
+            stopInlineRecording();
+        }
+    }, 1000);
+}
+
+function stopInlineRecording() {
+    if (inlineMediaRecorder && inlineMediaRecorder.state !== 'inactive') {
+        inlineMediaRecorder.stop();
+    }
+    clearInterval(inlineRecordingInterval);
+    
+    // Update UI
+    document.getElementById('inlineStopRecordBtn').style.display = 'none';
+    document.getElementById('inlineRecordingIndicator').style.display = 'none';
+    document.getElementById('inlineRecordingTimer').style.display = 'none';
+    document.getElementById('inlineRetakeBtn').style.display = 'block';
+    document.getElementById('inlineSaveVideoBtn').style.display = 'block';
+    document.getElementById('inlineRecordingPreview').style.display = 'block';
+}
+
+function retakeInlineVideo() {
+    inlineCurrentVideoBlob = null;
+    document.getElementById('inlineRecordingPreview').style.display = 'none';
+    document.getElementById('inlinePreviewVideo').src = '';
+    resetInlineRecorder();
+    startInlineCamera();
+}
+
+function handleInlineVideoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 50 * 1024 * 1024) {
+        alert('Video must be less than 50MB');
+        return;
+    }
+    
+    inlineCurrentVideoBlob = file;
+    document.getElementById('inlineUploadFileName').textContent = file.name;
+    
+    // Show preview
+    const videoUrl = URL.createObjectURL(file);
+    document.getElementById('inlinePreviewVideo').src = videoUrl;
+    document.getElementById('inlineRecordingPreview').style.display = 'block';
+    
+    // Show save button
+    document.getElementById('inlineStartRecordBtn').style.display = 'none';
+    document.getElementById('inlineStopRecordBtn').style.display = 'none';
+    document.getElementById('inlineRetakeBtn').style.display = 'none';
+    document.getElementById('inlineSaveVideoBtn').style.display = 'block';
+}
+
+async function saveInlineVideo() {
+    if (!inlineCurrentVideoBlob) return;
+    
+    const progressBar = document.getElementById('inlineVideoProgressBar');
+    const progressText = document.getElementById('inlineVideoProgressText');
+    const progressDiv = document.getElementById('inlineVideoUploadProgress');
+    
+    progressDiv.style.display = 'block';
+    progressBar.style.width = '20%';
+    progressText.textContent = 'Preparing upload...';
+    
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const timestamp = Date.now();
+        const safeName = `${timestamp}_intro_video.webm`;
+        const path = `${user.id}/${safeName}`;
+        
+        progressBar.style.width = '50%';
+        progressText.textContent = 'Uploading video...';
+        
+        const { data, error } = await supabase.storage
+            .from('intro-videos')
+            .upload(path, inlineCurrentVideoBlob, {
+                cacheControl: '3600',
+                upsert: false
+            });
+        
+        if (error) throw error;
+        
+        progressBar.style.width = '80%';
+        progressText.textContent = 'Saving to profile...';
+        
+        // Save to profile
+        await supabase
+            .from('candidate_profiles')
+            .update({ intro_video_url: path })
+            .eq('user_id', user.id);
+        
+        progressBar.style.width = '100%';
+        progressText.textContent = 'Complete!';
+        
+        // Check if we need to redirect back to jobs page
+        const pendingJobId = sessionStorage.getItem('pendingJobApplication');
+        if (pendingJobId) {
+            sessionStorage.removeItem('pendingJobApplication');
+            // Show success message then redirect
+            setTimeout(() => {
+                window.location.href = `${CONFIG.PAGES.JOBS}?job_id=${pendingJobId}&video_ready=true`;
+            }, 1000);
+        } else {
+            // Just reload profile page
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        }
+        
+    } catch (err) {
+        console.error('Video upload failed:', err);
+        alert('Failed to upload video: ' + err.message);
+        progressDiv.style.display = 'none';
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    checkAuth();
+    setupNavigation();
+    setupInlineRecorderListeners();
+    checkPendingJobApplication();
+});
+
+function setupInlineRecorderListeners() {
+    // Modal controls
+    document.getElementById('closeVideoRecorderBtn')?.addEventListener('click', hideInlineVideoRecorder);
+    document.getElementById('videoRecorderModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'videoRecorderModal') hideInlineVideoRecorder();
+    });
+    
+    // Recording controls
+    document.getElementById('inlineStartRecordBtn')?.addEventListener('click', startInlineRecording);
+    document.getElementById('inlineStopRecordBtn')?.addEventListener('click', stopInlineRecording);
+    document.getElementById('inlineRetakeBtn')?.addEventListener('click', retakeInlineVideo);
+    document.getElementById('inlineSaveVideoBtn')?.addEventListener('click', saveInlineVideo);
+    document.getElementById('inlineUploadVideoFile')?.addEventListener('change', handleInlineVideoUpload);
+    
+    // Notification button
+    document.getElementById('openRecorderFromNotification')?.addEventListener('click', showInlineVideoRecorder);
+}

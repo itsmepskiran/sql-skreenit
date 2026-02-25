@@ -2,6 +2,7 @@
 import { backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { notify } from '@shared/js/auth-pages.js';
 import { CONFIG } from '@shared/js/config.js';
+import '@shared/js/mobile.js';
 
 // 1. Setup Dynamic Assets
 const isLocal = CONFIG.IS_LOCAL;
@@ -15,8 +16,39 @@ if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
 // Update Brand Logo (if you have an ID for it)
 const brandImg = document.getElementById('brandImg');
 if(brandImg) brandImg.src = `${assetsBase}/assets/images/logobrand.png`;
+
+/**
+ * Get redirect URL parameter if present
+ */
+function getRedirectParam() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('redirect');
+}
+
+/**
+ * Build login URL with redirect parameter preserved
+ */
+function getLoginUrl() {
+    const redirect = getRedirectParam();
+    let loginUrl = CONFIG.PAGES.LOGIN;
+    if (redirect) {
+        const url = new URL(loginUrl, window.location.origin);
+        url.searchParams.set('redirect', redirect);
+        loginUrl = url.toString();
+    }
+    return `${loginUrl}${redirect ? '&' : '?'}registered=true`;
+}
+
 document.getElementById('homeLink').href = CONFIG.PAGES.INDEX;
-document.getElementById('loginLink').href = CONFIG.PAGES.LOGIN;
+document.getElementById('loginLink').href = (() => {
+    const redirect = getRedirectParam();
+    if (redirect) {
+        const url = new URL(CONFIG.PAGES.LOGIN, window.location.origin);
+        url.searchParams.set('redirect', redirect);
+        return url.toString();
+    }
+    return CONFIG.PAGES.LOGIN;
+})();
 document.getElementById('termsLink').href = CONFIG.PAGES.TERMS;
 document.getElementById('privacyLink').href = CONFIG.PAGES.PRIVACY;
 
@@ -140,7 +172,7 @@ async function handleRegistrationSubmit(event) {
         }
 
         setTimeout(() => {
-            window.location.href = `${CONFIG.PAGES.LOGIN}?registered=true`;
+            window.location.href = getLoginUrl();
         }, 3000);
 
     } catch (err) {

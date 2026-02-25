@@ -1,5 +1,6 @@
 // login/js/confirm-email.js
 import { CONFIG } from '@shared/js/config.js';
+import '@shared/js/mobile.js';
 
 // Setup Assets
 const isLocal = CONFIG.IS_LOCAL;

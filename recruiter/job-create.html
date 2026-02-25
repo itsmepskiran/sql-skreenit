@@ -29,22 +29,18 @@
   </script>
 
   <script>
-    loadSharedCSS('core.css');   
-    loadSharedCSS('layout.css'); 
-    loadSharedCSS('components.css'); 
-    loadSharedCSS('special.css'); 
+    loadSharedCSS('core.css'); loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css'); loadSharedCSS('special.css'); 
+    loadSharedCSS('mobile.css');
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 
 <body>
   <div class="dashboard-container">
-    
     <nav class="sidebar">
       <div class="sidebar-header">
-         <div class="logo">
-            <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
-         </div>
+         <div class="logo"><img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/></div>
       </div>
       <ul class="nav-menu">
         <li class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
@@ -52,89 +48,51 @@
         <li class="nav-item" id="navApplications"><i class="fas fa-users"></i><span>Applications</span></li>
         <li class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
       </ul>
-      
       <div class="sidebar-footer">
         <div class="user-info">
-          <div id="userAvatar" class="avatar-circle">
-            <i class="fas fa-user-tie"></i>
-          </div>
+          <div id="userAvatar" class="avatar-circle"><i class="fas fa-user-tie"></i></div>
           <div class="user-details">
              <span id="recruiterName" class="user-name">Loading...</span>
              <span id="companyId" class="user-role">---</span>
           </div>
         </div>
-        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+        <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
       </div>
     </nav>
 
     <main class="main-content">
-      <header class="dashboard-header" style="border-bottom: none; margin-bottom: 0;">
-        <button id="backBtn" class="btn-back-ghost">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </button>
-      </header>
-
+      <header class="dashboard-header"><button id="backBtn" class="btn-back-ghost"><i class="fas fa-arrow-left"></i> Back to Dashboard</button></header>
       <div class="dashboard-content">
-        <div class="section-header" style="margin-bottom: 1.5rem;">
-          <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-dark);">Post a New Job</h1>
-        </div>
+        <div class="section-header" style="margin-bottom: 1.5rem;"><h1 style="font-size: 1.8rem; margin: 0; color: var(--text-dark);">Post a New Job</h1></div>
 
         <form id="createJobForm" class="form-card">
-          
           <div class="form-row">
-              <div class="form-group">
-                  <label for="job_title">Job Title *</label>
-                  <input type="text" id="job_title" required />
-              </div>
-              <div class="form-group">
-                  <label for="job_location">Location *</label>
-                  <input type="text" id="job_location" placeholder="e.g. Remote, New York, NY" required />
-              </div>
+              <div class="form-group"><label for="job_title">Job Title *</label><input type="text" id="job_title" required /></div>
+              <div class="form-group"><label for="job_location">Location *</label><input type="text" id="job_location" placeholder="e.g. Remote, NY" required /></div>
           </div>
-
           <div class="form-row">
               <div class="form-group">
                 <label for="job_type">Job Type *</label>
                 <select id="job_type" required>
                   <option value="" disabled selected>Select Type</option>
-                  <option value="full-time">Full-time</option>
-                  <option value="part-time">Part-time</option>
-                  <option value="contract">Contract</option>
-                  <option value="internship">Internship</option>
-                  <option value="freelance">Freelance</option>
-                  <option value="remote">Remote</option>
-                  <option value="onsite">Onsite</option>
-                  <option value="hybrid">Hybrid</option>
+                  <option value="full-time">Full-time</option><option value="remote">Remote</option><option value="contract">Contract</option>
                 </select>
               </div>
-
               <div class="form-group">
                 <label for="salary_range">Salary Range</label>
                 <select id="salary_range">
                   <option value="" disabled selected>Select Salary Range</option>
                   <option value="100000-300000">₹1L - ₹3L</option>
-                  <option value="300000-400000">₹3L - ₹4L</option>
-                  <option value="400000-500000">₹4L - ₹5L</option>
-                  <option value="500000-600000">₹5L - ₹6L</option>
-                  <option value="600000-800000">₹6L - ₹8L</option>
+                  <option value="500000-800000">₹5L - ₹8L</option>
                   <option value="800000-1000000">₹8L - ₹10L</option>
                   <option value="1000000-1500000">₹10L - ₹15L</option>
                   <option value="1500000-2000000">₹15L - ₹20L</option>
-                  <option value="2000000-0">Above ₹20L+</option>
+                  <option value="2000000-0">Above ₹20L</option>
                 </select>
               </div>
           </div>
-
-          <div class="form-group">
-              <label for="job_description">Job Description *</label>
-              <textarea id="job_description" rows="5" required></textarea>
-          </div>
-          
-          <div class="form-group">
-              <label for="requirements">Requirements *</label>
-              <textarea id="requirements" rows="4" required></textarea>
-          </div>
-          
+          <div class="form-group"><label for="job_description">Job Description *</label><textarea id="job_description" rows="5" required></textarea></div>
+          <div class="form-group"><label for="requirements">Requirements *</label><textarea id="requirements" rows="4" required></textarea></div>
           <div class="form-actions" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
               <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1.05rem;">
                   Publish Job <i class="fas fa-paper-plane ms-2"></i>
@@ -144,6 +102,26 @@
       </div>
     </main>
   </div>
+
+  <div id="shareJobModal" class="modal">
+    <div class="modal-content text-center" style="position: relative;">
+      <button id="modalXClose" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+      <h3><i class="fas fa-bullhorn text-primary"></i> Job Published Successfully!</h3>
+      <p class="text-muted">Share this QR code or link to start receiving applications.</p>
+      <h4 id="shareJobTitle" class="mt-3"></h4>
+      <div id="qrcode" class="my-4 d-flex justify-content-center"></div>
+      <div class="input-group mb-3">
+        <input type="text" id="copyLinkInput" class="form-control" readonly>
+        <button class="btn btn-outline-secondary" id="copyLinkBtn">Copy Link</button>
+      </div>
+      <div class="d-grid gap-2">
+        <button id="downloadQRBtn" class="btn btn-primary"><i class="fas fa-download me-2"></i> Download QR Code</button>
+        <button id="backToDashBtn" class="btn btn-link">Back to Dashboard</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="js/job-create.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 </body>
 </html>

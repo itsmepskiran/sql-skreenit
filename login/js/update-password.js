@@ -1,13 +1,15 @@
 // login/js/update-password.js
 import { supabase } from '@shared/js/supabase-config.js';
 import { CONFIG } from '@shared/js/config.js';
+import '@shared/js/mobile.js';
+
 const isLocal = CONFIG.IS_LOCAL;
 // Points to the root assets folder
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 
 // Update Logo
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 // Update Brand Logo (if you have an ID for it)
 const brandImg = document.getElementById('brandImg');

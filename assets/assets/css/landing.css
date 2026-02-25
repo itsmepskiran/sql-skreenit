@@ -35,9 +35,10 @@
 }
 .logo img { 
     height: 45px; 
-    width: 45px; 
-    border-radius: 50%; /* Force round shape */
-    object-fit: cover;
+    width: auto; /* Let it stretch horizontally */
+    max-width: 180px; /* Safety limit */
+    border-radius: 0; /* Remove circle */
+    object-fit: contain; /* Prevent clipping */
     border: none;
 }
 

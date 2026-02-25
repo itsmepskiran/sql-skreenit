@@ -3,7 +3,7 @@ from supabase import Client
 from services.supabase_client import get_client
 from utils_others.logger import logger
 from uuid import uuid4
-
+import json
 
 class RecruiterService:
     """
@@ -165,21 +165,30 @@ class RecruiterService:
             
             if candidate_ids:
                 users_res = self.supabase.table("users")\
-                    .select("id, full_name, email")\
+                    .select("id, full_name, email, phone")\
                     .in_("id", candidate_ids)\
                     .execute()
                 
                 users_data = getattr(users_res, "data", []) or []
                 
                 for u in users_data:
-                    cand_map[u["id"]] = u.get("full_name") or u.get("email") or "Candidate"
+                    cand_map[u["id"]] = {
+                        "name": u.get("full_name") or u.get("email") or "Candidate",
+                        "email": u.get("email"),
+                        "phone": u.get("phone")
+                    }
 
             # 4. Format the Data
             results = []
             for app in applications:
                 enriched_app = dict(app)
                 enriched_app["job_title"] = job_map.get(app["job_id"], "Unknown Job")
-                enriched_app["candidate_name"] = cand_map.get(app["candidate_id"], "Unknown Candidate")
+                
+                cand_info = cand_map.get(app["candidate_id"], {})
+                enriched_app["candidate_name"] = cand_info.get("name", "Unknown Candidate")
+                enriched_app["candidate_email"] = cand_info.get("email")
+                enriched_app["candidate_phone"] = cand_info.get("phone")
+                
                 results.append(enriched_app)
                 
             return results
@@ -453,12 +462,17 @@ class RecruiterService:
         try:
             update_data = {"status": new_status}
             if questions is not None:
-                update_data["interview_questions"] = questions
+                # Ensure it is stored as a clean list/JSON
+                update_data["interview_questions"] = questions 
 
-            self.supabase.table("job_applications").update(update_data).eq("id", app_id).execute()
-            return True
+            res = self.supabase.table("job_applications").update(update_data).eq("id", app_id).execute()
+        
+            if not res.data:
+                logger.error(f"No application found with ID {app_id}")
+                return False
             
+            return True
+        
         except Exception as e:
             logger.error(f"Update status failed: {str(e)}")
-            print(f"❌ DB UPDATE ERROR: {str(e)}") 
             return False

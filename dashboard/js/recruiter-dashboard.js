@@ -1,11 +1,12 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendGet, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
+import '@shared/js/mobile.js';
 
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
@@ -31,7 +32,7 @@ async function checkAuth() {
 
 function updateSidebarProfile(meta, email) {
     // 1. Update Name
-    const nameEl = document.getElementById('userName');
+    const nameEl = document.getElementById('recruiterName');
     if(nameEl) nameEl.textContent = meta.full_name || email.split('@')[0];
 
     // 2. Set default loading state (Just "Loading..." without prefixes)
@@ -50,7 +51,7 @@ async function updateUserInfo() {
     if (profile) {
         // Update Name if contact_name exists
         if (profile.contact_name) {
-            const el = document.getElementById('userName');
+            const el = document.getElementById('recruiterName');
             if (el) el.textContent = profile.contact_name;
         }
 
@@ -82,13 +83,50 @@ function setupEventListeners() {
 
     // --- BANNER CLICK EVENTS ---
     const btnJobs = document.getElementById('btnActiveJobs');
-    if(btnJobs) btnJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_JOBS);
+    if(btnJobs) {
+        btnJobs.style.cursor = 'pointer';
+        btnJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_JOBS);
+    }
 
     const btnCands = document.getElementById('btnCandidates');
-    if(btnCands) btnCands.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
+    if(btnCands) {
+        btnCands.style.cursor = 'pointer';
+        btnCands.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.APPLICATION_LIST}?status=all`);
+    }
 
     const btnApps = document.getElementById('btnNewApps');
-    if(btnApps) btnApps.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.APPLICATION_LIST}?status=pending`);
+    if(btnApps) {
+        btnApps.style.cursor = 'pointer';
+        btnApps.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.APPLICATION_LIST}?status=pending`);
+    }
+
+    // ✅ NEW: Interview Card Redirection
+    const btnInterviews = document.getElementById('btnInterviews');
+    if(btnInterviews) {
+        btnInterviews.style.cursor = 'pointer';
+        btnInterviews.addEventListener('click', () => window.location.href = `${CONFIG.PAGES.APPLICATION_LIST}?status=interviewing`);
+    }
+    // --- Mobile Menu Toggle Logic ---
+    const menuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.querySelector('.sidebar');
+
+    // Create overlay dynamically if missing
+    let overlay = document.querySelector('.sidebar-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
+    }
+
+    menuToggle?.addEventListener('click', () => {
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+    });
 }
 
 async function loadDashboardData(userId) {
@@ -100,10 +138,14 @@ async function loadDashboardData(userId) {
         if(!Array.isArray(jobsList)) jobsList = [];
         
         // Update Stats
-        const activeJobsCount = jobsList.filter(j => (j.status || '').toLowerCase() === 'active').length;
+        const activeJobsCount = jobsList.filter(j => {
+            const s = (j.status || 'active').toLowerCase();
+            return s === 'active' || s === 'published' || s === 'live';
+        }).length;
         setText("statActiveJobs", activeJobsCount);
 
-        renderJobs(jobsList.slice(0, 5));
+        // ✅ Polish UI: Limit to 4 cards
+        renderJobs(jobsList.slice(0, 4));
 
         // B. Fetch Applications
         let appsList = [];
@@ -114,26 +156,34 @@ async function loadDashboardData(userId) {
         } catch (e) { console.warn("Apps fetch error", e); }
 
         if (Array.isArray(appsList)) {
-            renderApplications(appsList.slice(0, 6)); 
+            // ✅ Polish UI: Limit to 4 cards
+            renderApplications(appsList.slice(0, 4)); 
             
-            // Update Stats
-            const totalCandidates = new Set(appsList.map(a => a.candidate_id)).size;
+            const totalCandidates = appsList.length;
             
+            // ✅ FIX 2: Accurate New Applications Count
+            // Defaults empty statuses to 'pending' to ensure they aren't missed
             const newStatuses = ['pending', 'applied', 'submitted', 'new'];
-            const newAppsCount = appsList.filter(a => 
-                newStatuses.includes((a.status || '').toLowerCase())
-            ).length;
+            const newAppsCount = appsList.filter(a => {
+                return newStatuses.includes((a.status || 'pending').toLowerCase());
+            }).length;
+            const interviewCount = appsList.filter(a => {
+                return a.status === 'interviewing' || a.status === 'interviewing';
+            }).length;
             
             setText("statTotalCandidates", totalCandidates);
             setText("statNewApplications", newAppsCount);
+            setText("statInterviews", interviewCount);
         }
 
-    } catch (err) { console.error("Dashboard load error:", err); }
+    } catch (err) { 
+        console.error("Dashboard load error:", err); 
+    }
 }
 
 // Inside your renderApplications or loadRecentApplications function:
 function renderApplications(apps) {
-    const container = document.getElementById("recentApplicationsList"); // Ensure this matches your HTML ID
+    const container = document.getElementById("recentApplicationsList");
     if (!container) return;
 
     if (!apps || apps.length === 0) {
@@ -147,7 +197,6 @@ function renderApplications(apps) {
         let badgeClass = "badge-pending";
         let actionButton = '';
 
-        // ✅ LOGIC UPDATED: Check for submitted interviews
         if (status === 'interview_submitted' || status === 'completed') {
             displayStatus = 'Responses Received';
             badgeClass = "badge-success"; 
@@ -158,9 +207,11 @@ function renderApplications(apps) {
         } else if (status === 'interviewing') {
             displayStatus = 'Interviewing';
             badgeClass = "badge-interviewing";
-            actionButton = `<a href "${CONFIG.PAGES.APPLICATION_DETAILS}?id=${app.id}" class="btn btn-sm btn-outline-primary w-100 mt-2">Manage Interview</a>`;
+            // ✅ Fixed: Added '=' after href
+            actionButton = `<a href="${CONFIG.PAGES.APPLICATION_DETAILS}?id=${app.id}" class="btn btn-sm btn-outline-primary w-100 mt-2">Manage Interview</a>`;
         } else {
-            actionButton = `<a href"${CONFIG.PAGES.APPLICATION_DETAILS}?id=${app.id}" class="btn btn-sm btn-secondary w-100 mt-2">View Details</a>`;
+            // ✅ Fixed: Added '=' after href
+            actionButton = `<a href="${CONFIG.PAGES.APPLICATION_DETAILS}?id=${app.id}" class="btn btn-sm btn-secondary w-100 mt-2">View Details</a>`;
         }
 
         return `
@@ -236,23 +287,21 @@ function renderJobs(jobs) {
     }
     
     list.innerHTML = jobs.map(job => `
-        <div class="card" onclick="window.location.href=${CONFIG.PAGES.JOB_DETAILS}?job_id=${job.id}'" style="cursor:pointer;">
-            <div class="card-body">
-                <h4 style="margin:0 0 4px 0; font-size:1.1rem; color: var(--text-dark, #1e293b);">${job.title}</h4>
-                <p class="text-muted" style="margin:0 0 12px 0; font-size:0.9rem;">
-                    <i class="fas fa-map-marker-alt me-1"></i> ${job.location || 'Remote'}
-                </p>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="badge" style="background:#f1f5f9; color:#475569;">
-                        ${job.job_type || 'Full Time'}
-                    </span>
-                    <small class="text-muted">Posted: ${new Date(job.created_at).toLocaleDateString()}</small>
+        <div class="card mb-2 shadow-sm border-0" onclick="window.location.href='${CONFIG.PAGES.JOB_DETAILS}?job_id=${job.id}'" style="cursor:pointer; padding: 1rem;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div style="flex: 1;">
+                    <h4 class="mb-1" style="font-size:1rem; font-weight:600; color: var(--text-dark);">${job.title}</h4>
+                    <div class="text-muted small">
+                        <i class="fas fa-map-marker-alt me-1"></i> ${job.location || 'Remote'} 
+                        <span class="mx-2">|</span>
+                        <i class="far fa-clock me-1"></i> ${new Date(job.created_at).toLocaleDateString()}
+                    </div>
                 </div>
+                <i class="fas fa-chevron-right text-muted" style="font-size: 0.8rem;"></i>
             </div>
         </div>
     `).join("");
 }
-
 function setText(id, val) {
     const el = document.getElementById(id);
     if(el) el.textContent = val;

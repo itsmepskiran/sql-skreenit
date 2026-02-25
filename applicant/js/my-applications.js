@@ -1,11 +1,11 @@
 import { supabase } from '@shared/js/supabase-config.js';
 import { backendGet, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
-
+import '@shared/js/mobile.js';
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 // --- INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
