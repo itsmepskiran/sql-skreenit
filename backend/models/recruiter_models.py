@@ -16,6 +16,22 @@ class RecruiterProfileBase(BaseModel):
     avatar_url: Optional[str] = None
 
 # -------------------------------------------------------------------
+# COMPANY MODELS
+# -------------------------------------------------------------------
+
+class CompanyBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    website: Optional[str] = None
+    logo_url: Optional[str] = None
+
+class CompanyCreate(CompanyBase):
+    """
+    Model used when creating a company.
+    """
+    pass
+
+# -------------------------------------------------------------------
 # PROFILE MODELS
 # -------------------------------------------------------------------
 
