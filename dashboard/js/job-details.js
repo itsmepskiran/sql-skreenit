@@ -1,4 +1,4 @@
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';;
 import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
@@ -14,7 +14,7 @@ let existingVideoUrl = null;
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await customAuth.getSession();
     if (!session?.user) { 
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
@@ -162,7 +162,7 @@ async function showIntroVideoModal() {
     
     // Check if user has an existing intro video
     try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await customAuth.getSession();
         const { data: profile } = await supabase
             .from('candidate_profiles')
             .select('intro_video_url')
@@ -216,11 +216,9 @@ async function submitApplicationWithVideo() {
     updateVideoProgress(50, 'Submitting application...');
     
     try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await customAuth.getSession();
         
-        const { data, error } = await supabase
-            .from('job_applications')
-            .insert({
+        // TODO: Replace with backendPost("/api/v1/job_applications", data) call{
                 job_id: jobId,
                 candidate_id: session.user.id,
                 status: 'submitted',
@@ -355,7 +353,7 @@ function setupNavigation(role) {
 
     const logoutBtn = document.getElementById("logoutBtn");
     if(logoutBtn) logoutBtn.onclick = async () => {
-        await supabase.auth.signOut();
+        await customAuth.signOut();
         window.location.href = CONFIG.PAGES.LOGIN;
     };
 }

@@ -6,13 +6,13 @@ from fastapi import APIRouter, HTTPException, Request
 from typing import Optional
 
 # Import MySQL services
-from services.mysql_services_simple import notification_service
+from services.mysql_service import notification_service
 from services.auth_service import get_current_user
 from middleware.role_required import ensure_permission
 from models.notification_models import NotificationRequest, NotificationResponse
 from utils_others.logger import logger
 
-router = APIRouter(prefix="/notifications", tags=["Notifications"])
+router = APIRouter(tags=["Notifications"])
 
 # ============================================================
 # HELPER FUNCTIONS

@@ -63,6 +63,12 @@ JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", 7
 # CORS CONFIGURATION
 # ============================================================
 ALLOWED_ORIGINS = [
+    # Local development
+    "http://localhost:8080",
+    "http://localhost:8081",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:8081",
+    # Production domains
     "https://www.skreenit.com",
     "https://skreenit.com", 
     "https://login.skreenit.com",
@@ -74,10 +80,8 @@ ALLOWED_ORIGINS = [
     "https://storage.skreenit.com",
     "https://assets.skreenit.com",
     "https://aiskreenit.onrender.com",
-    "https://assets.skreenit.com",
     "https://hrms.skreenit.com",
     "https://app.skreenit.com",
-    "https://storage.skreenit.com",
     "https://in.skreenit.com",
     "https://support.skreenit.com",
     "https://legal.skreenit.com"
@@ -98,6 +102,14 @@ def validate_config():
     }
     
     missing_vars = [var for var, value in required_vars.items() if not value]
+    
+    if missing_vars:
+        raise ValueError(
+            f"❌ Missing required environment variables: {', '.join(missing_vars)}\n"
+            f"Please set these in your .env file."
+        )
+    
+    return True
     
     if missing_vars:
         raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")

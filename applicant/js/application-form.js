@@ -1,4 +1,4 @@
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';;
 import { backendGet, backendPut, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
    AUTH & SIDEBAR
 ------------------------------------------------------- */
 async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await customAuth.getSession();
     if (!session || !session.user) { window.location.href = CONFIG.PAGES.LOGIN; return false; }
   
     const user = session.user;
@@ -314,7 +314,7 @@ function setupEventListeners() {
     
     if(form) form.addEventListener('submit', handleFormSubmit);
     
-    if(logoutBtn) logoutBtn.addEventListener('click', async () => { await supabase.auth.signOut(); window.location.href = CONFIG.PAGES.LOGIN; });
+    if(logoutBtn) logoutBtn.addEventListener('click', async () => { await customAuth.signOut(); window.location.href = CONFIG.PAGES.LOGIN; });
     if(goToDashboardBtn) goToDashboardBtn.addEventListener('click', () => { window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; });
     
     document.querySelectorAll('.nav-item').forEach(item => { 
@@ -486,7 +486,7 @@ async function handleFormSubmit(e) {
         const response = await backendPut('/applicant/profile', payload);
         await handleResponse(response);
         
-        await supabase.auth.updateUser({ data: { onboarded: true } });
+        await customAuth.updateUser({ data: { onboarded: true } });
 
         if(successModal) successModal.classList.add('active');
 

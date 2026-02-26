@@ -1,4 +1,4 @@
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';;
 import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const logoImg = document.getElementById('logoImg');
     if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await customAuth.getSession();
     if (!session) { window.location.href = CONFIG.PAGES.LOGIN; return; }
 
     const urlParams = new URLSearchParams(window.location.search);

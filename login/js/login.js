@@ -1,5 +1,5 @@
 // login/js/login.js
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';
 import { redirectByRole } from '@shared/js/auth-pages.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
@@ -116,7 +116,7 @@ form.addEventListener("submit", async (e) => {
     const password = fd.get("password").trim();
 
     // Sign In
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await customAuth.signInWithPassword({ email, password });
     
     if (error) throw error;
 

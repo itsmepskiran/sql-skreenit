@@ -1,5 +1,5 @@
 // login/js/forgot-password.js
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';;
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 // Setup Assets
@@ -51,7 +51,7 @@ form.addEventListener("submit", async (e) => {
         // ✅ DYNAMIC REDIRECT LINK
         const redirectUrl = window.location.origin + CONFIG.PAGES.UPDATE_PASSWORD + CONFIG.PAGES.UPDATE_PASSWORD;
 
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await customAuth.resetPasswordForEmail(email, {
             redirectTo: redirectUrl
         });
 

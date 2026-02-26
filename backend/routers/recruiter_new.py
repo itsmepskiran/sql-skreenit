@@ -9,13 +9,13 @@ import os
 from datetime import datetime
 
 # Import MySQL services
-from services.mysql_services_simple import recruiter_service, user_service, candidate_service
+from services.mysql_service import recruiter_service, user_service, candidate_service
 from services.auth_service import get_current_user
 from middleware.role_required import ensure_permission
 from models.recruiter_models import CompanyCreate, RecruiterProfileCreate, JobCreateRequest, JobUpdateRequest
 from utils_others.logger import logger
 
-router = APIRouter(prefix="/recruiter", tags=["Recruiter"])
+router = APIRouter(tags=["Recruiter"])
 
 # ============================================================
 # HELPER FUNCTIONS

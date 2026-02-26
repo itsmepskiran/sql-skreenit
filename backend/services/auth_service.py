@@ -1,75 +1,75 @@
 import os
+import jwt
+import bcrypt
+import secrets
+from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-
-# ✅ NEW IMPORTS for the Dependency Logic
-from fastapi import Depends, HTTPException, status, Request
+from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-from supabase import Client
-from services.supabase_client import get_client
+from services.mysql_service import UserService
 from utils_others.logger import logger
-
 
 class AuthService:
     """
-    Clean, production-ready authentication service.
+    Custom Authentication Service that replaces Supabase auth.
     Handles:
-        - Login
-        - Registration
-        - Password reset
-        - Password update
-        - Metadata consistency
+        - JWT token generation and validation
+        - Password hashing and verification
+        - User registration and login
+        - Session management
     """
 
-    def __init__(self, client: Optional[Client] = None) -> None:
-        self.supabase = client or get_client()
-        self.frontend_url = os.getenv("FRONTEND_BASE_URL", "https://login.skreenit.com")
+    def __init__(self):
+        self.user_service = UserService()
+        self.jwt_secret = os.getenv("JWT_SECRET_KEY", "your-super-secret-jwt-key-change-in-production")
+        self.jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
+        self.access_token_expire_minutes = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+        self.refresh_token_expire_days = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", 7))
 
-    # ---------------------------------------------------------
-    # LOGIN
-    # ---------------------------------------------------------
-    def login(self, email: str, password: str) -> Dict[str, Any]:
+    def _hash_password(self, password: str) -> str:
+        """Hash password using bcrypt."""
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+
+    def _verify_password(self, password: str, hashed_password: str) -> bool:
+        """Verify password against bcrypt hash."""
         try:
-            res = self.supabase.auth.sign_in_with_password({
-                "email": email,
-                "password": password,
-            })
+            return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+        except Exception:
+            return False
 
-            session = getattr(res, "session", None)
-            user = getattr(res, "user", None)
+    def _generate_tokens(self, user_data: Dict[str, Any]) -> Dict[str, str]:
+        """Generate JWT access and refresh tokens."""
+        now = datetime.utcnow()
+        
+        # Access token payload
+        access_payload = {
+            "sub": user_data["id"],
+            "email": user_data["email"],
+            "role": user_data.get("role", "candidate"),
+            "full_name": user_data.get("full_name", ""),
+            "type": "access",
+            "iat": now,
+            "exp": now + timedelta(minutes=self.access_token_expire_minutes)
+        }
+        
+        # Refresh token payload
+        refresh_payload = {
+            "sub": user_data["id"],
+            "email": user_data["email"],
+            "type": "refresh",
+            "iat": now,
+            "exp": now + timedelta(days=self.refresh_token_expire_days)
+        }
+        
+        access_token = jwt.encode(access_payload, self.jwt_secret, algorithm=self.jwt_algorithm)
+        refresh_token = jwt.encode(refresh_payload, self.jwt_secret, algorithm=self.jwt_algorithm)
+        
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }
 
-            if not session or not user:
-                raise ValueError("Invalid credentials")
-
-            metadata = user.user_metadata or {}
-
-            logger.info("User login successful", extra={"email": email})
-
-            return {
-                "ok": True,
-                "access_token": session.access_token,
-                "refresh_token": session.refresh_token,
-                "user": {
-                    "id": user.id,
-                    "email": user.email,
-                    "role": metadata.get("role"),
-                    "full_name": metadata.get("full_name"),
-                    "mobile": metadata.get("mobile"),
-                    "location": metadata.get("location"),
-                    "company_id": metadata.get("company_id"),
-                    "company_name": metadata.get("company_name"),
-                    "onboarded": metadata.get("onboarded", False),
-                    "password_set": metadata.get("password_set", True),
-                }
-            }
-
-        except Exception as e:
-            logger.error(f"Login failed: {str(e)}", extra={"email": email})
-            raise ValueError("Invalid email or password")
-
-    # ---------------------------------------------------------
-    # REGISTER
-    # ---------------------------------------------------------
     def register(
         self,
         full_name: str,
@@ -80,153 +80,220 @@ class AuthService:
         role: str,
         email_redirect_to: Optional[str] = None
     ) -> Dict[str, Any]:
-        """
-        Register a new user.
-        """
+        """Register a new user with custom auth."""
         try:
-            # Check for redirect URL (Handle None case)
-            redirect_to = email_redirect_to or f"{self.frontend_url}/confirm-email"
-            
-            # 🔍 DEBUG: Print what we are sending to Supabase
-            print(f"🔹 SERVICE: Registering {email} | Mobile: {mobile} | Role: {role}")
+            # Check if user already exists
+            existing_user = self.user_service.get_user_by_email(email)
+            if existing_user:
+                raise ValueError("This email is already registered")
 
-            auth_res = self.supabase.auth.sign_up({
+            # Hash password
+            hashed_password = self._hash_password(password)
+
+            # Create user in MySQL
+            user_data = {
                 "email": email,
-                "password": password,
-                "options": {
-                    "email_redirect_to": redirect_to,
-                    "data": {
-                        "full_name": full_name,
-                        "mobile": mobile,
-                        "location": location,
-                        "role": role,
-                        "onboarded": False,
-                        "password_set": True,
-                    }
-                }
-            })
+                "full_name": full_name,
+                "password": hashed_password,
+                "phone": mobile,
+                "location": location,
+                "role": role,
+                "onboarded": False,
+                "email_verified": False,
+                "created_at": datetime.utcnow().isoformat()
+            }
 
-            user = getattr(auth_res, "user", None)
-            session = getattr(auth_res, "session", None)
+            created_user = self.user_service.create_user(user_data)
+            if not created_user:
+                raise ValueError("Failed to create user")
 
-            # Supabase sometimes returns a user but no session if email confirmation is on. 
-            # That is OK.
-            if not user:
-                raise ValueError("Supabase returned no user object.")
+            # Generate tokens
+            tokens = self._generate_tokens(created_user)
 
-            metadata = user.user_metadata or {}
             logger.info("User registered successfully", extra={"email": email})
 
             return {
                 "ok": True,
-                "access_token": session.access_token if session else None,
-                "refresh_token": session.refresh_token if session else None,
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"],
                 "user": {
-                    "id": user.id,
-                    "email": user.email,
-                    "role": metadata.get("role"),
-                    "full_name": metadata.get("full_name"),
-                    "mobile": metadata.get("mobile"),
-                    "location": metadata.get("location"),
-                    "onboarded": False,
-                    "password_set": True,
+                    "id": created_user["id"],
+                    "email": created_user["email"],
+                    "role": created_user["role"],
+                    "full_name": created_user["full_name"],
+                    "mobile": created_user["phone"],
+                    "location": created_user["location"],
+                    "onboarded": created_user["onboarded"],
+                    "email_verified": created_user["email_verified"]
                 }
             }
 
         except Exception as e:
-            # 🔥 CRITICAL FIX: Raise the original error so we can see it!
-            print(f"❌ AUTH SERVICE ERROR: {str(e)}") 
-            
-            msg = str(e).lower()
-            if "already registered" in msg or "already exists" in msg:
-                raise ValueError("This email is already registered")
-            
-            # Raise 'e' directly so the Router sees "AuthApiError: Password too short"
-            raise e
+            logger.error(f"Registration failed: {str(e)}", extra={"email": email})
+            raise ValueError(str(e))
 
-    # ---------------------------------------------------------
-    # UPDATE PASSWORD
-    # ---------------------------------------------------------
-    def update_password(self, user: dict, new_password: str) -> None:
+    def login(self, email: str, password: str) -> Dict[str, Any]:
+        """Authenticate user with custom auth."""
         try:
-            user_id = user["id"]
-            metadata = user.get("user_metadata", {})
+            # Get user from database
+            user = self.user_service.get_user_by_email(email)
+            if not user:
+                raise ValueError("Invalid email or password")
 
-            self.supabase.auth.admin.update_user_by_id(
-                user_id=user_id,
-                attributes={
-                    "password": new_password,
-                    "user_metadata": {
-                        **metadata,
-                        "onboarded": True,
-                        "password_set": True
-                    }
+            # Verify password
+            if not self._verify_password(password, user["password"]):
+                raise ValueError("Invalid email or password")
+
+            # Generate tokens
+            tokens = self._generate_tokens(user)
+
+            # Update last login
+            self.user_service.update_last_login(user["id"])
+
+            logger.info("User login successful", extra={"email": email})
+
+            return {
+                "ok": True,
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"],
+                "user": {
+                    "id": user["id"],
+                    "email": user["email"],
+                    "role": user["role"],
+                    "full_name": user["full_name"],
+                    "mobile": user["phone"],
+                    "location": user["location"],
+                    "onboarded": user["onboarded"],
+                    "email_verified": user["email_verified"]
                 }
-            )
+            }
 
-            logger.info("Password updated", extra={"user_id": user_id})
-
+        except ValueError:
+            raise
         except Exception as e:
-            logger.error(f"Password update failed: {str(e)}")
-            raise RuntimeError("Failed to update password")
+            logger.error(f"Login failed: {str(e)}", extra={"email": email})
+            raise ValueError("Invalid email or password")
 
-    # ---------------------------------------------------------
-    # SEND PASSWORD RESET EMAIL
-    # ---------------------------------------------------------
-    def send_password_reset(self, email: str) -> None:
+    def verify_token(self, token: str) -> Dict[str, Any]:
+        """Verify JWT token and return user data."""
         try:
-            redirect_to = f"{self.frontend_url}/update-password.html"
-            self.supabase.auth.reset_password_email(email, {"redirect_to": redirect_to})
+            payload = jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithm])
+            
+            # Check if token type is access
+            if payload.get("type") != "access":
+                raise ValueError("Invalid token type")
+            
+            # Get user from database
+            user = self.user_service.get_user(payload["sub"])
+            if not user:
+                raise ValueError("User not found")
+            
+            return {
+                "user_id": user["id"],
+                "email": user["email"],
+                "role": user["role"],
+                "full_name": user["full_name"],
+                "phone": user["phone"],
+                "location": user["location"],
+                "onboarded": user["onboarded"]
+            }
 
-            logger.info("Password reset email sent", extra={"email": email})
+        except jwt.ExpiredSignatureError:
+            raise ValueError("Token has expired")
+        except jwt.InvalidTokenError:
+            raise ValueError("Invalid token")
+        except Exception as e:
+            logger.error(f"Token verification failed: {str(e)}")
+            raise ValueError("Invalid token")
+
+    def refresh_access_token(self, refresh_token: str) -> Dict[str, str]:
+        """Generate new access token from refresh token."""
+        try:
+            payload = jwt.decode(refresh_token, self.jwt_secret, algorithms=[self.jwt_algorithm])
+            
+            # Check if token type is refresh
+            if payload.get("type") != "refresh":
+                raise ValueError("Invalid refresh token")
+            
+            # Get user from database
+            user = self.user_service.get_user(payload["sub"])
+            if not user:
+                raise ValueError("User not found")
+            
+            # Generate new tokens
+            tokens = self._generate_tokens(user)
+            
+            return {
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"]
+            }
+
+        except jwt.ExpiredSignatureError:
+            raise ValueError("Refresh token has expired")
+        except jwt.InvalidTokenError:
+            raise ValueError("Invalid refresh token")
+        except Exception as e:
+            logger.error(f"Token refresh failed: {str(e)}")
+            raise ValueError("Failed to refresh token")
+
+    def update_password(self, user_id: str, new_password: str) -> None:
+        """Update user password."""
+        try:
+            hashed_password = self._hash_password(new_password)
+            success = self.user_service.update_user_password(user_id, hashed_password)
+            
+            if not success:
+                raise ValueError("Failed to update password")
+            
+            logger.info("Password updated successfully", extra={"user_id": user_id})
 
         except Exception as e:
-            logger.error(f"Password reset failed: {str(e)}")
-            raise RuntimeError("Failed to send password reset email")
+            logger.error(f"Password update failed: {str(e)}", extra={"user_id": user_id})
+            raise ValueError("Failed to update password")
+
+    def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get user by ID."""
+        return self.user_service.get_user(user_id)
 
 
-# =========================================================
-# ✅ NEW: DEPENDENCY FUNCTION (Must be outside the class)
-# =========================================================
+# FastAPI Dependency
 security = HTTPBearer()
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
     """
-    Validates the Bearer Token sent by the frontend.
-    Returns a dictionary with user info if valid.
+    FastAPI dependency to get current authenticated user.
+    Validates the Bearer Token and returns user info.
     """
     token = credentials.credentials
-    supabase = get_client()
+    auth_service = CustomAuthService()
     
     try:
-        # 1. Ask Supabase if this token is valid
-        user_response = supabase.auth.get_user(token)
+        user_data = auth_service.verify_token(token)
+        return user_data
         
-        if not user_response or not user_response.user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="Invalid authentication credentials"
-            )
-        
-        user = user_response.user
-        
-        # 2. Return the User Data as a Dictionary
-        return {
-            "user_id": user.id,
-            "email": user.email,
-            "role": user.user_metadata.get("role", "candidate"),
-            "full_name": user.user_metadata.get("full_name", "")
-        }
-        
-    except Exception as e:
-        print(f"❌ Auth Error: {str(e)}")
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Session expired or invalid"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Authentication error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed"
         )
 
-async def get_current_user(request: Request):
-    user = getattr(request.state, "user", None)
-    if not user:
-        raise HTTPException(status_code=401, detail="Authentication required")
-    return user
+def get_current_user_optional(request) -> Optional[Dict[str, Any]]:
+    """
+    Optional authentication - returns user if authenticated, None otherwise.
+    """
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+    
+    try:
+        token = auth_header.split(" ")[1]
+        auth_service = CustomAuthService()
+        return auth_service.verify_token(token)
+    except Exception:
+        return None

@@ -7,12 +7,12 @@ from typing import Optional
 import json
 
 # Import MySQL services
-from services.mysql_services_simple import dashboard_service, user_service
+from services.mysql_service import dashboard_service, user_service
 from services.auth_service import get_current_user
 from middleware.role_required import ensure_permission
 from utils_others.logger import logger
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+router = APIRouter(tags=["Dashboard"])
 
 # ============================================================
 # HELPER FUNCTIONS

@@ -39,51 +39,59 @@ function getLoginUrl() {
     return `${loginUrl}${redirect ? '&' : '?'}registered=true`;
 }
 
-document.getElementById('homeLink').href = CONFIG.PAGES.INDEX;
-document.getElementById('loginLink').href = (() => {
-    const redirect = getRedirectParam();
-    if (redirect) {
-        const url = new URL(CONFIG.PAGES.LOGIN, window.location.origin);
-        url.searchParams.set('redirect', redirect);
-        return url.toString();
-    }
-    return CONFIG.PAGES.LOGIN;
-})();
-document.getElementById('termsLink').href = CONFIG.PAGES.TERMS;
-document.getElementById('privacyLink').href = CONFIG.PAGES.PRIVACY;
-
-// ✅ NEW: Setup Password Toggle Logic
-document.querySelectorAll('.toggle-password').forEach(icon => {
-    icon.addEventListener('click', function() {
-        // Find the input field within the same parent container
-        const input = this.parentElement.querySelector('input');
-        if (input && input.type === 'password') {
-            input.type = 'text';
-            this.classList.remove('fa-eye');
-            this.classList.add('fa-eye-slash');
-        } else if (input) {
-            input.type = 'password';
-            this.classList.remove('fa-eye-slash');
-            this.classList.add('fa-eye');
+// Setup safe link handling
+const loginLink = document.getElementById('loginLink');
+if (loginLink) {
+    loginLink.href = (() => {
+        const redirect = getRedirectParam();
+        if (redirect) {
+            const url = new URL(CONFIG.PAGES.LOGIN, window.location.origin);
+            url.searchParams.set('redirect', redirect);
+            return url.toString();
         }
-    });
-});
-// Password Toggle Helper (FIXED to find the <i> inside the <button>)
+        return CONFIG.PAGES.LOGIN;
+    })();
+}
+
+// Setup terms and privacy links
+const termsLink = document.getElementById('termsLink');
+const privacyLink = document.getElementById('privacyLink');
+if (termsLink) termsLink.href = CONFIG.PAGES.TERMS;
+if (privacyLink) privacyLink.href = CONFIG.PAGES.PRIVACY;
+
+// ✅ Password Toggle Helper - Make it GLOBAL and AVAILABLE IMMEDIATELY
 window.togglePassword = function(id) {
     const input = document.getElementById(id);
-    // Finds the button next to the input, then finds the icon inside it
-    const icon = input.nextElementSibling.querySelector('i'); 
+    if (!input) return;
+    
+    const button = input.nextElementSibling;
+    if (!button) return;
     
     if (input.type === "password") {
         input.type = "text";
-        icon.classList.remove("fa-eye");
-        icon.classList.add("fa-eye-slash");
+        button.innerHTML = '<i class="fas fa-eye-slash"></i>';
     } else {
         input.type = "password";
-        icon.classList.remove("fa-eye-slash");
-        icon.classList.add("fa-eye");
+        button.innerHTML = '<i class="fas fa-eye"></i>';
     }
 };
+
+// Also attach event listeners to toggle buttons on page load
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const input = this.previousElementSibling;
+            if (input && input.type === 'password') {
+                input.type = 'text';
+                this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+            } else if (input) {
+                input.type = 'password';
+                this.innerHTML = '<i class="fas fa-eye"></i>';
+            }
+        });
+    });
+});
 
 // 2. Form Logic
 async function handleRegistrationSubmit(event) {
@@ -143,18 +151,17 @@ async function handleRegistrationSubmit(event) {
         apiFormData.append('phone', mobile); 
         apiFormData.append('phone_number', mobile);
 
-        // Capitalize Role
-        const fixedRole = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
-        apiFormData.append('role', fixedRole);
+        // Send role as lowercase (database enum expects: "candidate" or "recruiter")
+        apiFormData.append('role', role.toLowerCase());
         
-        // Add Supabase Redirect URL
+        // Add Redirect URL
         const redirectUrl = window.location.origin + CONFIG.PAGES.CONFIRM_EMAIL;
         apiFormData.append('email_redirect_to', redirectUrl);
 
-        console.log("🚀 Sending FormData...");
+        console.log(" Sending FormData...");
 
         // 4. Send as FormData (Backend expects this!)
-        const response = await backendPost('/assets/register', apiFormData);
+        const response = await backendPost('/auth/register', apiFormData);
         const result = await handleResponse(response);
 
         console.log("✅ Success:", result);
@@ -195,22 +202,6 @@ async function handleRegistrationSubmit(event) {
 // ---------------------------------------------------------
 // ✅ ATTACH LISTENER
 // ---------------------------------------------------------
-function setupLinks() {
-    const links = {
-        loginLink: CONFIG.PAGES.LOGIN,
-        termsLink: CONFIG.PAGES.TERMS,
-        privacyLink: CONFIG.PAGES.PRIVACY,
-        homeLink: CONFIG.PAGES.INDEX
-    }
-
-    Object.entries(links).forEach(([id, href]) => {
-        const el = document.getElementById(id);
-        if (el && href) {
-            el.href = href};
-            if(id==='loginLink') el.remove(target);
-    })
-}
-document.addEventListener('DOMContentLoaded', () => setupLinks());
 const regForm = document.getElementById("registrationForm");
 if (regForm) {
     console.log("✅ Form listener attached.");

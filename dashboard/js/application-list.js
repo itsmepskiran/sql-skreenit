@@ -1,4 +1,4 @@
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';;
 import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function checkAuth() {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await customAuth.getSession();
     if (error || !session || !session.user) { 
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
@@ -60,7 +60,7 @@ function setupEventListeners() {
     document.getElementById('backBtn')?.addEventListener("click", () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER);
 
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-        await supabase.auth.signOut();
+        await customAuth.signOut();
         window.location.href = CONFIG.PAGES.LOGIN;
     });
 

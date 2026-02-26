@@ -1,5 +1,5 @@
 // assets/assets/js/auth-pages.js
-import { supabase } from './supabase-config.js';
+import { customAuth } from './auth-config.js';
 import { CONFIG } from './config.js';
 
 /**
@@ -7,7 +7,7 @@ import { CONFIG } from './config.js';
  * If not, redirects to the login page.
  */
 export async function requireAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await customAuth.getSession();
     if (!session) {
         // Clear local storage just in case
         localStorage.removeItem('skreenit_role');
@@ -20,33 +20,32 @@ export async function requireAuth() {
 }
 
 /**
- * ✅ HELPER: Stores key user data in LocalStorage for fast synchronous access.
+ * HELPER: Stores key user data in LocalStorage for fast synchronous access.
  * This prevents UI flickering on dashboards.
  */
 export async function persistSessionToLocalStorage() {
     try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await customAuth.getSession();
         if (error || !session?.user) return;
 
         const user = session.user;
-        const meta = user.user_metadata || {};
 
         // 1. Store Role (Force Lowercase for consistency)
-        if (meta.role) {
-            localStorage.setItem("skreenit_role", meta.role.toLowerCase());
+        if (user.role) {
+            localStorage.setItem("skreenit_role", user.role.toLowerCase());
         }
 
         // 2. Store User ID
-        if (user.id) {
-            localStorage.setItem("user_id", user.id);
+        if (user.user_id) {
+            localStorage.setItem("user_id", user.user_id);
         }
 
         // 3. Store Onboarded Status
-        if (meta.onboarded !== undefined) {
-            localStorage.setItem("onboarded", meta.onboarded.toString());
+        if (user.onboarded !== undefined) {
+            localStorage.setItem("onboarded", user.onboarded.toString());
         }
         
-        console.log("💾 Session persisted to LocalStorage");
+        console.log(" Session persisted to LocalStorage");
     } catch (e) {
         console.warn("Persist failed", e);
     }
@@ -56,23 +55,21 @@ export async function persistSessionToLocalStorage() {
  * Redirects the user based on their Role and Onboarding Status.
  */
 export async function redirectByRole() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await customAuth.getUser();
 
     if (!user) {
         window.location.href = CONFIG.PAGES.LOGIN;
         return;
     }
 
-    // ✅ Step 1: Cache data for the next page
+    // Step 1: Cache data for next page
     await persistSessionToLocalStorage();
 
-    const metadata = user.user_metadata || {};
-    
-    // ✅ Step 2: Handle Case Sensitivity
-    const role = (metadata.role || "").toLowerCase(); 
-    const isOnboarded = metadata.onboarded === true || metadata.onboarded === "true";
+    // Step 2: Handle Case Sensitivity
+    const role = (user.role || "").toLowerCase(); 
+    const isOnboarded = user.onboarded === true || user.onboarded === "true";
 
-    console.log(`🔄 Redirecting... Role: ${role}, Onboarded: ${isOnboarded}`);
+    console.log(` Redirecting... Role: ${role}, Onboarded: ${isOnboarded}`);
 
     if (role === 'recruiter') {
         if (isOnboarded) {
@@ -91,7 +88,7 @@ export async function redirectByRole() {
         }
     } 
     else {
-        console.warn("⚠️ Unknown role:", role);
+        console.warn(" Unknown role:", role);
         window.location.href = CONFIG.PAGES.INDEX;
     }
 }

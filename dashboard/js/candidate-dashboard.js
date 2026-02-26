@@ -1,4 +1,4 @@
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';;
 import { backendGet, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await customAuth.getSession();
     if (!session?.user) { 
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
@@ -304,7 +304,7 @@ function setupEventListeners() {
     // FIXED: Added Logout functionality
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
-            await supabase.auth.signOut();
+            await customAuth.signOut();
             window.location.href = CONFIG.PAGES.LOGIN;
         });
     }

@@ -1,5 +1,5 @@
 // jobs/js/jobs.js
-import { supabase } from "@shared/js/supabase-config.js";
+import { customAuth } from '@shared/js/auth-config.js';;
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 
@@ -61,7 +61,7 @@ let existingVideoUrl = null;
  * Check if user is authenticated and update UI accordingly
  */
 async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await customAuth.getSession();
     currentUser = session?.user || null;
     updateHeaderForAuth();
     return currentUser;
@@ -110,7 +110,7 @@ function updateHeaderForAuth() {
  * Handle logout
  */
 async function handleLogout() {
-    await supabase.auth.signOut();
+    await customAuth.signOut();
     currentUser = null;
     updateHeaderForAuth();
     showToast('Logged out successfully', 'info');
@@ -127,9 +127,7 @@ async function fetchJobs() {
     showLoading();
 
     try {
-        const { data, error } = await supabase
-            .from("jobs")
-            .select("*")
+        // TODO: Replace with backendGet("/api/v1/jobs") call
             .in("status", ["active", "published", "live"])
             .order("created_at", { ascending: false });
 
@@ -316,9 +314,7 @@ async function handleApply(jobId) {
  */
 async function checkExistingApplication(jobId, userId) {
     try {
-        const { data, error } = await supabase
-            .from('applications')
-            .select('id')
+        // TODO: Replace with backendGet("/api/v1/applications") call
             .eq('job_id', jobId)
             .eq('candidate_id', userId)
             .limit(1);
@@ -455,9 +451,7 @@ async function submitApplicationWithVideo() {
     
     // Submit application
     try {
-        const { data, error } = await supabase
-            .from('job_applications')
-            .insert({
+        // TODO: Replace with backendPost("/api/v1/job_applications", data) call{
                 job_id: currentApplicationJobId,
                 candidate_id: currentUser.id,
                 status: 'submitted',
@@ -721,7 +715,7 @@ async function init() {
     await checkAuth();
 
     // Listen for auth state changes
-    supabase.auth.onAuthStateChange((event, session) => {
+    customAuth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN') {
             currentUser = session.user;
             updateHeaderForAuth();

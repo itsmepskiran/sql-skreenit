@@ -8,6 +8,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Generator
 from contextlib import contextmanager
+from urllib.parse import quote
 from sqlalchemy import create_engine, String, Integer, Boolean, DateTime, Text, ForeignKey, JSON, Enum, event
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship, Session, mapped_column, Mapped
 from sqlalchemy.dialects.mysql import VARCHAR
@@ -22,8 +23,11 @@ MYSQL_USER = os.getenv("MYSQL_USER", "root")
 MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "")
 MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "skreenit")
 
-# Create database URL
-DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
+# URL-encode the password to handle special characters like @
+ENCODED_PASSWORD = quote(MYSQL_PASSWORD, safe='')
+
+# Create database URL with encoded password
+DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{ENCODED_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
 
 # Create engine
 engine = create_engine(
@@ -64,7 +68,8 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_sign_in_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    user_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    onboarded: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     
     # Relationships
     recruiter_profile: Mapped[Optional["RecruiterProfile"]] = relationship("RecruiterProfile", back_populates="user", uselist=False)
@@ -146,7 +151,7 @@ class CandidateEducation(Base):
     __tablename__ = "candidate_education"
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
-    candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("candidate_profiles.user_id", ondelete="CASCADE"), nullable=False, index=True)
+    candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("candidate_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
     degree: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     institution: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     completion_year: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
@@ -161,7 +166,7 @@ class CandidateExperience(Base):
     __tablename__ = "candidate_experience"
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
-    candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("candidate_profiles.user_id", ondelete="CASCADE"), nullable=False, index=True)
+    candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("candidate_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
     job_title: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     company: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     start_date: Mapped[Optional[str]] = mapped_column(VARCHAR(50), nullable=True)
@@ -311,7 +316,7 @@ class Notification(Base):
     category: Mapped[str] = mapped_column(VARCHAR(50), default="system")
     related_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), nullable=True)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
-    metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    notification_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
 
 

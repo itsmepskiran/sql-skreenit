@@ -1,5 +1,5 @@
 // assets/assets/js/backend-client.js
-import { supabase } from './supabase-config.js';
+import { customAuth } from './auth-config.js';
 import { CONFIG } from './config.js';
 
 
@@ -16,11 +16,11 @@ class BackendClient {
 
   async getAuthToken() {
     try {
-      let { data } = await supabase.auth.getSession();
+      let { data } = await customAuth.getSession();
       
       // Auto-refresh token if needed
       if (!data?.session?.access_token) {
-          const refresh = await supabase.auth.refreshSession();
+          const refresh = await customAuth.refreshSession();
           data = refresh.data;
       }
       return data?.session?.access_token || null;

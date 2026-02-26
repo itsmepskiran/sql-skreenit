@@ -1,17 +1,15 @@
 # backend/middleware/auth_middleware.py
 
 import os
-import jwt
-from datetime import datetime
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
+from services.auth_service import CustomAuthService
 from utils_others.logger import logger
 
 # ---------------------------------------------------------
 # CONFIG: EXCLUDED PATHS (Public)
 # ---------------------------------------------------------
-# ✅ FIX: Define this at the top level so main.py can import it
 EXCLUDED_PATHS = [
     "/",
     "",
@@ -25,16 +23,23 @@ EXCLUDED_PATHS = [
     "/api/v1/auth/register",
     "/api/v1/auth/confirm-email",
     "/api/v1/auth/reset-password",
+    "/api/v1/auth/refresh-token",
     "/api/v1/system/info",
 ]
 
-class AuthMiddleware(BaseHTTPMiddleware):
+class CustomAuthMiddleware(BaseHTTPMiddleware):
+    """
+    Custom Authentication Middleware that replaces Supabase auth middleware.
+    Validates JWT tokens using the custom auth service.
+    """
+
     def __init__(self, app, excluded_paths=None):
         super().__init__(app)
         # Combine passed paths with the global default list
         self.excluded_paths = set(excluded_paths or [])
         for p in EXCLUDED_PATHS:
             self.excluded_paths.add(p)
+        self.auth_service = CustomAuthService()
 
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
@@ -56,26 +61,38 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # 4. Require Authorization header
         auth_header = request.headers.get("Authorization")
         if not auth_header:
-            return JSONResponse(status_code=401, content={"detail": "Missing Authorization header"})
-
-        token = auth_header.replace("Bearer ", "").strip()
-        secret = os.getenv("SUPABASE_JWT_SECRET", "").strip()
-
-        try:
-            payload = jwt.decode(
-                token,
-                secret,
-                algorithms=["HS256"],
-                options={"verify_aud": False}
+            return JSONResponse(
+                status_code=401, 
+                content={"detail": "Missing Authorization header"}
             )
 
-            # ✅ CRITICAL FIX: Map 'sub' (from JWT) to 'id' (expected by your code)
-            payload["id"] = payload.get("sub")
+        # Extract token
+        if not auth_header.startswith("Bearer "):
+            return JSONResponse(
+                status_code=401, 
+                content={"detail": "Invalid Authorization header format"}
+            )
 
-            request.state.user = payload
+        token = auth_header.replace("Bearer ", "").strip()
 
+        try:
+            # Verify token using custom auth service
+            user_data = self.auth_service.verify_token(token)
+            
+            # Add user data to request state
+            request.state.user = user_data
+
+        except ValueError as e:
+            logger.error(f"Authentication failed: {str(e)}")
+            return JSONResponse(
+                status_code=401, 
+                content={"detail": str(e)}
+            )
         except Exception as e:
-            logger.error(f"Token error: {str(e)}")
-            return JSONResponse(status_code=401, content={"detail": "Invalid Token"})
+            logger.error(f"Token validation error: {str(e)}")
+            return JSONResponse(
+                status_code=401, 
+                content={"detail": "Invalid authentication token"}
+            )
 
         return await call_next(request)

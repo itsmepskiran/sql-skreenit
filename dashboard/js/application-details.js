@@ -1,4 +1,4 @@
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';;
 import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- AUTH & SIDEBAR SYNC ---
 async function checkAuth() {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await customAuth.getSession();
     if (error || !session || !session.user) { 
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
@@ -82,7 +82,7 @@ function setupNavigation() {
 
     if(logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
-            await supabase.auth.signOut();
+            await customAuth.signOut();
             window.location.href = CONFIG.PAGES.LOGIN;
         });
     }
@@ -278,11 +278,11 @@ function openInterviewModal(onConfirmCallback) {
 }
 async function sendInterviewInvite(appId, status, questions) {
     try {
-        const response = await fetch(`${CONFIG.API_BASE_URL}/recruiter/applications/${appId}/status`, {
+        const response = await fetch(`${CONFIG.API_BASE}/recruiter/applications/${appId}/status`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+                'Authorization': `Bearer ${localStorage.getItem('customAuth.token')}`
             },
             body: JSON.stringify({
                 status: status,

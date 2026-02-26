@@ -1,5 +1,5 @@
 // login/js/update-password.js
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';;
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 
@@ -140,14 +140,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
 
       // Set session from reset link tokens
-      const { error: sessionError } = await supabase.auth.setSession({
+      const { error: sessionError } = await customAuth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
       });
       if (sessionError) throw sessionError;
 
       // Update password
-      const { error: updateError } = await supabase.auth.updateUser({ password });
+      const { error: updateError } = await customAuth.updateUser({ password });
       if (updateError) throw updateError;
 
       showSuccess("Password updated successfully! Redirecting to login...");

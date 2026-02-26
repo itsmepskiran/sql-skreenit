@@ -9,13 +9,13 @@ import os
 from datetime import datetime
 
 # Import MySQL services
-from services.mysql_services_simple import candidate_service, recruiter_service, video_service, user_service
+from services.mysql_service import candidate_service, recruiter_service, video_service, user_service
 from services.auth_service import get_current_user
 from middleware.role_required import ensure_permission
 from models.applicant_models import ApplicationCreate
 from utils_others.logger import logger
 
-router = APIRouter(prefix="/applicant", tags=["Applicant"])
+router = APIRouter(tags=["Applicant"])
 
 # ============================================================
 # HELPER FUNCTIONS

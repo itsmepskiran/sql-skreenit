@@ -1,4 +1,4 @@
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';;
 import { backendPut, backendGet, handleResponse } from '@shared/js/backend-client.js'; 
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // --- AUTH & DATA LOADING ---
 async function ensureRecruiter() {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await customAuth.getUser();
   
   if (!user || (user.user_metadata?.role || "").toLowerCase() !== "recruiter") {
     window.location.href = CONFIG.PAGES.LOGIN;
@@ -146,7 +146,7 @@ async function handleProfileSubmit(event) {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...'; 
   btn.disabled = true;
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await customAuth.getUser();
 
   let website = document.getElementById("company_website").value.trim();
   if (website && !website.match(/^https?:\/\//)) website = `https://${website}`;
@@ -165,7 +165,7 @@ async function handleProfileSubmit(event) {
     const res = await backendPut("/recruiter/profile", payload);
     await handleResponse(res);
     
-    await supabase.auth.refreshSession();
+    await customAuth.refreshSession();
     
     originalProfileData = { ...originalProfileData, ...payload, about_company: payload.about }; 
     
@@ -212,7 +212,7 @@ function setupNavigation() {
 
     if(logoutBtn) {
         logoutBtn.addEventListener("click", async () => {
-            await supabase.auth.signOut();
+            await customAuth.signOut();
             window.location.href = CONFIG.PAGES.LOGIN;
         });
     }

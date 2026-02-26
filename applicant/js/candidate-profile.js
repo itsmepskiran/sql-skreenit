@@ -1,4 +1,4 @@
-import { supabase } from '@shared/js/supabase-config.js';
+import { customAuth } from '@shared/js/auth-config.js';;
 import { backendGet, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
@@ -8,7 +8,7 @@ const logoImg = document.getElementById('logoImg');
 if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await customAuth.getSession();
     if (!session?.user) { window.location.href = CONFIG.PAGES.LOGIN; return; }
     
     // Safety check role
@@ -256,7 +256,7 @@ async function handleVideoUpload(file) {
         // Generate safe filename
         const timestamp = Date.now();
         const safeName = `${timestamp}_${file.name.replace(/\s+/g, '_')}`;
-        const path = `${(await supabase.auth.getUser()).data.user.id}/${safeName}`;
+        const path = `${(await customAuth.getUser()).data.user.id}/${safeName}`;
         
         updateVideoProgress(30, 'Uploading to storage...');
         
@@ -276,7 +276,7 @@ async function handleVideoUpload(file) {
         const { error: updateError } = await supabase
             .from('candidate_profiles')
             .update({ intro_video_url: path })
-            .eq('user_id', (await supabase.auth.getUser()).data.user.id);
+            .eq('user_id', (await customAuth.getUser()).data.user.id);
         
         if (updateError) throw updateError;
         
@@ -307,7 +307,7 @@ async function deleteIntroductionVideo() {
     if (!confirm('Are you sure you want to delete your introduction video?')) return;
     
     try {
-        const user = (await supabase.auth.getUser()).data.user;
+        const user = (await customAuth.getUser()).data.user;
         
         // Get current video path
         const { data: profile } = await supabase
@@ -358,7 +358,7 @@ function setupNavigation() {
 
     const logoutBtn = document.getElementById("logoutBtn");
     if(logoutBtn) logoutBtn.addEventListener("click", async () => {
-        await supabase.auth.signOut();
+        await customAuth.signOut();
         window.location.href = CONFIG.PAGES.LOGIN;
     });
     
@@ -633,7 +633,7 @@ async function saveInlineVideo() {
     progressText.textContent = 'Preparing upload...';
     
     try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await customAuth.getUser();
         const timestamp = Date.now();
         const safeName = `${timestamp}_intro_video.webm`;
         const path = `${user.id}/${safeName}`;

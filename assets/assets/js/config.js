@@ -8,8 +8,8 @@ export const CONFIG = {
     IS_LOCAL: isLocal,
 
     // API Configuration
-    // If backend runs on port 8000, keep this.
-    API_BASE: isLocal ? 'http://127.0.0.1:8000/api/v1' : 'https://backend.skreenit.com/api/v1',
+    // Backend runs on port 8080
+    API_BASE: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://backend.skreenit.com/api/v1',
 
     // Centralized Page Paths
     PAGES: {

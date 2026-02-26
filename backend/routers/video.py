@@ -3,7 +3,7 @@ from services.video_service import VideoService
 # ✅ FIX: Correct Import
 from middleware.role_required import ensure_permission
 
-router = APIRouter(prefix="/video", tags=["Video"])
+router = APIRouter(tags=["Video"])
 svc = VideoService()
 
 

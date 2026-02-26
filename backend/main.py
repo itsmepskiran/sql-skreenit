@@ -12,7 +12,7 @@ from utils_others.logger import logger
 from utils_others.error_handler import register_exception_handlers
 
 from middleware.security_headers import SecurityHeadersMiddleware
-from middleware.auth_middleware import AuthMiddleware, EXCLUDED_PATHS
+from middleware.auth_middleware import CustomAuthMiddleware, EXCLUDED_PATHS
 
 from routers import (
     auth,
@@ -148,13 +148,13 @@ app.include_router(api)
 # Desired Execution Flow: CORS -> Security -> Auth -> App
 
 # 3. Auth Middleware (Added First, Executed Last - Inner Layer)
-class PatchedAuthMiddleware(AuthMiddleware): 
+class PatchedCustomAuthMiddleware(CustomAuthMiddleware): 
     async def dispatch(self, request, call_next):
         if request.method == "OPTIONS":
             return await call_next(request)
         return await super().dispatch(request, call_next)
 
-app.add_middleware(PatchedAuthMiddleware, excluded_paths=EXCLUDED_PATHS)
+app.add_middleware(PatchedCustomAuthMiddleware, excluded_paths=EXCLUDED_PATHS)
 
 # 2. Security Headers (Added Second, Executed Middle)
 app.add_middleware(SecurityHeadersMiddleware)

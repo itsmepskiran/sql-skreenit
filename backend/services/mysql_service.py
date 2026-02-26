@@ -43,7 +43,8 @@ class UserService(MySQLService):
                 "phone": user.phone,
                 "role": user.role,
                 "avatar_url": user.avatar_url,
-                "metadata": user.metadata
+                "onboarded": user.onboarded,
+                "user_metadata": user.user_metadata
             }
     
     def sync_user_from_supabase(self, supabase_user: Dict[str, Any]) -> Dict[str, Any]:
@@ -63,12 +64,13 @@ class UserService(MySQLService):
                 existing_user.phone = supabase_user.get("phone", existing_user.phone)
                 existing_user.role = supabase_user.get("role", existing_user.role)
                 existing_user.avatar_url = supabase_user.get("avatar_url", existing_user.avatar_url)
-                existing_user.metadata = supabase_user.get("metadata", existing_user.metadata)
+                existing_user.user_metadata = supabase_user.get("metadata", existing_user.user_metadata)
                 existing_user.last_sign_in_at = datetime.now(timezone.utc)
+                # Don't change onboarded flag on update - it's set manually
                 db.commit()
-                return {"id": existing_user.id, "action": "updated"}
+                return {"id": existing_user.id, "action": "updated", "onboarded": existing_user.onboarded}
             else:
-                # Create new user
+                # Create new user - default to not onboarded
                 new_user = User(
                     id=user_id,
                     email=supabase_user.get("email"),
@@ -76,12 +78,113 @@ class UserService(MySQLService):
                     phone=supabase_user.get("phone"),
                     role=supabase_user.get("role", "candidate"),
                     avatar_url=supabase_user.get("avatar_url"),
-                    metadata=supabase_user.get("metadata"),
+                    user_metadata=supabase_user.get("metadata"),
+                    onboarded=False,
                     email_confirmed_at=datetime.now(timezone.utc) if supabase_user.get("email_confirmed_at") else None
                 )
                 db.add(new_user)
                 db.commit()
-                return {"id": new_user.id, "action": "created"}
+                return {"id": new_user.id, "action": "created", "onboarded": False}
+    
+    def mark_as_onboarded(self, user_id: str) -> bool:
+        """Mark user as onboarded after completing profile."""
+        with self.session_factory() as db:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return False
+            
+            user.onboarded = True
+            db.commit()
+            return True
+    
+    def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """Get user by email address."""
+        with self.session_factory() as db:
+            user = db.query(User).filter(User.email == email).first()
+            if not user:
+                return None
+            
+            return {
+                "id": user.id,
+                "email": user.email,
+                "full_name": user.full_name,
+                "phone": user.phone,
+                "role": user.role,
+                "avatar_url": user.avatar_url,
+                "onboarded": user.onboarded,
+                "email_verified": user.email_confirmed_at is not None,
+                "password": user.password_hash,  # Include password hash for verification
+                "user_metadata": user.user_metadata
+            }
+    
+    def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a new user in the database."""
+        with self.session_factory() as db:
+            try:
+                new_user = User(
+                    id=user_data.get("id", generate_uuid()),
+                    email=user_data.get("email"),
+                    full_name=user_data.get("full_name"),
+                    phone=user_data.get("phone"),
+                    role=user_data.get("role", "candidate"),
+                    avatar_url=user_data.get("avatar_url"),
+                    password_hash=user_data.get("password"),  # Store hashed password
+                    onboarded=user_data.get("onboarded", False),
+                    email_confirmed_at=datetime.now(timezone.utc) if user_data.get("email_verified") else None,
+                    user_metadata=user_data.get("user_metadata", {}),
+                    created_at=datetime.now(timezone.utc)
+                )
+                db.add(new_user)
+                db.commit()
+                db.refresh(new_user)
+                
+                return {
+                    "id": new_user.id,
+                    "email": new_user.email,
+                    "full_name": new_user.full_name,
+                    "phone": new_user.phone,
+                    "role": new_user.role,
+                    "avatar_url": new_user.avatar_url,
+                    "onboarded": new_user.onboarded,
+                    "email_verified": new_user.email_confirmed_at is not None
+                }
+            except Exception as e:
+                db.rollback()
+                logger.error(f"Failed to create user: {str(e)}")
+                return None
+    
+    def update_user_password(self, user_id: str, hashed_password: str) -> bool:
+        """Update user password."""
+        with self.session_factory() as db:
+            try:
+                user = db.query(User).filter(User.id == user_id).first()
+                if not user:
+                    return False
+                
+                user.password_hash = hashed_password
+                user.updated_at = datetime.now(timezone.utc)
+                db.commit()
+                return True
+            except Exception as e:
+                db.rollback()
+                logger.error(f"Failed to update password: {str(e)}")
+                return False
+    
+    def update_last_login(self, user_id: str) -> bool:
+        """Update user's last login timestamp."""
+        with self.session_factory() as db:
+            try:
+                user = db.query(User).filter(User.id == user_id).first()
+                if not user:
+                    return False
+                
+                user.last_sign_in_at = datetime.now(timezone.utc)
+                db.commit()
+                return True
+            except Exception as e:
+                db.rollback()
+                logger.error(f"Failed to update last login: {str(e)}")
+                return False
 
 
 # ============================================================
