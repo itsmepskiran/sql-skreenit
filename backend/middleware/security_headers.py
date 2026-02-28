@@ -25,7 +25,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # Content Security Policy (CSP)
         # Allows scripts/styles from 'self' and https sources. 
-        # Allows connections to your backend and Supabase.
+        # Allows connections to your backend and custom domains.
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; "
@@ -33,8 +33,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "img-src 'self' data: https:; "
             "font-src 'self' https: data:; "
             "connect-src 'self' "
-                "https://*.supabase.co https://*.supabase.in "
-                "wss://*.supabase.co wss://*.supabase.in "
                 "https://www.skreenit.com https://skreenit.com "
                 "https://login.skreenit.com https://auth.skreenit.com "
                 "https://applicant.skreenit.com https://recruiter.skreenit.com "

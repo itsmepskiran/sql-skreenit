@@ -101,11 +101,21 @@ def register_exception_handlers(app: FastAPI) -> None:
                 "request_id": getattr(request.state, "request_id", None),
             },
         )
+        
+        # Determine error type based on the detail message
+        error_type = "http_error"
+        if "already registered" in str(exc.detail).lower():
+            error_type = "email_exists"
+        elif "invalid credentials" in str(exc.detail).lower():
+            error_type = "invalid_credentials"
+        elif "not found" in str(exc.detail).lower():
+            error_type = "not_found"
+        
         return JSONResponse(
             status_code=exc.status_code,
             content={
                 "ok": False,
-                "error": "http_error",
+                "error": error_type,
                 "message": exc.detail,
                 "request_id": getattr(request.state, "request_id", None),
             },

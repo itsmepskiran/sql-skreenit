@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, UploadFile, File, HTTPException
-from services.video_service import VideoService
+from services.video_service_mysql import VideoService
 # ✅ FIX: Correct Import
 from middleware.role_required import ensure_permission
 

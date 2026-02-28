@@ -69,26 +69,35 @@ export async function redirectByRole() {
     const role = (user.role || "").toLowerCase(); 
     const isOnboarded = user.onboarded === true || user.onboarded === "true";
 
-    console.log(` Redirecting... Role: ${role}, Onboarded: ${isOnboarded}`);
+    console.log(`🔍 DEBUG - Redirect Logic:`);
+    console.log(`   User Role: ${role}`);
+    console.log(`   User Onboarded: ${user.onboarded} (type: ${typeof user.onboarded})`);
+    console.log(`   Is Onboarded: ${isOnboarded}`);
+    console.log(`   Email Verified: ${user.email_verified}`);
+    console.log(`   APPLY_FORM: ${CONFIG.PAGES.APPLY_FORM}`);
 
     if (role === 'recruiter') {
         if (isOnboarded) {
+            console.log(`   → Redirecting to Recruiter Dashboard`);
             window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
         } else {
+            console.log(`   → Redirecting to Recruiter Profile`);
             // New Recruiter -> Go to Profile Setup
             window.location.href = CONFIG.PAGES.RECRUITER_PROFILE;
         }
     } 
     else if (role === 'candidate') {
         if (isOnboarded) {
+            console.log(`   → Redirecting to Candidate Dashboard`);
             window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
         } else {
+            console.log(`   → Redirecting to Application Form`);
             // New Candidate -> Go to Application Form
             window.location.href = CONFIG.PAGES.APPLY_FORM;
         }
     } 
     else {
-        console.warn(" Unknown role:", role);
+        console.warn(`   → Unknown role: ${role}, redirecting to Index`);
         window.location.href = CONFIG.PAGES.INDEX;
     }
 }

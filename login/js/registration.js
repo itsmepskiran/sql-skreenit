@@ -161,7 +161,7 @@ async function handleRegistrationSubmit(event) {
         console.log(" Sending FormData...");
 
         // 4. Send as FormData (Backend expects this!)
-        const response = await backendPost('/auth/register', apiFormData);
+        const response = await backendPost('/register', apiFormData);
         const result = await handleResponse(response);
 
         console.log("✅ Success:", result);

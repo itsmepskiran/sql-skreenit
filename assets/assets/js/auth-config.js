@@ -65,7 +65,7 @@ class CustomAuth {
   // Sign in with email and password
   async signInWithPassword({ email, password }) {
     try {
-      const response = await fetch(`${this.baseURL}/auth/login`, {
+      const response = await fetch(`${this.baseURL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -243,8 +243,3 @@ class CustomAuth {
 
 // Export singleton instance
 export const customAuth = new CustomAuth();
-
-// For backward compatibility, export as 'supabase'
-export const supabase = {
-  auth: customAuth
-};

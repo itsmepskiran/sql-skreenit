@@ -185,12 +185,11 @@ function retakeVideo() {
 
 async function deleteVideoFromStorage(videoPath) {
     try {
-        const { error } = await supabase.storage
-            .from('video-responses')
-            .remove([videoPath]);
+        const response = await backendPost('/applicant/delete-video', { video_path: videoPath });
+        const result = await handleResponse(response);
         
-        if (error) {
-            console.warn('Failed to delete previous video:', error);
+        if (result.error) {
+            console.warn('Failed to delete previous video:', result.error);
         } else {
             console.log('Previous video deleted:', videoPath);
         }
@@ -217,34 +216,35 @@ async function uploadAnswer() {
     try {
         updateProgress(bar, progressText, 30);
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('video-responses')
-            .upload(fileName, blob, {
-                cacheControl: '3600',
-                upsert: false
-            });
+        const formData = new FormData();
+        formData.append('video_file', blob);
+        formData.append('application_id', applicationId);
+        formData.append('question_index', currentIndex);
+        formData.append('question', questions[currentIndex]);
 
-        if (uploadError) throw new Error('Failed to upload video to storage');
+        const response = await backendPost('/applicant/upload-video-response', formData);
+        const result = await handleResponse(response);
 
+        if (result.error) throw new Error('Failed to upload video to storage');
+        
         // Store the path for potential retake cleanup
-        currentVideoPath = uploadData.path;
-
+        currentVideoPath = result.data.path;
         updateProgress(bar, progressText, 70);
 
-        const response = await backendPost(
+        const metadataResponse = await backendPost(
             `/applicant/applications/${applicationId}/response`, 
             {
                 question: questions[currentIndex],
-                video_path: uploadData.path,
+                video_path: result.data.path,
                 question_index: currentIndex // Add question index for deduplication
             }
         );
 
-        if (!response.ok) {
+        if (!metadataResponse.ok) {
             // If backend save failed, delete the uploaded video
-            await deleteVideoFromStorage(uploadData.path);
+            await deleteVideoFromStorage(result.data.path);
             currentVideoPath = null;
-            const errorData = await response.json().catch(() => ({}));
+            const errorData = await metadataResponse.json().catch(() => ({}));
             throw new Error(errorData.detail || 'Failed to save response metadata');
         }
 

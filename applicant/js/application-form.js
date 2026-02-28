@@ -137,7 +137,7 @@ async function loadExistingProfile() {
 
         // 5. Show Existing Resume status
         if(profile.resume_url) {
-            // Extract a clean filename from the Supabase path
+            // Extract a clean filename from the resume path
             const fileName = profile.resume_url.split('/').pop().replace(/^\d+_/, ''); 
             const resumeText = document.getElementById('resumeFileName');
             if(resumeText) {

@@ -1,6 +1,6 @@
 """
-MySQL Service Layer - Replaces Supabase for data operations.
-Supabase will only be used for authentication.
+MySQL Service Layer - Complete data operations.
+Custom authentication handles user management.
 """
 
 import os
@@ -27,7 +27,7 @@ class MySQLService:
 # ============================================================
 
 class UserService(MySQLService):
-    """Handles user operations synced from Supabase Auth."""
+    """Handles user operations with custom authentication."""
     
     def get_user(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Get user by ID."""
@@ -47,9 +47,9 @@ class UserService(MySQLService):
                 "user_metadata": user.user_metadata
             }
     
-    def sync_user_from_supabase(self, supabase_user: Dict[str, Any]) -> Dict[str, Any]:
-        """Sync user data from Supabase to MySQL."""
-        user_id = supabase_user.get("id")
+    def create_user_from_auth(self, auth_user: Dict[str, Any]) -> Dict[str, Any]:
+        """Create user from custom auth data."""
+        user_id = auth_user.get("id")
         if not user_id:
             raise ValueError("User ID is required")
         
@@ -59,12 +59,12 @@ class UserService(MySQLService):
             
             if existing_user:
                 # Update existing user
-                existing_user.email = supabase_user.get("email", existing_user.email)
-                existing_user.full_name = supabase_user.get("full_name", existing_user.full_name)
-                existing_user.phone = supabase_user.get("phone", existing_user.phone)
-                existing_user.role = supabase_user.get("role", existing_user.role)
-                existing_user.avatar_url = supabase_user.get("avatar_url", existing_user.avatar_url)
-                existing_user.user_metadata = supabase_user.get("metadata", existing_user.user_metadata)
+                existing_user.email = auth_user.get("email", existing_user.email)
+                existing_user.full_name = auth_user.get("full_name", existing_user.full_name)
+                existing_user.phone = auth_user.get("phone", existing_user.phone)
+                existing_user.role = auth_user.get("role", existing_user.role)
+                existing_user.avatar_url = auth_user.get("avatar_url", existing_user.avatar_url)
+                existing_user.user_metadata = auth_user.get("metadata", existing_user.user_metadata)
                 existing_user.last_sign_in_at = datetime.now(timezone.utc)
                 # Don't change onboarded flag on update - it's set manually
                 db.commit()
@@ -73,14 +73,14 @@ class UserService(MySQLService):
                 # Create new user - default to not onboarded
                 new_user = User(
                     id=user_id,
-                    email=supabase_user.get("email"),
-                    full_name=supabase_user.get("full_name"),
-                    phone=supabase_user.get("phone"),
-                    role=supabase_user.get("role", "candidate"),
-                    avatar_url=supabase_user.get("avatar_url"),
-                    user_metadata=supabase_user.get("metadata"),
+                    email=auth_user.get("email"),
+                    full_name=auth_user.get("full_name"),
+                    phone=auth_user.get("phone"),
+                    role=auth_user.get("role", "candidate"),
+                    avatar_url=auth_user.get("avatar_url"),
+                    user_metadata=auth_user.get("metadata"),
                     onboarded=False,
-                    email_confirmed_at=datetime.now(timezone.utc) if supabase_user.get("email_confirmed_at") else None
+                    email_confirmed_at=datetime.now(timezone.utc) if auth_user.get("email_confirmed_at") else None
                 )
                 db.add(new_user)
                 db.commit()
@@ -167,7 +167,24 @@ class UserService(MySQLService):
                 return True
             except Exception as e:
                 db.rollback()
-                logger.error(f"Failed to update password: {str(e)}")
+                logger.error(f"Failed to update user password: {str(e)}")
+                return False
+    
+    def update_user_email_confirmed(self, user_id: str) -> bool:
+        """Mark user email as confirmed."""
+        with self.session_factory() as db:
+            try:
+                user = db.query(User).filter(User.id == user_id).first()
+                if not user:
+                    return False
+                
+                user.email_confirmed_at = datetime.now(timezone.utc)
+                user.updated_at = datetime.now(timezone.utc)
+                db.commit()
+                return True
+            except Exception as e:
+                db.rollback()
+                logger.error(f"Failed to update email confirmation: {str(e)}")
                 return False
     
     def update_last_login(self, user_id: str) -> bool:

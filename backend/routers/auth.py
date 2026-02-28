@@ -4,19 +4,19 @@ from fastapi import APIRouter, Request, HTTPException, Form
 from typing import Optional
 
 from models.auth_models import LoginRequest
-from services.auth_service import CustomAuthService
+from services.auth_service import AuthService
 from services.mysql_service import UserService
 from utils_others.logger import logger
 
 router = APIRouter(tags=["Authentication"])
-_auth_service: Optional[CustomAuthService] = None
+_auth_service: Optional[AuthService] = None
 _user_service: Optional[UserService] = None
 
-def get_auth_service() -> CustomAuthService:
+def get_auth_service() -> AuthService:
     """Get custom auth service instance."""
     global _auth_service
     if _auth_service is None:
-        _auth_service = CustomAuthService()
+        _auth_service = AuthService()
     return _auth_service
 
 def get_user_service() -> UserService:
@@ -30,14 +30,22 @@ def get_user_service() -> UserService:
 # LOGIN
 # ---------------------------------------------------------
 @router.post("/login")
-async def login(request: Request, form_data: LoginRequest):
-    """Login user with custom authentication."""
+async def login(request: Request):
+    """Login user with custom authentication - accepts JSON body."""
     auth_service = get_auth_service()
     user_service = get_user_service()
     
     try:
+        # Parse JSON body
+        body = await request.json()
+        email = body.get("email", "").strip()
+        password = body.get("password", "").strip()
+        
+        if not email or not password:
+            raise ValueError("Email and password are required")
+        
         # Authenticate with custom auth service
-        result = auth_service.login(form_data.email, form_data.password)
+        result = auth_service.login(email, password)
         
         logger.info(
             "User logged in successfully",
@@ -47,7 +55,10 @@ async def login(request: Request, form_data: LoginRequest):
         return {"ok": True, "data": result}
 
     except Exception as e:
-        logger.error(f"Login failed: {str(e)}")
+        logger.error(
+            f"Login failed: {str(e)}",
+            extra={"request_id": getattr(request.state, "request_id", None)}
+        )
         raise HTTPException(status_code=401, detail=str(e))
 
 # ---------------------------------------------------------
@@ -188,6 +199,69 @@ async def update_password(request: Request, new_password: str = Form(...)):
     except Exception as e:
         logger.error(f"Password update failed: {str(e)}")
         raise HTTPException(status_code=400, detail="Failed to update password")
+
+# ---------------------------------------------------------
+# CONFIRM EMAIL
+# ---------------------------------------------------------
+@router.post("/confirm-email")
+async def confirm_email(request: Request):
+    """Confirm user email address."""
+    try:
+        # Parse form data
+        form_data = await request.form()
+        token = form_data.get("token", "").strip()
+        email = form_data.get("email", "").strip().lower()
+        
+        if not token or not email:
+            raise ValueError("Missing token or email")
+        
+        # Verify token and update user
+        auth_service = get_auth_service()
+        
+        try:
+            # Decode and verify token
+            import jwt
+            from dotenv import load_dotenv
+            import os
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            load_dotenv(os.path.join(BASE_DIR, ".env"))
+            
+            payload = jwt.decode(
+                token, 
+                os.getenv("JWT_SECRET_KEY"), 
+                algorithms=[os.getenv("JWT_ALGORITHM", "HS256")]
+            )
+            
+            # Update user email confirmation
+            user_service = get_user_service()
+            user = user_service.get_user_by_email(email)
+            
+            if user and not user.get("email_confirmed_at"):
+                # Mark email as confirmed
+                user_service.update_user_email_confirmed(user["id"])
+                logger.info(f"Email confirmed for user: {email}")
+                
+                return {
+                    "ok": True,
+                    "message": "Email confirmed successfully! You can now login to your account."
+                }
+            elif user and user.get("email_confirmed_at"):
+                return {
+                    "ok": True,
+                    "message": "Email already confirmed. You can login to your account."
+                }
+            else:
+                raise ValueError("Invalid token or user not found")
+                
+        except jwt.ExpiredSignatureError:
+            raise ValueError("Confirmation link has expired")
+        except jwt.InvalidTokenError:
+            raise ValueError("Invalid confirmation link")
+            
+    except Exception as e:
+        logger.error(f"Email confirmation failed: {str(e)}")
+        raise ValueError(str(e))
+
 
 # ---------------------------------------------------------
 # FORGOT PASSWORD

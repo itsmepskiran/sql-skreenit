@@ -4,7 +4,7 @@ import os
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
-from services.auth_service import CustomAuthService
+from services.auth_service import AuthService
 from utils_others.logger import logger
 
 # ---------------------------------------------------------
@@ -19,8 +19,9 @@ EXCLUDED_PATHS = [
     "/redoc",
     "/health",
     "/api/v1/health",
-    "/api/v1/auth/login",
-    "/api/v1/auth/register",
+    "/api/v1/login",
+    "/api/v1/register",
+    "/api/v1/confirm-email",
     "/api/v1/auth/confirm-email",
     "/api/v1/auth/reset-password",
     "/api/v1/auth/refresh-token",
@@ -39,7 +40,7 @@ class CustomAuthMiddleware(BaseHTTPMiddleware):
         self.excluded_paths = set(excluded_paths or [])
         for p in EXCLUDED_PATHS:
             self.excluded_paths.add(p)
-        self.auth_service = CustomAuthService()
+        self.auth_service = AuthService()
 
     async def dispatch(self, request: Request, call_next):
         path = request.url.path

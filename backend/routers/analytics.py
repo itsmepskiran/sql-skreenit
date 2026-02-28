@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException
 from models.analytics_models import AnalyticsEventRequest
-from services.analytics_service import AnalyticsService
+from services.analytics_service_mysql import AnalyticsService
 # ✅ FIX: Correct Import
 from middleware.role_required import ensure_permission
 

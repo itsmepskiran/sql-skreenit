@@ -1,5 +1,5 @@
 """
-Environment Configuration for MySQL + Supabase (Auth Only)
+Environment Configuration for MySQL + Custom Auth
 """
 
 import os
@@ -8,10 +8,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ============================================================
-# SUPABASE CONFIGURATION (AUTH ONLY)
+# CUSTOM AUTHENTICATION CONFIGURATION
 # ============================================================
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 
 # ============================================================
 # MYSQL CONFIGURATION (DATA STORAGE)
@@ -93,8 +95,7 @@ ALLOWED_ORIGINS = [
 def validate_config():
     """Validate required environment variables."""
     required_vars = {
-        "SUPABASE_URL": SUPABASE_URL,
-        "SUPABASE_SERVICE_ROLE_KEY": SUPABASE_SERVICE_ROLE_KEY,
+        "JWT_SECRET_KEY": JWT_SECRET_KEY,
         "MYSQL_HOST": MYSQL_HOST,
         "MYSQL_USER": MYSQL_USER,
         "MYSQL_PASSWORD": MYSQL_PASSWORD,

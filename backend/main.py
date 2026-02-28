@@ -16,11 +16,11 @@ from middleware.auth_middleware import CustomAuthMiddleware, EXCLUDED_PATHS
 
 from routers import (
     auth,
-    applicant,
-    recruiter,
-    dashboard,
+    applicant_new as applicant,
+    recruiter_new as recruiter,
+    dashboard_new as dashboard,
     analytics,
-    notification,
+    notifications_new as notification,
     video
 )
 
@@ -107,7 +107,7 @@ def _mask(v: str | None) -> str | None:
 
 logger.info("Backend Startup", extra={
     "environment": ENV,
-    "supabase_url": _mask(os.getenv("SUPABASE_URL")),
+    "auth_system": "Custom JWT",
 })
 
 # ---------------------------------------------------------
@@ -169,6 +169,14 @@ DEFAULT_ALLOWED_ORIGINS = [
     "https://recruiter.skreenit.com",
     "https://dashboard.skreenit.com",
     "https://backend.skreenit.com",
+    "https://assets.skreenit.com",
+    "https://storage.skreenit.com",
+    "https://support.skreenit.com",
+    "https://in.skreenit.com",
+    "https://legal.skreenit.com",
+    "https://app.skreenit.com",
+    "https://hrms.skreenit.com",
+    "https://jobs.skreenit.com",
     "https://aiskreenit.onrender.com",
 ]
 
@@ -181,6 +189,14 @@ LOCAL_DEV_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8001",
     "http://127.0.0.1:8001",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://localhost:8081",
+    "http://127.0.0.1:8081",
+    "http://localhost:8082",
+    "http://127.0.0.1:8082",
+    "http://localhost:8083",
+    "http://127.0.0.1:8083",
 ]
 if IS_PROD:
     origins = DEFAULT_ALLOWED_ORIGINS

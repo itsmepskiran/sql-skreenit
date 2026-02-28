@@ -163,14 +163,11 @@ async function showIntroVideoModal() {
     // Check if user has an existing intro video
     try {
         const { data: { session } } = await customAuth.getSession();
-        const { data: profile } = await supabase
-            .from('candidate_profiles')
-            .select('intro_video_url')
-            .eq('user_id', session.user.id)
-            .single();
+        const response = await backendGet('/applicant/profile');
+        const profile = await handleResponse(response);
         
-        if (profile?.intro_video_url) {
-            existingVideoUrl = profile.intro_video_url;
+        if (profile.data?.intro_video_url) {
+            existingVideoUrl = profile.data.intro_video_url;
             useExistingVideoBtn.style.display = 'block';
             existingVideoInfo.style.display = 'block';
         } else {
@@ -218,20 +215,20 @@ async function submitApplicationWithVideo() {
     try {
         const { data: { session } } = await customAuth.getSession();
         
-        // TODO: Replace with backendPost("/api/v1/job_applications", data) call{
-                job_id: jobId,
-                candidate_id: session.user.id,
-                status: 'submitted',
-                intro_video_url: existingVideoUrl || null
-            })
-            .select()
-            .single();
+        const response = await backendPost('/job_applications', {
+            job_id: jobId,
+            candidate_id: session.user.id,
+            status: 'submitted',
+            intro_video_url: existingVideoUrl || null
+        });
         
-        if (error) {
-            if (error.message?.includes('duplicate')) {
+        const result = await handleResponse(response);
+        
+        if (result.error) {
+            if (result.error.message?.includes('duplicate')) {
                 alert('You have already applied for this job!');
             } else {
-                throw error;
+                throw new Error(result.error.message || 'Application failed');
             }
         } else {
             updateVideoProgress(100, 'Application submitted!');

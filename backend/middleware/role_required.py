@@ -13,9 +13,8 @@ def ensure_permission(request: Request, required_perm: str):
         raise HTTPException(status_code=401, detail="Authentication required")
     
     # 2. Extract Role (Default to 'candidate' if missing)
-    # Supabase stores role in user_metadata usually
-    meta = user.get("user_metadata", {})
-    role = meta.get("role", "candidate").lower()
+    # Custom auth stores role directly in user object
+    role = user.get("role", "candidate").lower()
     
     # 3. Check Permission using RBAC Utility
     if not has_permission(role, required_perm):

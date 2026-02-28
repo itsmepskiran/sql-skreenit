@@ -1,3 +1,4 @@
+
 // assets/assets/js/backend-client.js
 import { customAuth } from './auth-config.js';
 import { CONFIG } from './config.js';
@@ -116,6 +117,16 @@ export const handleResponse = async (response) => {
               return `${field}: ${err.msg}`;
           }).join('\n');
       } 
+      // Check for specific error types with user-friendly messages
+      else if (data.error === 'email_exists') {
+          msg = 'Email Already Registered';
+      }
+      else if (data.error === 'invalid_credentials') {
+          msg = 'Invalid email or password';
+      }
+      else if (data.error === 'not_found') {
+          msg = 'Account not found';
+      }
       // Check for standard error messages
       else {
           msg = data.detail || data.error || data.message || msg;

@@ -1,5 +1,6 @@
 // jobs/js/jobs.js
-import { customAuth } from '@shared/js/auth-config.js';;
+import { customAuth } from '@shared/js/auth-config.js';
+import { backendGet, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 
@@ -121,23 +122,22 @@ async function handleLogout() {
 // ===============================
 
 /**
- * Fetch all active jobs from Supabase
+ * Fetch all active jobs from Database
  */
 async function fetchJobs() {
     showLoading();
 
     try {
-        // TODO: Replace with backendGet("/api/v1/jobs") call
-            .in("status", ["active", "published", "live"])
-            .order("created_at", { ascending: false });
-
-        if (error) {
-            console.error("Error fetching jobs:", error);
+        const response = await backendGet('/jobs');
+        const data = await handleResponse(response);
+        
+        if (data.error) {
+            console.error("Error fetching jobs:", data.error);
             showError("Failed to load jobs. Please try again.");
             return [];
         }
 
-        allJobs = data || [];
+        allJobs = data.data || [];
         return allJobs;
     } catch (err) {
         console.error("Unexpected error:", err);
@@ -314,17 +314,15 @@ async function handleApply(jobId) {
  */
 async function checkExistingApplication(jobId, userId) {
     try {
-        // TODO: Replace with backendGet("/api/v1/applications") call
-            .eq('job_id', jobId)
-            .eq('candidate_id', userId)
-            .limit(1);
+        const response = await backendGet('/job_applications');
+        const result = await handleResponse(response);
+        
+        const applications = result.data || [];
+        const existingApplication = applications.find(app => 
+            app.job_id === jobId && app.candidate_id === userId
+        );
 
-        if (error) {
-            console.error("Error checking application:", error);
-            return false;
-        }
-
-        return data && data.length > 0;
+        return existingApplication;
     } catch (err) {
         console.error("Error:", err);
         return false;
@@ -400,14 +398,11 @@ async function showIntroVideoModal() {
     
     // Check if user has an existing intro video
     try {
-        const { data: profile } = await supabase
-            .from('candidate_profiles')
-            .select('intro_video_url')
-            .eq('user_id', currentUser.id)
-            .single();
+        const response = await backendGet('/applicant/profile');
+        const profile = await handleResponse(response);
         
-        if (profile?.intro_video_url) {
-            existingVideoUrl = profile.intro_video_url;
+        if (profile.data?.intro_video_url) {
+            existingVideoUrl = profile.data.intro_video_url;
             useExistingVideoBtn.style.display = 'block';
             existingVideoInfo.style.display = 'block';
         } else {
@@ -451,20 +446,20 @@ async function submitApplicationWithVideo() {
     
     // Submit application
     try {
-        // TODO: Replace with backendPost("/api/v1/job_applications", data) call{
-                job_id: currentApplicationJobId,
-                candidate_id: currentUser.id,
-                status: 'submitted',
-                intro_video_url: existingVideoUrl || null
-            })
-            .select()
-            .single();
+        const response = await backendPost('/job_applications', {
+            job_id: currentApplicationJobId,
+            candidate_id: currentUser.id,
+            status: 'submitted',
+            intro_video_url: existingVideoUrl || null
+        });
         
-        if (error) {
-            if (error.message?.includes('duplicate')) {
+        const result = await handleResponse(response);
+        
+        if (result.error) {
+            if (result.error.message?.includes('duplicate')) {
                 showToast('You have already applied for this job!', 'info');
             } else {
-                throw error;
+                throw new Error(result.error.message || 'Application failed');
             }
         } else {
             updateVideoProgress(100, 'Application submitted!');
@@ -481,8 +476,8 @@ async function submitApplicationWithVideo() {
         videoUploadProgress.style.display = 'none';
         videoActionButtons.style.display = 'flex';
     }
-}
 
+}
 /**
  * Update video upload progress UI
  */

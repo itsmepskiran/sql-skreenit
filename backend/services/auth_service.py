@@ -110,21 +110,73 @@ class AuthService:
             # Generate tokens
             tokens = self._generate_tokens(created_user)
 
+            # Send confirmation email
+            try:
+                from utils_others.resend_email import send_email
+                from utils_others.logger import logger
+                
+                confirmation_link = f"{email_redirect_to}?token={tokens['access_token']}&email={email}"
+                html_content = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Skreenit!</h1>
+                        <p style="color: white; margin: 20px 0; font-size: 16px;">
+                            Hi {full_name},<br><br>
+                            Thank you for registering! Please click the button below to confirm your email address and activate your account.
+                        </p>
+                        <a href="{confirmation_link}" style="display: inline-block; background: white; color: #667eea; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0;">
+                            Confirm Email Address
+                        </a>
+                        <p style="color: white; margin: 20px 0 0; font-size: 14px; opacity: 0.8;">
+                            This link will expire in 24 hours. If you didn't create this account, you can safely ignore this email.
+                        </p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; color: #666; font-size: 12px;">
+                        <p>&copy; 2026 Skreenit. All rights reserved.</p>
+                    </div>
+                </div>
+                """
+                
+                # Check if RESEND_API_KEY is configured
+                import os
+                resend_api_key = os.getenv("RESEND_API_KEY")
+                if resend_api_key and resend_api_key.strip() and resend_api_key != "your_resend_api_key_here":
+                    send_email(
+                        to=email,
+                        subject="Confirm your Skreenit account",
+                        html=html_content,
+                        email_type="confirmation"
+                    )
+                    logger.info(f"Confirmation email sent to {email}")
+                else:
+                    logger.warning(f"RESEND_API_KEY not configured. Email not sent to {email}")
+                    # For development: Log the confirmation link
+                    print(f"\n📧 DEVELOPMENT MODE - Email Confirmation Link:")
+                    print(f"Confirmation Link: {confirmation_link}")
+                    print(f"Token: {tokens['access_token']}")
+                    print(f"Email: {email}")
+                
+            except Exception as e:
+                logger.error(f"Failed to send confirmation email: {str(e)}")
+                # Continue with registration even if email fails
+
             logger.info("User registered successfully", extra={"email": email})
 
             return {
                 "ok": True,
-                "access_token": tokens["access_token"],
-                "refresh_token": tokens["refresh_token"],
-                "user": {
-                    "id": created_user["id"],
-                    "email": created_user["email"],
-                    "role": created_user["role"],
-                    "full_name": created_user["full_name"],
-                    "mobile": created_user["phone"],
-                    "location": created_user["location"],
-                    "onboarded": created_user["onboarded"],
-                    "email_verified": created_user["email_verified"]
+                "data": {
+                    "user": {
+                        "id": created_user["id"],
+                        "email": created_user["email"],
+                        "role": created_user["role"],
+                        "full_name": created_user["full_name"],
+                        "mobile": created_user["phone"],
+                        "onboarded": created_user["onboarded"],
+                        "email_verified": created_user["email_verified"]
+                    },
+                    "access_token": tokens["access_token"],
+                    "refresh_token": tokens["refresh_token"],
+                    "message": "Registration successful! Please check your email to verify your account."
                 }
             }
 
@@ -162,7 +214,6 @@ class AuthService:
                     "role": user["role"],
                     "full_name": user["full_name"],
                     "mobile": user["phone"],
-                    "location": user["location"],
                     "onboarded": user["onboarded"],
                     "email_verified": user["email_verified"]
                 }

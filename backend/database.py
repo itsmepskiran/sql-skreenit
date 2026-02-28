@@ -1,6 +1,6 @@
 """
 Database module for MySQL connectivity using SQLAlchemy.
-This replaces Supabase for data operations while keeping Supabase for auth.
+This replaces Supabase for all operations with custom authentication.
 """
 
 import os
@@ -55,11 +55,12 @@ def generate_uuid() -> str:
 # ============================================================
 
 class User(Base):
-    """User model synced from Supabase Auth."""
+    """User model for custom authentication."""
     __tablename__ = "users"
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
     email: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     full_name: Mapped[Optional[str]] = mapped_column(VARCHAR(255), nullable=True)
     phone: Mapped[Optional[str]] = mapped_column(VARCHAR(50), nullable=True)
     role: Mapped[str] = mapped_column(Enum("recruiter", "candidate", name="user_role"), default="candidate")
@@ -92,7 +93,7 @@ class Company(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    creator: Mapped["User"] = relationship("User", back_populates="jobs")
+    creator: Mapped["User"] = relationship("User", foreign_keys=[created_by])
     jobs: Mapped[List["Job"]] = relationship("Job", back_populates="company")
     recruiter_profiles: Mapped[List["RecruiterProfile"]] = relationship("RecruiterProfile", back_populates="company")
 

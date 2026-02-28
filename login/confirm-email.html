@@ -1,44 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Confirmed - Skreenit</title>
-
-  <script>
-    (function() {
-      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
-      // Adjust path if your folder depth is different (Standard is usually ../assets)
-      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
-      const im = document.createElement('script');
-      im.type = 'importmap';
-      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
-      document.head.appendChild(im);
-      window.loadSharedCSS = function(file) {
-        const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `${assetsBase}/assets/css/${file}`; document.head.appendChild(link);
-      };
-      const icon = document.createElement('link'); icon.rel = 'icon'; icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; document.head.appendChild(icon);
-    })();
-  </script>
+    
+    <script>
+        (function() {
+            const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+            const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+            const im = document.createElement('script');
+            im.type = 'importmap';
+            im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+            document.head.appendChild(im);
+            window.loadSharedCSS = function(file) {
+                const link = document.createElement('link'); 
+                link.rel = 'stylesheet'; 
+                link.href = `${assetsBase}/assets/css/${file}`; 
+                document.head.appendChild(link);
+            };
+            const icon = document.createElement('link'); 
+            icon.rel = 'icon'; 
+            icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+            document.head.appendChild(icon);
+        })();
+    </script>
 
     <script>
-      loadSharedCSS('core.css');     // Base typography
-      loadSharedCSS('branding.css'); // Premium background
-      loadSharedCSS('forms.css');    // Input and button states
-      loadSharedCSS('mobile.css');
+        loadSharedCSS('core.css');     // Base typography
+        loadSharedCSS('auth.css');      // Auth-specific styles
+        loadSharedCSS('mobile.css');     // Mobile responsive
     </script>
 </head>
-
-<body class="auth-page-body">
-    <img src="" id="brandImg" class="brand" alt="Skreenit" />
-
-    <div class="checkmark">✔</div>
-
-    <div id="message" class="message">
-        Confirming your email...
-    </div>
-
-    <div class="redirect-note">
-        You will be redirected shortly.
+<body>
+    <div class="confirmation-container">
+        <div class="success-icon checkmark">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h1 class="confirmation-title">Email Confirmed!</h1>
+        
+        <div id="message" class="confirmation-message">
+            <div class="loading"></div>
+            Confirming your email...
+        </div>
+        
+        <a id="loginBtn" href="login.html" class="confirmation-btn" style="display: none;">
+            <i class="fas fa-sign-in-alt"></i> Proceed to Login
+        </a>
+        
+        <div class="confirmation-footer">
+            <p><i class="fas fa-lock"></i> Your Email ID is confirmed and Account is Activated.</p>
+            <br><p>Ready to use</p>
+        </div>
     </div>
 
     <script type="module" src="js/confirm-email.js"></script>

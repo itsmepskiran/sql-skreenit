@@ -22,7 +22,7 @@ async function checkAuth() {
     
     const user = session.user;
 
-    // Load fast initial data from Supabase Auth
+    // Load fast initial data from custom auth
     updateSidebarProfile(user.user_metadata, user.email);
     
     // Load deep data from your Backend Database
