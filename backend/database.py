@@ -1,8 +1,3 @@
-"""
-Database module for MySQL connectivity using SQLAlchemy.
-This replaces Supabase for all operations with custom authentication.
-"""
-
 import os
 import uuid
 from datetime import datetime
@@ -24,10 +19,10 @@ MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "")
 MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "skreenit")
 
 # URL-encode the password to handle special characters like @
-ENCODED_PASSWORD = quote(MYSQL_PASSWORD, safe='')
+ENCD_PASS = quote(MYSQL_PASSWORD, safe='')
 
 # Create database URL with encoded password
-DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{ENCODED_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
+DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{ENCD_PASS}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
 
 # Create engine
 engine = create_engine(

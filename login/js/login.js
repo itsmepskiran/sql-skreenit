@@ -5,26 +5,22 @@ import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 
 const isLocal = CONFIG.IS_LOCAL;
-// Points to the root assets folder
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 
-// Update Logo
+// Update Logo & Branding
 const logoImg = document.getElementById('logoImg');
 if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
 
-// Update Brand Logo (if you have an ID for it)
 const brandImg = document.getElementById('brandImg');
 if(brandImg) brandImg.src = `${assetsBase}/assets/images/logobrand.png`;
-// 1. Setup Dynamic Links (Images removed because HTML handles them now!)
+
+// Setup Dynamic Links
 document.getElementById('homeLink').href = CONFIG.PAGES.INDEX;
 document.getElementById('registerLink').href = getRedirectUrl(CONFIG.PAGES.REGISTER);
 document.getElementById('forgotLink').href = CONFIG.PAGES.FORGOT_PASSWORD;
 document.getElementById('termsLink').href = CONFIG.PAGES.TERMS;
 document.getElementById('privacyLink').href = CONFIG.PAGES.PRIVACY;
 
-/**
- * Get redirect URL with preserved redirect parameter for registration
- */
 function getRedirectUrl(baseUrl) {
     const urlParams = new URLSearchParams(window.location.search);
     const redirect = urlParams.get('redirect');
@@ -37,29 +33,24 @@ function getRedirectUrl(baseUrl) {
 }
 
 /**
- * Handle post-login redirect
- * Checks for redirect parameter and navigates accordingly
+ * Validates and handles explicit redirect parameters
  */
 async function handlePostLoginRedirect() {
     const urlParams = new URLSearchParams(window.location.search);
     const redirect = urlParams.get('redirect');
 
     if (redirect) {
-        // Validate redirect URL to prevent open redirect vulnerabilities
         try {
             const redirectUrl = new URL(decodeURIComponent(redirect));
-            // Only allow redirects to same origin or trusted domains
             const allowedDomains = [
-                window.location.hostname,
                 'skreenit.com',
-                'www.skreenit.com',
                 'jobs.skreenit.com',
                 'login.skreenit.com',
                 'dashboard.skreenit.com',
                 'applicant.skreenit.com'
             ];
 
-            if (allowedDomains.some(domain => redirectUrl.hostname.includes(domain))) {
+            if (allowedDomains.some(domain => redirectUrl.hostname.endsWith(domain))) {
                 window.location.href = redirectUrl.toString();
                 return true;
             }
@@ -70,42 +61,36 @@ async function handlePostLoginRedirect() {
     return false;
 }
 
-// ✅ NEW: Setup Password Toggle Logic
+// Password Toggle Logic
 document.querySelectorAll('.toggle-password').forEach(icon => {
     icon.addEventListener('click', function() {
-        // Find the input field within the same parent container
         const input = this.parentElement.querySelector('input');
         if (input && input.type === 'password') {
             input.type = 'text';
-            this.classList.remove('fa-eye');
-            this.classList.add('fa-eye-slash');
+            this.classList.replace('fa-eye', 'fa-eye-slash');
         } else if (input) {
             input.type = 'password';
-            this.classList.remove('fa-eye-slash');
-            this.classList.add('fa-eye');
+            this.classList.replace('fa-eye-slash', 'fa-eye');
         }
     });
 });
 
-// 2. Form Logic
 const form = document.getElementById("loginForm");
 const errorBox = document.getElementById("errorBox");
 
 function showError(msg) {
   errorBox.textContent = msg;
-  // Using remove/add class instead of inline styles to match our new CSS system
   errorBox.classList.remove("d-none"); 
 }
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  errorBox.classList.add("d-none"); // Hide error box on new attempt
+  errorBox.classList.add("d-none");
 
   const submitBtn = form.querySelector("button[type='submit']");
   const btnText = submitBtn.querySelector(".btn-text");
   const btnLoader = submitBtn.querySelector(".btn-loader");
 
-  // Show Loader (Using our new utility classes!)
   btnText.classList.add("d-none");
   btnLoader.classList.remove("d-none");
   submitBtn.disabled = true;
@@ -115,29 +100,42 @@ form.addEventListener("submit", async (e) => {
     const email = fd.get("email").trim();
     const password = fd.get("password").trim();
 
-    // Sign In
+    // 1. Authenticate with backend
     const { data, error } = await customAuth.signInWithPassword({ email, password });
-    
     if (error) throw error;
 
-    console.log("✅ Login successful.");
+    // 2. Immediate Data Extraction (Avoids waiting for cookie propagation)
+    const user = data?.user;
+    const metadata = user?.user_metadata || {};
+    const role = user?.role || metadata.role || 'candidate';
+    // 'onboarded' must be explicitly synced from your MySQL users table
+    const isOnboarded = user?.onboarded || metadata.onboarded || false;
 
-    // Wait for cookie/session propagation
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log(`✅ Login successful as ${role}. Onboarded: ${isOnboarded}`);
 
-    // Check for redirect parameter first
+    // 3. Handle Redirects with Subdomain awareness
     const wasRedirected = await handlePostLoginRedirect();
     
-    // If no redirect, use default role-based redirect
     if (!wasRedirected) {
-      await redirectByRole();
+      if (role === 'candidate') {
+        if (!isOnboarded) {
+          // If profile is not complete, send to applicant subdomain form
+          window.location.href = CONFIG.PAGES.APPLY_FORM;
+        } else {
+          window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
+        }
+      } else if (role === 'recruiter') {
+        window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+      } else {
+        // Fallback for admin or undefined roles
+        await redirectByRole();
+      }
     }
 
   } catch (err) {
     console.error("Login error:", err);
     showError(err.message || "Login failed. Please try again.");
   } finally {
-    // Reset Button
     btnText.classList.remove("d-none");
     btnLoader.classList.add("d-none");
     submitBtn.disabled = false;

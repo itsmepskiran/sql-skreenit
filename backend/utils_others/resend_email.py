@@ -57,6 +57,7 @@ def send_email(
     # ---------------------------------------------------------
     if from_addr is None:
         senders = {
+            "onboarding": os.getenv("EMAIL_ONBOARDING", "onboarding@skreenit.com"),
             "welcome": os.getenv("EMAIL_WELCOME", "welcome@skreenit.com"),
             "verification": os.getenv("EMAIL_VERIFICATION", "verification@skreenit.com"),
             "info": os.getenv("EMAIL_INFO", "info@skreenit.com"),

@@ -1,7 +1,3 @@
-"""
-Environment Configuration for MySQL + Custom Auth
-"""
-
 import os
 from dotenv import load_dotenv
 
@@ -56,7 +52,7 @@ FROM_NAME = os.getenv("FROM_NAME", "Skreenit")
 # ============================================================
 # JWT CONFIGURATION
 # ============================================================
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-super-secret-jwt-key")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", 7))
@@ -92,6 +88,8 @@ ALLOWED_ORIGINS = [
 # ============================================================
 # VALIDATION
 # ============================================================
+# backend/config.py
+
 def validate_config():
     """Validate required environment variables."""
     required_vars = {
@@ -109,11 +107,6 @@ def validate_config():
             f"❌ Missing required environment variables: {', '.join(missing_vars)}\n"
             f"Please set these in your .env file."
         )
-    
-    return True
-    
-    if missing_vars:
-        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
     
     print("✅ Configuration validated successfully")
     return True

@@ -6,14 +6,12 @@ import '@shared/js/mobile.js';
 
 // 1. Setup Dynamic Assets
 const isLocal = CONFIG.IS_LOCAL;
-// Points to the root assets folder
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 
-// Update Logo
+// Update Logos using central assetsBase
 const logoImg = document.getElementById('logoImg');
 if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
 
-// Update Brand Logo (if you have an ID for it)
 const brandImg = document.getElementById('brandImg');
 if(brandImg) brandImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
@@ -32,180 +30,123 @@ function getLoginUrl() {
     const redirect = getRedirectParam();
     let loginUrl = CONFIG.PAGES.LOGIN;
     if (redirect) {
-        const url = new URL(loginUrl, window.location.origin);
-        url.searchParams.set('redirect', redirect);
-        loginUrl = url.toString();
-    }
-    return `${loginUrl}${redirect ? '&' : '?'}registered=true`;
-}
-
-// Setup safe link handling
-const loginLink = document.getElementById('loginLink');
-if (loginLink) {
-    loginLink.href = (() => {
-        const redirect = getRedirectParam();
-        if (redirect) {
-            const url = new URL(CONFIG.PAGES.LOGIN, window.location.origin);
+        try {
+            const url = new URL(loginUrl, window.location.origin);
             url.searchParams.set('redirect', redirect);
             return url.toString();
+        } catch (e) {
+            return loginUrl;
         }
-        return CONFIG.PAGES.LOGIN;
-    })();
+    }
+    return loginUrl;
 }
 
-// Setup terms and privacy links
-const termsLink = document.getElementById('termsLink');
-const privacyLink = document.getElementById('privacyLink');
-if (termsLink) termsLink.href = CONFIG.PAGES.TERMS;
-if (privacyLink) privacyLink.href = CONFIG.PAGES.PRIVACY;
+// Set login link href for cross-subdomain awareness
+const loginLink = document.getElementById('loginLink');
+if (loginLink) loginLink.href = getLoginUrl();
 
-// ✅ Password Toggle Helper - Make it GLOBAL and AVAILABLE IMMEDIATELY
+/**
+ * Toggle password visibility
+ * FIXED: Uses parent container to find the correct input and button
+ * @param {string} id - The ID of the input field to toggle
+ */
 window.togglePassword = function(id) {
     const input = document.getElementById(id);
     if (!input) return;
     
-    const button = input.nextElementSibling;
+    // Find the button within the same input-group container
+    const container = input.closest('.input-group') || input.parentElement;
+    const button = container.querySelector('.toggle-password');
     if (!button) return;
     
-    if (input.type === "password") {
-        input.type = "text";
-        button.innerHTML = '<i class="fas fa-eye-slash"></i>';
-    } else {
-        input.type = "password";
-        button.innerHTML = '<i class="fas fa-eye"></i>';
+    const icon = button.querySelector('i');
+    const isPassword = input.type === "password";
+    
+    // Toggle input type
+    input.type = isPassword ? "text" : "password";
+    
+    // Toggle icon classes (fa-eye vs fa-eye-slash)
+    if (icon) {
+        if (isPassword) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
     }
 };
 
-// Also attach event listeners to toggle buttons on page load
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.toggle-password').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const input = this.previousElementSibling;
-            if (input && input.type === 'password') {
-                input.type = 'text';
-                this.innerHTML = '<i class="fas fa-eye-slash"></i>';
-            } else if (input) {
-                input.type = 'password';
-                this.innerHTML = '<i class="fas fa-eye"></i>';
-            }
-        });
-    });
-});
-
-// 2. Form Logic
-async function handleRegistrationSubmit(event) {
-    event.preventDefault();
-    console.log("🚀 Starting Registration (FormData Mode)...");
-
-    const form = event.target;
-    const rawFd = new FormData(form);
+/**
+ * Handle registration form submission
+ */
+async function handleRegistrationSubmit(e) {
+    e.preventDefault();
     
+    const form = e.target;
     const submitBtn = form.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Register';
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoader = submitBtn.querySelector('.btn-loader');
     
-    // Setup Error Box (FIXED to use our new CSS utility classes)
-    const errorBox = document.getElementById("formError");
-    if (errorBox) {
-        errorBox.textContent = "";
-        errorBox.classList.add("d-none"); // Hide it when a new attempt starts
-    }
-
-    // Client-side Password Check
-    if (rawFd.get("password") !== rawFd.get("confirmPassword")) {
+    // 1. Password Match Validation
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (password !== confirmPassword) {
         notify("Passwords do not match", "error");
-        if (errorBox) {
-            errorBox.textContent = "Passwords do not match.";
-            errorBox.classList.remove("d-none");
-        }
         return;
     }
 
+    // 2. UI Loading State
+    if (btnText) btnText.classList.add('d-none');
+    if (btnLoader) btnLoader.classList.remove('d-none');
+    submitBtn.disabled = true;
+
     try {
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        }
+        const formData = new FormData(form);
+        const payload = {
+            email: formData.get('email').trim(),
+            password: password,
+            full_name: formData.get('full_name').trim(),
+            role: formData.get('role') || 'candidate',
+            // Default metadata to ensure proper onboarding redirect on next login
+            metadata: {
+                onboarded: false,
+                registration_source: 'web'
+            }
+        };
 
-        // 2. Extract values for validation
-        const full_name = rawFd.get('full_name')?.trim();
-        const email = rawFd.get('email')?.trim().toLowerCase();
-        const mobile = rawFd.get('mobile')?.trim();
-        const location = rawFd.get('location')?.trim();
-        const role = rawFd.get('role')?.trim();
-        const password = rawFd.get('password')?.trim();
-
-        if (!role) throw new Error('Please select a role');
-        if (mobile.length < 10) throw new Error('Mobile number must be at least 10 digits');
-
-        // 3. Create a NEW FormData object for the API
-        const apiFormData = new FormData();
-        
-        apiFormData.append('full_name', full_name);
-        apiFormData.append('email', email);
-        apiFormData.append('password', password);
-        apiFormData.append('location', location);
-        
-        // Send BOTH 'mobile' and 'phone' (Cover all bases)
-        apiFormData.append('mobile', mobile);
-        apiFormData.append('phone', mobile); 
-        apiFormData.append('phone_number', mobile);
-
-        // Send role as lowercase (database enum expects: "candidate" or "recruiter")
-        apiFormData.append('role', role.toLowerCase());
-        
-        // Add Redirect URL
-        const redirectUrl = window.location.origin + CONFIG.PAGES.CONFIRM_EMAIL;
-        apiFormData.append('email_redirect_to', redirectUrl);
-
-        console.log(" Sending FormData...");
-
-        // 4. Send as FormData (Backend expects this!)
-        const response = await backendPost('/register', apiFormData);
+        // 3. API Call to Register
+        const response = await backendPost('/register', payload);
         const result = await handleResponse(response);
 
-        console.log("✅ Success:", result);
-
-        // Success UI
-        const authBody = document.querySelector('.auth-body');
-        if (authBody) {
-            authBody.innerHTML = `
-                <div class="text-center py-8">
-                    <div style="color: #10b981; font-size: 3rem; margin-bottom: 1rem;"><i class="fas fa-check-circle"></i></div>
-                    <h2 style="font-size: 1.5rem; font-weight: bold; color: var(--text-dark);">Registration Successful!</h2>
-                    <p style="color: var(--text-light); margin-top: 0.5rem;">Please check your email for a confirmation link.</p>
-                </div>
-            `;
-        }
-
+        console.log("✅ Registration successful:", result);
+        notify("Registration successful! Please check your email to confirm.", "success");
+        notify("Please check your spam/junk folder after registration if you don't receive the confirmation email in your inbox.", "success");
+        notify("Add noreply@skreenit.com to your contacts to ensure future emails reach your inbox.", "success");
+        // 4. Delayed redirect to login page
         setTimeout(() => {
             window.location.href = getLoginUrl();
         }, 3000);
 
     } catch (err) {
-        console.error("❌ Error:", err);
-        notify(err.message || 'Registration failed.', 'error');
-        
-        // FIXED: Make sure the error box becomes visible on error!
-        if (errorBox) {
-            errorBox.textContent = err.message || 'Registration failed.';
-            errorBox.classList.remove("d-none");
-        }
-        
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnText;
-        }
+        console.error("❌ Registration error:", err);
+        notify(err.message || "Registration failed. Please try again.", "error");
+    } finally {
+        // Reset UI State
+        if (btnText) btnText.classList.remove('d-none');
+        if (btnLoader) btnLoader.classList.add('d-none');
+        submitBtn.disabled = false;
     }
 }
 
 // ---------------------------------------------------------
-// ✅ ATTACH LISTENER
+// ✅ ATTACH LISTENERS
 // ---------------------------------------------------------
-const regForm = document.getElementById("registrationForm");
-if (regForm) {
-    console.log("✅ Form listener attached.");
-    regForm.addEventListener("submit", handleRegistrationSubmit);
-} else {
-    console.error("❌ form#registrationForm not found!");
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const regForm = document.getElementById("registrationForm");
+    if (regForm) {
+        console.log("✅ Registration form listener attached.");
+        regForm.addEventListener("submit", handleRegistrationSubmit);
+    }
+});

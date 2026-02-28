@@ -67,19 +67,20 @@
     font-weight: 500;
 }
 .auth-form-footer a:hover { text-decoration: underline; }
+
 /* --- Brand Image Header Styles --- */
 /* --- Brand Image Header Styles --- */
 .auth-header.has-image {
     padding: 0; 
     border-bottom: 1px solid var(--border-color);
-    background: white; /* Ensures no transparent gaps */
+    background: white;
 }
 
 .auth-header-img {
     width: 100%;
-    height: auto; /* Changed from 130px so it scales perfectly */
+    height: auto;
     display: block;
-    object-fit: contain; /* Prevents awkward zooming */
+    object-fit: contain;
 }
 
 /* Re-centers the Welcome text just below the image */
@@ -99,6 +100,232 @@
     color: var(--text-light);
     font-size: 0.9rem;
 }
+
+/* Spam Warning Styles */
+.spam-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.spam-warning-icon {
+    color: #856404;
+    font-size: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.spam-warning-content h4 {
+    color: #856404;
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.spam-warning-content p {
+    color: #856404;
+    margin: 6px 0;
+    line-height: 1.4;
+}
+
+.spam-warning-content code {
+    background: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+}
+
+/* Email Confirmation Page Styles */
+.confirmation-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 40px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.confirmation-logo {
+    margin-bottom: 30px;
+}
+
+.confirmation-icon {
+    margin: 20px 0;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-spinner {
+    color: #667eea;
+    font-size: 48px;
+}
+
+.success-icon {
+    color: #28a745;
+    font-size: 48px;
+}
+
+.error-icon {
+    color: #dc3545;
+    font-size: 48px;
+}
+
+.confirmation-title {
+    color: #2c3e50;
+    font-size: 28px;
+    font-weight: 600;
+    margin: 20px 0;
+}
+
+.confirmation-message {
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.confirmation-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.confirmation-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.confirmation-message.loading {
+    background: #e2e3e5;
+    color: #383d41;
+    border: 1px solid #d6d8db;
+}
+
+.confirmation-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    margin: 20px 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.confirmation-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.confirmation-footer {
+    margin: 30px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.confirmation-footer p {
+    margin: 8px 0;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.mt-2 {
+    margin-top: 8px;
+}
+
+.mt-3 {
+    margin-top: 16px;
+}
+
+.confirmation-help {
+    margin-top: 20px;
+    padding: 15px;
+    background: #e7f3ff;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.help-text {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
+}
+
+.help-text a {
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.help-text a:hover {
+    text-decoration: underline;
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .confirmation-container {
+        margin: 20px auto;
+        padding: 20px;
+    }
+    
+    .confirmation-title {
+        font-size: 24px;
+    }
+    
+    .confirmation-btn {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+    
+    .spam-warning {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .spam-warning-icon {
+        align-self: center;
+    }
+}
+
 /* =========================================
    Top Left Logo Positioning
    ========================================= */

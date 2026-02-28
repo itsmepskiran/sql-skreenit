@@ -241,9 +241,23 @@ async def confirm_email(request: Request):
                 user_service.update_user_email_confirmed(user["id"])
                 logger.info(f"Email confirmed for user: {email}")
                 
+                # Get updated user data with role
+                updated_user = user_service.get_user_by_email(email)
+                
                 return {
                     "ok": True,
-                    "message": "Email confirmed successfully! You can now login to your account."
+                    "message": "Email confirmed successfully! You can now login to your account.",
+                    "data": {
+                        "user": {
+                            "id": updated_user["id"],
+                            "email": updated_user["email"],
+                            "role": updated_user["role"],
+                            "full_name": updated_user["full_name"],
+                            "mobile": updated_user["phone"],
+                            "onboarded": updated_user["onboarded"],
+                            "email_verified": True
+                        }
+                    }
                 }
             elif user and user.get("email_confirmed_at"):
                 return {

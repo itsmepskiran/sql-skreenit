@@ -55,9 +55,14 @@ export async function persistSessionToLocalStorage() {
  * Redirects the user based on their Role and Onboarding Status.
  */
 export async function redirectByRole() {
-    const { data: { user } } = await customAuth.getUser();
+    // 1. Get user data directly (MySQL compatible)
+    const user = await customAuth.getUserData();
+    
+    // Support both nested (Supabase style) and flat (MySQL style) objects
+    const finalUser = user?.data?.user || user?.user || user?.data || user;
 
-    if (!user) {
+    if (!finalUser) {
+        console.error("❌ No user object found during redirect check");
         window.location.href = CONFIG.PAGES.LOGIN;
         return;
     }
@@ -65,40 +70,65 @@ export async function redirectByRole() {
     // Step 1: Cache data for next page
     await persistSessionToLocalStorage();
 
-    // Step 2: Handle Case Sensitivity
-    const role = (user.role || "").toLowerCase(); 
-    const isOnboarded = user.onboarded === true || user.onboarded === "true";
+    // Step 2: Normalize Role and Onboarding Status for MySQL
+    const role = (finalUser.role || "").toLowerCase().trim(); 
+    
+    // MySQL Fix: check for true (boolean), "true" (string), or 1 (integer)
+    const isOnboarded = (finalUser.onboarded === true || finalUser.onboarded === "true" || finalUser.onboarded === 1);
 
-    console.log(`🔍 DEBUG - Redirect Logic:`);
-    console.log(`   User Role: ${role}`);
-    console.log(`   User Onboarded: ${user.onboarded} (type: ${typeof user.onboarded})`);
-    console.log(`   Is Onboarded: ${isOnboarded}`);
-    console.log(`   Email Verified: ${user.email_verified}`);
-    console.log(`   APPLY_FORM: ${CONFIG.PAGES.APPLY_FORM}`);
+    console.log(`🔍 REDIRECT EVALUATION:`);
+    console.log(`   - Detected Role: "${role}"`);
+    console.log(`   - Raw Onboarded Value:`, finalUser.onboarded);
+    console.log(`   - Calculated isOnboarded:`, isOnboarded);
 
-    if (role === 'recruiter') {
+    // Step 3: Directional Logic
+    if (role === 'candidate') {
         if (isOnboarded) {
-            console.log(`   → Redirecting to Recruiter Dashboard`);
-            window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
-        } else {
-            console.log(`   → Redirecting to Recruiter Profile`);
-            // New Recruiter -> Go to Profile Setup
-            window.location.href = CONFIG.PAGES.RECRUITER_PROFILE;
-        }
-    } 
-    else if (role === 'candidate') {
-        if (isOnboarded) {
-            console.log(`   → Redirecting to Candidate Dashboard`);
+            console.log("→ Candidate Dashboard");
             window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
         } else {
-            console.log(`   → Redirecting to Application Form`);
-            // New Candidate -> Go to Application Form
+            console.log("→ NEW Candidate: Application Form");
+            // Points to ../applicant/detailed-application-form.html
             window.location.href = CONFIG.PAGES.APPLY_FORM;
         }
     } 
+    else if (role === 'recruiter') {
+        if (isOnboarded) {
+            console.log("→ Recruiter Dashboard");
+            window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+        } else {
+            console.log("→ NEW Recruiter: Profile Setup");
+            window.location.href = CONFIG.PAGES.RECRUITER_PROFILE;
+        }
+    } 
     else {
-        console.warn(`   → Unknown role: ${role}, redirecting to Index`);
-        window.location.href = CONFIG.PAGES.INDEX;
+        console.warn(`⚠️ Unknown role "${role}", showing profile completion message.`);
+        
+        // Show user-friendly message instead of redirecting
+        const message = `
+            <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+                <h2 style="color: #e74c3c; margin-bottom: 20px;">⚠️ Account Setup Required</h2>
+                <p style="color: #666; margin-bottom: 30px; line-height: 1.6;">
+                    Your account has been created but your profile is not completed. 
+                    Please complete your profile to continue.
+                </p>
+                <div style="display: flex; gap: 20px; justify-content: center;">
+                    <button onclick="window.location.href='${CONFIG.PAGES.LOGIN}'" 
+                            style="background: #007bff; color: white; padding: 12px 24px; 
+                                   border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                        Back to Login
+                    </button>
+                    <button onclick="window.location.href='${CONFIG.PAGES.INDEX}'" 
+                            style="background: #6c757d; color: white; padding: 12px 24px; 
+                                   border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                        Home Page
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.innerHTML = message;
+        document.title = "Complete Your Profile - Skreenit";
     }
 }
 

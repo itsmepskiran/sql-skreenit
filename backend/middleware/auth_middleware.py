@@ -2,7 +2,7 @@
 
 import os
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import Request, HTTPException
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from services.auth_service import AuthService
 from utils_others.logger import logger
@@ -10,36 +10,35 @@ from utils_others.logger import logger
 # ---------------------------------------------------------
 # CONFIG: EXCLUDED PATHS (Public)
 # ---------------------------------------------------------
-EXCLUDED_PATHS = [
+# Ensure these match the exact prefixes and full paths used in your routers
+EXCLUDED_PATHS = {
     "/",
-    "",
     "/favicon.ico",
     "/docs",
     "/openapi.json",
     "/redoc",
     "/health",
     "/api/v1/health",
-    "/api/v1/login",
-    "/api/v1/register",
-    "/api/v1/confirm-email",
+    "/api/v1/auth/login",
+    "/api/v1/auth/register",
     "/api/v1/auth/confirm-email",
     "/api/v1/auth/reset-password",
     "/api/v1/auth/refresh-token",
     "/api/v1/system/info",
-]
+}
 
 class CustomAuthMiddleware(BaseHTTPMiddleware):
     """
-    Custom Authentication Middleware that replaces Supabase auth middleware.
+    Custom Authentication Middleware.
     Validates JWT tokens using the custom auth service.
     """
 
     def __init__(self, app, excluded_paths=None):
         super().__init__(app)
-        # Combine passed paths with the global default list
-        self.excluded_paths = set(excluded_paths or [])
-        for p in EXCLUDED_PATHS:
-            self.excluded_paths.add(p)
+        # Combine provided paths with default excluded set
+        self.excluded_paths = EXCLUDED_PATHS.copy()
+        if excluded_paths:
+            self.excluded_paths.update(excluded_paths)
         self.auth_service = AuthService()
 
     async def dispatch(self, request: Request, call_next):
@@ -51,17 +50,17 @@ class CustomAuthMiddleware(BaseHTTPMiddleware):
 
         # 2. Allow Static Files & Logos
         if path.startswith("/logos") or path.startswith("/static"):
-             return await call_next(request)
+            return await call_next(request)
 
-        # 3. Check Excluded Paths
-        # Clean path to handle trailing slashes or query params if needed
-        clean_path = path.split("?")[0].rstrip("/") 
+        # 3. Check Excluded Paths (Handling trailing slashes)
+        clean_path = path.rstrip("/")
         if clean_path in self.excluded_paths or path in self.excluded_paths:
             return await call_next(request)
 
         # 4. Require Authorization header
         auth_header = request.headers.get("Authorization")
         if not auth_header:
+            logger.warning(f"Missing Authorization for protected path: {path}")
             return JSONResponse(
                 status_code=401, 
                 content={"detail": "Missing Authorization header"}

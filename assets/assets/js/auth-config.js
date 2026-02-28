@@ -62,6 +62,12 @@ class CustomAuth {
     return { data: { user: session?.user || null }, error: null };
   }
 
+  // Get current user data directly (for MySQL compatibility)
+  async getUserData() {
+    const { data: { session } } = await this.getSession();
+    return session?.user || null;
+  }
+
   // Sign in with email and password
   async signInWithPassword({ email, password }) {
     try {
@@ -117,7 +123,7 @@ class CustomAuth {
         formData.append('email_redirect_to', options.emailRedirectTo);
       }
 
-      const response = await fetch(`${this.baseURL}/auth/register`, {
+      const response = await fetch(`${this.baseURL}/register`, {
         method: 'POST',
         body: formData
       });
@@ -158,7 +164,7 @@ class CustomAuth {
       const formData = new FormData();
       formData.append('refresh_token', refreshToken);
 
-      const response = await fetch(`${this.baseURL}/auth/refresh-token`, {
+      const response = await fetch(`${this.baseURL}/refresh-token`, {
         method: 'POST',
         body: formData
       });
@@ -191,7 +197,7 @@ class CustomAuth {
     try {
       const token = this.storage.getItem('access_token');
       if (token) {
-        await fetch(`${this.baseURL}/auth/logout`, {
+        await fetch(`${this.baseURL}/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -221,7 +227,7 @@ class CustomAuth {
       const formData = new FormData();
       formData.append('new_password', newPassword);
 
-      const response = await fetch(`${this.baseURL}/auth/update-password`, {
+      const response = await fetch(`${this.baseURL}/update-password`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
