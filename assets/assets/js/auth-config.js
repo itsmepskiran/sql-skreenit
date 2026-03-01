@@ -235,14 +235,62 @@ class CustomAuth {
         body: formData
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Password update failed');
+      const result = await response.json();
+      if (!result.ok) {
+        throw new Error(result.detail || 'Password update failed');
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('[CustomAuth] Password update error:', error);
+      throw error;
+    }
+  }
+
+  // Reset password for email
+  async resetPasswordForEmail(email, options = {}) {
+    try {
+      const formData = new FormData();
+      formData.append('email', email);
+      
+      const response = await fetch(`${this.baseURL}/forgot-password`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+      if (!result.ok) {
+        throw new Error(result.detail || 'Password reset failed');
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('[CustomAuth] Password reset error:', error);
+      throw error;
+    }
+  }
+
+  // Set session from tokens
+  async setSession(tokens) {
+    try {
+      if (!tokens.access_token) {
+        throw new Error('Access token is required');
       }
 
-      return { data: { success: true }, error: null };
-    } catch (err) {
-      return { data: null, error: err };
+      // Store tokens
+      this.storage.setItem('access_token', tokens.access_token);
+      if (tokens.refresh_token) {
+        this.storage.setItem('refresh_token', tokens.refresh_token);
+      }
+
+      // Get user data
+      const { data: { session }, error } = await this.getSession();
+      if (error) throw error;
+      
+      return { data: { session }, error: null };
+    } catch (error) {
+      console.error('[CustomAuth] Set session error:', error);
+      throw error;
     }
   }
 }

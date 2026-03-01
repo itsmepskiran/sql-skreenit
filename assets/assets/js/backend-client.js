@@ -17,14 +17,23 @@ class BackendClient {
 
   async getAuthToken() {
     try {
-      let { data } = await customAuth.getSession();
+      const session = await customAuth.getSession();
+      
+      // Handle both old Supabase and new MySQL session structures
+      const token = session?.data?.session?.access_token || 
+                    session?.access_token || 
+                    session?.session?.access_token ||
+                    session?.token ||
+                    null;
       
       // Auto-refresh token if needed
-      if (!data?.session?.access_token) {
+      if (!token) {
           const refresh = await customAuth.refreshSession();
-          data = refresh.data;
+          const refreshData = refresh?.data || refresh;
+          return refreshData?.access_token || refreshData?.session?.access_token || null;
       }
-      return data?.session?.access_token || null;
+      
+      return token;
     } catch (err) {
       console.warn("[BackendClient] Failed to get session", err);
       return null;

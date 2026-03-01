@@ -19,15 +19,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // --- AUTH & DATA LOADING ---
 async function ensureRecruiter() {
-  const { data: { user } } = await customAuth.getUser();
+  const user = await customAuth.getUserData();
   
-  if (!user || (user.user_metadata?.role || "").toLowerCase() !== "recruiter") {
+  if (!user || (user.role || "").toLowerCase() !== "recruiter") {
     window.location.href = CONFIG.PAGES.LOGIN;
     return null;
   }
 
   // Fast UI update
-  updateSidebarProfile(user.user_metadata, user.email);
+  updateSidebarProfile(user.user_metadata || {}, user.email);
 
   // Fetch Full Profile Data from Backend
   await fetchProfileData(user);

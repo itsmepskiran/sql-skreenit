@@ -8,16 +8,19 @@ const logoImg = document.getElementById('logoImg');
 if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 async function checkAuth() {
-    const { data: { session } } = await customAuth.getSession();
-    if (!session?.user) { window.location.href = CONFIG.PAGES.LOGIN; return; }
+    const user = await customAuth.getUserData();
+    if (!user) { 
+        window.location.href = CONFIG.PAGES.LOGIN; 
+        return; 
+    }
     
     // Safety check role
-    if ((session.user.role || '').toLowerCase() !== 'candidate') {
+    if ((user.role || '').toLowerCase() !== 'candidate') {
         window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER; return;
     }
     
-    await updateSidebarProfile(session.user);
-    loadProfile(session.user.id);
+    await updateSidebarProfile(user);
+    loadProfile(user.id);
     setupNavigation();
 }
 

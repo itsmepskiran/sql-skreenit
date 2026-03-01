@@ -21,15 +21,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const logoImg = document.getElementById('logoImg');
     if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
-    const { data: { session } } = await customAuth.getSession();
-    if (!session) { window.location.href = CONFIG.PAGES.LOGIN; return; }
+    const user = await customAuth.getUserData();
+    if (!user) { window.location.href = CONFIG.PAGES.LOGIN; return; }
 
     const urlParams = new URLSearchParams(window.location.search);
     applicationId = urlParams.get('application_id');
     
     if (!applicationId) { 
         alert("Invalid Interview Link."); 
-        window.location.href = CONFIG.PAGES.CANDIDATE_DASHBOARD; 
+        window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; 
         return; 
     }
 
@@ -298,7 +298,7 @@ async function finishInterview() {
 
 function setupControls() {
     const origin = window.location.origin;
-    const dashPath = `${origin}/dashboard/candidate-dashboard.html`;
+    const dashPath = CONFIG.PAGES.DASHBOARD_CANDIDATE;
 
     const actions = {
         'recordBtn': toggleRecording,

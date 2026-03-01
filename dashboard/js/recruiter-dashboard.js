@@ -14,16 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function checkAuth() {
-    const { data: { session }, error } = await customAuth.getSession();
-    if (error || !session || !session.user) { 
+    const user = await customAuth.getUserData();
+    if (!user) { 
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
     }
     
-    const user = session.user;
-
     // Load fast initial data from custom auth
-    updateSidebarProfile(user.user_metadata, user.email);
+    updateSidebarProfile(user.user_metadata || {}, user.email);
     
     // Load deep data from your Backend Database
     updateUserInfo(); 

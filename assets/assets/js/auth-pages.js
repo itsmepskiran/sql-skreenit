@@ -7,8 +7,8 @@ import { CONFIG } from './config.js';
  * If not, redirects to the login page.
  */
 export async function requireAuth() {
-    const { data: { session } } = await customAuth.getSession();
-    if (!session) {
+    const user = await customAuth.getUserData();
+    if (!user) {
         // Clear local storage just in case
         localStorage.removeItem('skreenit_role');
         localStorage.removeItem('user_id');
@@ -16,7 +16,7 @@ export async function requireAuth() {
         window.location.href = CONFIG.PAGES.LOGIN;
         return null;
     }
-    return session;
+    return user;
 }
 
 /**

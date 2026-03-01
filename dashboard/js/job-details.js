@@ -14,14 +14,13 @@ let existingVideoUrl = null;
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-    const { data: { session } } = await customAuth.getSession();
-    if (!session?.user) { 
+    const user = await customAuth.getUserData();
+    if (!user) { 
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
     }
 
-    const user = session.user;
-    const role = (user.user_metadata?.role || '').toLowerCase();
+    const role = (user.role || '').toLowerCase();
     const isRecruiter = role === 'recruiter';
 
     // 1. Initial Sidebar & Nav Setup

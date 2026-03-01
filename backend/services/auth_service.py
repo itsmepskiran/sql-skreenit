@@ -115,18 +115,41 @@ class AuthService:
         """Internal helper for Resend email integration."""
         try:
             from utils_others.resend_email import send_email
-            conf_link = f"{redirect_url}?token={token}&email={user['email']}"
-            # ... (your existing HTML template logic) ...
-            resend_key = os.getenv("RESEND_API_KEY")
-            if resend_key and "your_resend_api_key" not in resend_key:
-                send_email(to=user['email'], subject="Confirm your Skreenit account", 
-                           html="...", email_type="confirmation")
+            from utils_others.logger import logger
+            from utils_others.email_templates import EmailTemplates
+            
+            confirmation_link = f"{redirect_url}?token={token}&email={user['email']}"
+            full_name = user.get('full_name', 'User')
+            
+            # Generate HTML email using Jinja2 template
+            email_templates = EmailTemplates()
+            email_content = email_templates.registration_confirmation({
+                "full_name": full_name,
+                "role": user.get('role', 'User'),
+                "login_url": confirmation_link
+            })
+            
+            # Send as direct HTML email (not Resend template)
+            send_email(
+                to=user['email'], 
+                subject=email_content["subject"], 
+                html=email_content["html"],
+                text=email_content["text"],
+                email_type="verification"
+            )
+            
+            logger.info(f"Confirmation email sent to {user['email']}")
+            
         except Exception as e:
             logger.warning(f"Email delivery skipped: {str(e)}")
+            # Fallback: Log for development
+            logger.info(f"DEVELOPMENT MODE - Email Confirmation Link: {confirmation_link}")
+            logger.info(f"Token: {token}")
+            logger.info(f"Email: {user['email']}")
 
     def login(self, email: str, password: str) -> Dict[str, Any]:
         """Verify credentials and return user session."""
-        user = self.user_service.get_user_by_email(email)
+        user = self.user_service.get_user_for_auth(email)  # Use secure auth method
         if not user or not self._verify_password(password, user["password"]):
             raise ValueError("Invalid email or password")
 
@@ -157,6 +180,20 @@ class AuthService:
             raise ValueError("Token has expired")
         except jwt.InvalidTokenError:
             raise ValueError("Invalid token")
+
+    def verify_confirmation_token(self, token: str) -> Dict[str, Any]:
+        """Verify JWT token for email confirmation (no type check)."""
+        try:
+            payload = jwt.decode(
+                token, 
+                self.jwt_secret, 
+                algorithms=[self.jwt_algorithm]
+            )
+            return payload
+        except jwt.ExpiredSignatureError:
+            raise ValueError("Confirmation token has expired")
+        except jwt.InvalidTokenError:
+            raise ValueError("Invalid confirmation token")
 
 # FastAPI Dependency Setup
 security = HTTPBearer()

@@ -27,58 +27,63 @@
     </script>
 
     <script>
-        loadSharedCSS('core.css');     // Base typography
+        loadSharedCSS('core.css');     // Base typography + CSS variables
         loadSharedCSS('auth.css');      // Auth-specific styles
         loadSharedCSS('mobile.css');     // Mobile responsive
+        loadSharedCSS('layout.css'); // Auth-specific styles
     </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
     <div class="confirmation-container">
-        <!-- Logo -->
-        <div class="confirmation-logo">
-            <img src="../../assets/assets/images/logobrand.png" alt="Skreenit Logo" style="max-width: 180px; height: auto;">
-        </div>
-        
-        <!-- Status Icon -->
-        <div class="confirmation-icon">
-            <div class="loading-spinner" id="loadingIcon">
-                <i class="fas fa-spinner fa-spin"></i>
+        <div class="confirmation-card">
+            <!-- Logo -->
+            <div class="confirmation-logo">
+                <img src="" id="brandImg" alt="Skreenit Logo">
             </div>
-            <div class="success-icon" id="successIcon" style="display: none;">
-                <i class="fas fa-check-circle"></i>
+            
+            <!-- Status Icon -->
+            <div class="confirmation-icon">
+                <div class="loading-icon" id="loadingIcon">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <div class="success-icon" id="successIcon" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="error-icon" id="errorIcon" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
             </div>
-            <div class="error-icon" id="errorIcon" style="display: none;">
-                <i class="fas fa-exclamation-circle"></i>
+            
+            <!-- Title -->
+            <h1 class="confirmation-title" id="pageTitle">Confirming Your Email...</h1>
+            
+            <!-- Message -->
+            <div id="message" class="confirmation-message loading">
+                <p>Please wait while we confirm your email address...</p>
             </div>
-        </div>
-        
-        <!-- Title -->
-        <h1 class="confirmation-title" id="pageTitle">Confirming Your Email...</h1>
-        
-        <!-- Message -->
-        <div id="message" class="confirmation-message">
-            <p>Please wait while we confirm your email address...</p>
-        </div>
-        
-        <!-- Action Button -->
-        <a id="loginBtn" href="login.html" class="confirmation-btn" style="display: none;">
-            <i class="fas fa-sign-in-alt"></i> Proceed to Login
-        </a>
-        
-        <!-- Footer Messages -->
-        <div class="confirmation-footer">
-            <div id="successFooter" style="display: none;">
-                <p><i class="fas fa-check-circle text-success"></i> <strong>Email Successfully Confirmed!</strong></p>
-                <p>Your account has been activated and is ready to use.</p>
-                <p class="mt-3">You can now login and access your Skreenit dashboard.</p>
-            </div>
-            <div id="errorFooter" style="display: none;">
-                <p><i class="fas fa-exclamation-triangle text-warning"></i> <strong>Confirmation Issue</strong></p>
-                <p>If you continue to experience issues, please contact support.</p>
-            </div>
-            <div id="loadingFooter">
-                <p><i class="fas fa-lock"></i> Securing your account with email verification...</p>
-                <p class="mt-2">This process usually takes just a few seconds.</p>
+            
+            <!-- Action Button -->
+            <a id="loginBtn" href="login.html" class="confirmation-btn" style="display: none;">
+                <i class="fas fa-sign-in-alt"></i> Proceed to Login
+            </a>
+            
+            <!-- Footer Messages -->
+            <div class="confirmation-footer">
+                <div id="successFooter" style="display: none;">
+                    <p><i class="fas fa-check-circle text-success"></i> <strong>Email Successfully Confirmed!</strong></p>
+                    <p>Your account has been activated and is ready to use.</p>
+                    <p class="mt-2">You can now login and access your Skreenit dashboard.</p>
+                </div>
+                <div id="errorFooter" style="display: none;">
+                    <p><i class="fas fa-exclamation-triangle text-warning"></i> <strong>Confirmation Issue</strong></p>
+                    <p>If you continue to experience issues, please contact support.</p>
+                </div>
+                <div id="loadingFooter">
+                    <p><i class="fas fa-lock"></i> Securing your account with email verification...</p>
+                    <p class="mt-2">This process usually takes just a few seconds.</p>
+                </div>
             </div>
         </div>
         
@@ -87,11 +92,17 @@
             <p class="help-text">
                 <i class="fas fa-question-circle"></i> 
                 Didn't receive the confirmation email? 
-                <a href="login.html" style="color: #667eea;">Request a new one</a>
+                <a href="login.html">Request a new one</a>
             </p>
         </div>
     </div>
-
+    
+    <script>
+        // Set brand image dynamically
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+        document.getElementById('brandImg').src = `${assetsBase}/assets/images/logobrand.png`;
+    </script>
     <script type="module" src="js/confirm-email.js"></script>
 </body>
 </html>

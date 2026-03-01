@@ -10,9 +10,28 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, desc, asc, func
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from database import get_db_session, User, Company, RecruiterProfile, CandidateProfile, CandidateEducation, CandidateExperience, Job, JobSkill, InterviewQuestion, JobApplication, VideoResponse, InterviewResponse, GeneralVideoInterview, Notification, generate_uuid
 from utils_others.logger import logger
+
+
+# Custom exceptions for better error handling
+class UserNotFoundError(Exception):
+    """Raised when a user is not found."""
+    pass
+
+class DuplicateUserError(Exception):
+    """Raised when trying to create a user that already exists."""
+    pass
+
+class DatabaseError(Exception):
+    """Raised when database operations fail."""
+    pass
+
+class ValidationError(Exception):
+    """Raised when input validation fails."""
+    pass
 
 
 class MySQLService:
@@ -113,14 +132,44 @@ class UserService(MySQLService):
                 "avatar_url": user.avatar_url,
                 "onboarded": user.onboarded,
                 "email_verified": user.email_confirmed_at is not None,
-                "password": user.password_hash,  # Include password hash for verification
+                "user_metadata": user.user_metadata
+            }
+    
+    def get_user_for_auth(self, email: str) -> Optional[Dict[str, Any]]:
+        """Get user by email with password hash for authentication only."""
+        with self.session_factory() as db:
+            user = db.query(User).filter(User.email == email).first()
+            if not user:
+                return None
+            
+            return {
+                "id": user.id,
+                "email": user.email,
+                "full_name": user.full_name,
+                "phone": user.phone,
+                "role": user.role,
+                "avatar_url": user.avatar_url,
+                "onboarded": user.onboarded,
+                "email_verified": user.email_confirmed_at is not None,
+                "password": user.password_hash,  # Include password hash for verification only
                 "user_metadata": user.user_metadata
             }
     
     def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new user in the database."""
+        # Validate required fields
+        required_fields = ["email", "full_name", "phone", "password"]
+        for field in required_fields:
+            if not user_data.get(field):
+                raise ValidationError(f"Missing required field: {field}")
+        
         with self.session_factory() as db:
             try:
+                # Check if user already exists
+                existing_user = db.query(User).filter(User.email == user_data["email"]).first()
+                if existing_user:
+                    raise DuplicateUserError(f"User with email {user_data['email']} already exists")
+                
                 new_user = User(
                     id=user_data.get("id", generate_uuid()),
                     email=user_data.get("email"),
@@ -148,10 +197,19 @@ class UserService(MySQLService):
                     "onboarded": new_user.onboarded,
                     "email_verified": new_user.email_confirmed_at is not None
                 }
+                
+            except IntegrityError as e:
+                db.rollback()
+                logger.error(f"Integrity error creating user: {str(e)}")
+                raise DuplicateUserError("User already exists")
+            except SQLAlchemyError as e:
+                db.rollback()
+                logger.error(f"Database error creating user: {str(e)}")
+                raise DatabaseError("Failed to create user")
             except Exception as e:
                 db.rollback()
-                logger.error(f"Failed to create user: {str(e)}")
-                return None
+                logger.error(f"Unexpected error creating user: {str(e)}")
+                raise DatabaseError("Failed to create user")
     
     def update_user_password(self, user_id: str, hashed_password: str) -> bool:
         """Update user password."""

@@ -5,12 +5,16 @@ from typing import Optional
 
 from models.auth_models import LoginRequest
 from services.auth_service import AuthService
-from services.mysql_service import UserService
+from services.mysql_service import UserService, ValidationError, DuplicateUserError, DatabaseError
 from utils_others.logger import logger
 
 router = APIRouter(tags=["Authentication"])
 _auth_service: Optional[AuthService] = None
 _user_service: Optional[UserService] = None
+
+def create_error_response(detail: str, status_code: int = 400):
+    """Helper to create consistent error responses."""
+    raise HTTPException(status_code=status_code, detail=detail)
 
 def get_auth_service() -> AuthService:
     """Get custom auth service instance."""
@@ -42,7 +46,7 @@ async def login(request: Request):
         password = body.get("password", "").strip()
         
         if not email or not password:
-            raise ValueError("Email and password are required")
+            create_error_response("Email and password are required")
         
         # Authenticate with custom auth service
         result = auth_service.login(email, password)
@@ -54,12 +58,18 @@ async def login(request: Request):
 
         return {"ok": True, "data": result}
 
+    except ValueError as e:
+        logger.error(
+            f"Login failed: {str(e)}",
+            extra={"request_id": getattr(request.state, "request_id", None)}
+        )
+        create_error_response("Invalid email or password", 401)
     except Exception as e:
         logger.error(
             f"Login failed: {str(e)}",
             extra={"request_id": getattr(request.state, "request_id", None)}
         )
-        raise HTTPException(status_code=401, detail=str(e))
+        create_error_response("Login failed. Please try again.", 500)
 
 # ---------------------------------------------------------
 # GET CURRENT USER
@@ -122,13 +132,9 @@ async def mark_onboarded(request: Request):
 @router.post("/register")
 async def register(request: Request):
     """Register a new user with custom authentication - accepts FormData."""
-    print(f"\n📨 REGISTER ENDPOINT HIT")
-    print(f"   Content-Type: {request.headers.get('content-type')}")
-    
     try:
         # Parse FormData manually
         form_data = await request.form()
-        print(f"   Form fields: {list(form_data.keys())}")
         
         # Extract fields
         full_name = form_data.get("full_name", "").strip()
@@ -139,18 +145,16 @@ async def register(request: Request):
         role = form_data.get("role", "").strip()
         email_redirect_to = form_data.get("email_redirect_to")
         
-        print(f"   Email: {email}")
-        print(f"   Full Name: {full_name}")
-        print(f"   Mobile: {mobile}")
-        print(f"   Location: {location}")
-        print(f"   Role: {role}")
+        logger.info(f"Registration attempt for email: {email}", extra={
+            "request_id": getattr(request.state, "request_id", None)
+        })
         
         # Validate required fields
         if not all([full_name, email, password, mobile, location, role]):
             missing = [k for k, v in [("full_name", full_name), ("email", email), 
                        ("password", password), ("mobile", mobile), ("location", location), 
                        ("role", role)] if not v]
-            raise ValueError(f"Missing fields: {', '.join(missing)}")
+            create_error_response(f"Missing fields: {', '.join(missing)}")
         
         auth_service = get_auth_service()
         
@@ -171,15 +175,18 @@ async def register(request: Request):
 
         return {"ok": True, "data": result}
 
+    except ValidationError as e:
+        logger.error(f"Registration validation failed: {str(e)}")
+        create_error_response(f"Validation error: {str(e)}", 400)
+    except DuplicateUserError as e:
+        logger.error(f"Registration failed - duplicate user: {str(e)}")
+        create_error_response("Email already registered", 409)
+    except DatabaseError as e:
+        logger.error(f"Registration database error: {str(e)}")
+        create_error_response("Registration failed. Please try again.", 500)
     except Exception as e:
-        # 🔥 PRINT THE REAL ERROR TO TERMINAL
-        print(f"\n❌ REGISTRATION CRASHED: {str(e)}")
-        traceback.print_exc() 
-        
         logger.error(f"Registration failed: {str(e)}")
-        
-        # Return the REAL error message to frontend
-        raise HTTPException(status_code=400, detail=str(e))
+        create_error_response("Registration failed. Please try again.", 500)
 
 # ---------------------------------------------------------
 # UPDATE PASSWORD
@@ -213,68 +220,55 @@ async def confirm_email(request: Request):
         email = form_data.get("email", "").strip().lower()
         
         if not token or not email:
-            raise ValueError("Missing token or email")
+            create_error_response("Missing token or email")
         
         # Verify token and update user
         auth_service = get_auth_service()
         
-        try:
-            # Decode and verify token
-            import jwt
-            from dotenv import load_dotenv
-            import os
-            BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            load_dotenv(os.path.join(BASE_DIR, ".env"))
+        # Verify token using centralized auth service
+        payload = auth_service.verify_confirmation_token(token)
+        
+        # Update user email confirmation
+        user_service = get_user_service()
+        user = user_service.get_user_by_email(email)
+        
+        if user and not user.get("email_confirmed_at"):
+            # Mark email as confirmed
+            user_service.update_user_email_confirmed(user["id"])
+            logger.info(f"Email confirmed for user: {email}")
             
-            payload = jwt.decode(
-                token, 
-                os.getenv("JWT_SECRET_KEY"), 
-                algorithms=[os.getenv("JWT_ALGORITHM", "HS256")]
-            )
+            # Get updated user data with role
+            updated_user = user_service.get_user_by_email(email)
             
-            # Update user email confirmation
-            user_service = get_user_service()
-            user = user_service.get_user_by_email(email)
-            
-            if user and not user.get("email_confirmed_at"):
-                # Mark email as confirmed
-                user_service.update_user_email_confirmed(user["id"])
-                logger.info(f"Email confirmed for user: {email}")
-                
-                # Get updated user data with role
-                updated_user = user_service.get_user_by_email(email)
-                
-                return {
-                    "ok": True,
-                    "message": "Email confirmed successfully! You can now login to your account.",
-                    "data": {
-                        "user": {
-                            "id": updated_user["id"],
-                            "email": updated_user["email"],
-                            "role": updated_user["role"],
-                            "full_name": updated_user["full_name"],
-                            "mobile": updated_user["phone"],
-                            "onboarded": updated_user["onboarded"],
-                            "email_verified": True
-                        }
+            return {
+                "ok": True,
+                "message": "Email confirmed successfully! You can now login to your account.",
+                "data": {
+                    "user": {
+                        "id": updated_user["id"],
+                        "email": updated_user["email"],
+                        "role": updated_user["role"],
+                        "full_name": updated_user["full_name"],
+                        "mobile": updated_user["phone"],
+                        "onboarded": updated_user["onboarded"],
+                        "email_verified": True
                     }
                 }
-            elif user and user.get("email_confirmed_at"):
-                return {
-                    "ok": True,
-                    "message": "Email already confirmed. You can login to your account."
-                }
-            else:
-                raise ValueError("Invalid token or user not found")
-                
-        except jwt.ExpiredSignatureError:
-            raise ValueError("Confirmation link has expired")
-        except jwt.InvalidTokenError:
-            raise ValueError("Invalid confirmation link")
+            }
+        elif user and user.get("email_confirmed_at"):
+            return {
+                "ok": True,
+                "message": "Email already confirmed. You can login to your account."
+            }
+        else:
+            create_error_response("Invalid token or user not found")
             
+    except ValueError as e:
+        logger.error(f"Email confirmation failed: {str(e)}")
+        create_error_response(str(e))
     except Exception as e:
         logger.error(f"Email confirmation failed: {str(e)}")
-        raise ValueError(str(e))
+        create_error_response("Email confirmation failed")
 
 
 # ---------------------------------------------------------

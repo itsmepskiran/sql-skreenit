@@ -60,17 +60,17 @@ document.addEventListener('DOMContentLoaded', () => {
    AUTH & SIDEBAR
 ------------------------------------------------------- */
 async function checkAuth() {
-    const { data: { session } } = await customAuth.getSession();
-    if (!session || !session.user) { window.location.href = CONFIG.PAGES.LOGIN; return false; }
+    const user = await customAuth.getUserData();
+    if (!user) { window.location.href = CONFIG.PAGES.LOGIN; return false; }
   
-    const user = session.user;
-    if ((user.user_metadata?.role || '').toLowerCase() !== 'candidate') {
+    if ((user.role || '').toLowerCase() !== 'candidate') {
         window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER; return false;
     }
   
     updateSidebarProfile(user);
 
     if(form) {
+        setVal('full_name', user.full_name || '');
         setVal('full_name', user.user_metadata.full_name || '');
         setVal('email', user.email || '');
     }

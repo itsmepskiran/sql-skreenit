@@ -15,19 +15,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // --- AUTH & SIDEBAR SYNC ---
 async function checkAuth() {
-    const { data: { session }, error } = await customAuth.getSession();
-    if (error || !session || !session.user) { 
+    const user = await customAuth.getUserData();
+    if (!user) { 
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
     }
     
-    const user = session.user;
-    if ((user.user_metadata?.role || '').toLowerCase() !== 'recruiter') {
+    if ((user.role || '').toLowerCase() !== 'recruiter') {
         window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; 
         return;
     }
 
-    updateSidebarProfile(user.user_metadata, user.email);
+    updateSidebarProfile(user.user_metadata || {}, user.email);
     updateUserInfo(); 
     setupNavigation();
     initCandidateDetails();

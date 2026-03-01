@@ -18,9 +18,25 @@ def send_email(
     email_type: str = "default",
     reply_to: Optional[str] = None,
     retries: int = 2,
+    template_id: Optional[str] = None,
+    template_data: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Sends an email using the Resend API.
+    Supports both direct HTML and Resend templates.
+    
+    Args:
+        to: Email recipient(s)
+        subject: Email subject
+        html: HTML content (for direct emails)
+        text: Plain text fallback
+        from_addr: Sender email override
+        email_type: Type for sender selection
+        reply_to: Reply-to address
+        retries: Number of retry attempts
+        template_id: Resend template ID (optional)
+        template_data: Template variables dict (optional)
+    
     Raises EmailError on failure.
     """
 
@@ -70,19 +86,59 @@ def send_email(
     # ---------------------------------------------------------
     # Validate required fields
     # ---------------------------------------------------------
-    if not subject or not html:
-        raise EmailError("Subject and HTML content are required")
+    if template_id and template_data:
+        # Template mode - requires template_id and template_data
+        if not subject:
+            raise EmailError("Subject is required for template emails")
+    else:
+        # HTML mode - requires subject and html
+        if not subject or not html:
+            raise EmailError("Subject and HTML content are required")
 
     # ---------------------------------------------------------
     # Prepare payload
     # ---------------------------------------------------------
-    payload = {
-        "from": from_addr,
-        "to": to,
-        "subject": subject,
-        "html": html,
-        "text": text or "This is an HTML email. Please enable HTML view.",
+    
+    # Build proper "From" with display name
+    display_names = {
+        "onboarding": "Skreenit Onboarding",
+        "welcome": "Skreenit Team",
+        "verification": "Skreenit Security",
+        "info": "Skreenit",
+        "support": "Skreenit Support",
+        "noreply": "Skreenit",
+        "default": "Skreenit",
     }
+    display_name = display_names.get(email_type, "Skreenit")
+    from_formatted = f"{display_name} <{from_addr}>"
+    
+    if template_id and template_data:
+        # Use Resend Template
+        payload = {
+            "from": from_formatted,
+            "to": to,
+            "subject": subject,
+            "template": template_id,
+            "template_data": template_data,
+            "headers": {
+                "List-Unsubscribe": f"<mailto:unsubscribe@skreenit.com?subject=unsubscribe>",
+                "X-Mailer": "Skreenit Email System",
+            }
+        }
+        logger.info(f"Using Resend template: {template_id}")
+    else:
+        # Use direct HTML
+        payload = {
+            "from": from_formatted,
+            "to": to,
+            "subject": subject,
+            "html": html,
+            "text": text or "This is an HTML email. Please enable HTML view.",
+            "headers": {
+                "List-Unsubscribe": f"<mailto:unsubscribe@skreenit.com?subject=unsubscribe>",
+                "X-Mailer": "Skreenit Email System",
+            }
+        }
 
     if reply_to:
         payload["reply_to"] = reply_to

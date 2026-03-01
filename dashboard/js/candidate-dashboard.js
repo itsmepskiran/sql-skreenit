@@ -17,14 +17,14 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function checkAuth() {
-    const { data: { session } } = await customAuth.getSession();
-    if (!session?.user) { 
+    const user = await customAuth.getUserData();
+    if (!user) { 
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
     }
     
-    updateSidebarProfile(session.user);
-    await loadData(session.user.id);
+    updateSidebarProfile(user);
+    await loadData(user.id);
 }
 
 // --- DATA LOADING ---

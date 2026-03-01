@@ -14,13 +14,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function checkAuth() {
-    const { data: { session } } = await customAuth.getSession();
-    if (!session?.user) { 
+    const user = await customAuth.getUserData();
+    if (!user) { 
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
     }
     
-    updateSidebarProfile(session.user);
+    updateSidebarProfile(user);
     loadApplications();
 }
 
@@ -100,7 +100,7 @@ async function loadApplications() {
             let actionButton = '';
             if (rawStatus === 'interviewing') {
                 actionButton = `
-                    <a href=${CONFIG.PAGES.INTERVIEW_ROOM}?application_id=${app.id}" 
+                    <a href="${CONFIG.PAGES.INTERVIEW_ROOM}?application_id=${app.id}" 
                        class="btn btn-primary" style="display:block; text-align:center; margin-top:1rem;">
                         <i class="fas fa-video me-1"></i> Start Interview
                     </a>`;
@@ -130,7 +130,7 @@ async function loadApplications() {
                         
                         <div class="mt-auto">
                             ${actionButton}
-                            <a href=${CONFIG.PAGES.JOB_DETAILS}?job_id=${app.job_id}" 
+                            <a href="${CONFIG.PAGES.JOB_DETAILS}?job_id=${app.job_id}" 
                                style="display:block; text-align:center; width:100%; margin-top:0.75rem; color:var(--text-light); text-decoration:underline; font-size:0.85rem;">
                                View Job Details
                             </a>
