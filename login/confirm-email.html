@@ -8,101 +8,126 @@
     <script>
         (function() {
             const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
-            const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+            // Notice the '../assets' here because these files are one folder deep
+            const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
             const im = document.createElement('script');
             im.type = 'importmap';
             im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
             document.head.appendChild(im);
+            
+            // CACHE-BUSTER LOADER
             window.loadSharedCSS = function(file) {
                 const link = document.createElement('link'); 
                 link.rel = 'stylesheet'; 
-                link.href = `${assetsBase}/assets/css/${file}`; 
+                // Appends the current timestamp to force a fresh download
+                link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
                 document.head.appendChild(link);
             };
+            
             const icon = document.createElement('link'); 
             icon.rel = 'icon'; 
             icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
             document.head.appendChild(icon);
         })();
     </script>
-
     <script>
-        loadSharedCSS('core.css');     // Base typography + CSS variables
-        loadSharedCSS('auth.css');      // Auth-specific styles
-        loadSharedCSS('mobile.css');     // Mobile responsive
-        loadSharedCSS('layout.css'); // Auth-specific styles
+        loadSharedCSS('core.css');       // Tokens, Colors, Utility classes
+        loadSharedCSS('components.css'); // Form inputs, Buttons
+        loadSharedCSS('auth.css');       // Auth Card layout, Floating circles
+        loadSharedCSS('mobile.css');
     </script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
-<body>
-    <div class="confirmation-container">
-        <div class="confirmation-card">
-            <!-- Logo -->
-            <div class="confirmation-logo">
-                <img src="" id="brandImg" alt="Skreenit Logo">
-            </div>
-            
-            <!-- Status Icon -->
-            <div class="confirmation-icon">
-                <div class="loading-icon" id="loadingIcon">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-                <div class="success-icon" id="successIcon" style="display: none;">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="error-icon" id="errorIcon" style="display: none;">
-                    <i class="fas fa-exclamation-circle"></i>
-                </div>
-            </div>
-            
-            <!-- Title -->
-            <h1 class="confirmation-title" id="pageTitle">Confirming Your Email...</h1>
-            
-            <!-- Message -->
-            <div id="message" class="confirmation-message loading">
-                <p>Please wait while we confirm your email address...</p>
-            </div>
-            
-            <!-- Action Button -->
-            <a id="loginBtn" href="login.html" class="confirmation-btn" style="display: none;">
-                <i class="fas fa-sign-in-alt"></i> Proceed to Login
-            </a>
-            
-            <!-- Footer Messages -->
-            <div class="confirmation-footer">
-                <div id="successFooter" style="display: none;">
-                    <p><i class="fas fa-check-circle text-success"></i> <strong>Email Successfully Confirmed!</strong></p>
-                    <p>Your account has been activated and is ready to use.</p>
-                    <p class="mt-2">You can now login and access your Skreenit dashboard.</p>
-                </div>
-                <div id="errorFooter" style="display: none;">
-                    <p><i class="fas fa-exclamation-triangle text-warning"></i> <strong>Confirmation Issue</strong></p>
-                    <p>If you continue to experience issues, please contact support.</p>
-                </div>
-                <div id="loadingFooter">
-                    <p><i class="fas fa-lock"></i> Securing your account with email verification...</p>
-                    <p class="mt-2">This process usually takes just a few seconds.</p>
-                </div>
+
+<body class="auth-page-body">
+
+<a href="https://www.skreenit.com" id="homeLink" class="logo-link">
+  <img id="logoImg" alt="Skreenit Logo" />
+</a>
+
+<div class="auth-wrapper animate-slideInScale">
+  
+  <div class="auth-header has-image">
+    <img id="brandImg" class="auth-header-img" alt="Skreenit Brand" />
+  </div>
+
+  <div class="auth-body">
+    
+    <div class="auth-title">
+      <h1><i class="fas fa-check-circle"></i> <span id="pageTitle">Confirming Your Email...</span></h1>
+      <p id="subtitle">Please wait while we confirm your email address...</p>
+    </div>
+
+    <div id="errorBox" class="alert alert-error d-none"></div>
+
+    <!-- Status Icons -->
+    <div class="text-center mb-4">
+        <div class="loading-icon" id="loadingIcon">
+            <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+        </div>
+        <div class="success-icon" id="successIcon" style="display: none;">
+            <i class="fas fa-check-circle fa-3x text-success"></i>
+        </div>
+        <div class="error-icon" id="errorIcon" style="display: none;">
+            <i class="fas fa-exclamation-circle fa-3x text-danger"></i>
+        </div>
+    </div>
+
+    <!-- Status Message -->
+    <div id="message" class="text-center mb-4">
+        <p class="text-muted">Securing your account with email verification...</p>
+    </div>
+
+    <!-- Action Button -->
+    <a id="loginBtn" href="login.html" class="btn btn-primary btn-large w-100 mt-3" style="display: none;">
+        <i class="fas fa-sign-in-alt"></i> Proceed to Login
+    </a>
+
+    <!-- Redirect Timer -->
+    <div id="redirectTimer" class="text-center mt-3" style="display: none;">
+        <i class="fas fa-clock"></i>
+        Redirecting to login in <span id="countdown">5</span> seconds...
+    </div>
+
+    <!-- Footer Messages -->
+    <div class="auth-footer mt-4">
+        <div id="successFooter" style="display: none;">
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> <strong>Email Successfully Confirmed!</strong><br>
+                Your account has been activated and is ready to use.<br>
+                You can now login and access your Skreenit dashboard.
             </div>
         </div>
-        
-        <!-- Help Section -->
-        <div class="confirmation-help">
-            <p class="help-text">
-                <i class="fas fa-question-circle"></i> 
-                Didn't receive the confirmation email? 
-                <a href="login.html">Request a new one</a>
+        <div id="errorFooter" style="display: none;">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> <strong>Confirmation Issue</strong><br>
+                If you continue to experience issues, please contact support.
+            </div>
+        </div>
+        <div id="loadingFooter">
+            <p class="text-muted small">
+                <i class="fas fa-lock"></i> This process usually takes just a few seconds.
             </p>
         </div>
     </div>
+
+    <!-- Help Section -->
+    <div class="auth-actions">
+        <a href="login.html">Back to Login</a>
+        <a href="#" id="resendLink">Resend Confirmation</a>
+    </div>
     
-    <script>
-        // Set brand image dynamically
-        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
-        const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
-        document.getElementById('brandImg').src = `${assetsBase}/assets/images/logobrand.png`;
-    </script>
-    <script type="module" src="js/confirm-email.js"></script>
+  </div>
+</div>
+
+<script>
+    // Set brand images dynamically
+    const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+    const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+    document.getElementById('brandImg').src = `${assetsBase}/assets/images/logobrand.png`;
+    document.getElementById('logoImg').src = `${assetsBase}/assets/images/logo.png`;
+</script>
+<script type="module" src="js/confirm-email.js"></script>
 </body>
 </html>

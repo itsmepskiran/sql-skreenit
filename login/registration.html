@@ -117,8 +117,29 @@
         </div>
 
         <button type="submit" class="btn btn-primary btn-large w-100 mt-1">
-          <i class="fas fa-user-plus"></i> Create Account
+          <span class="btn-text"><i class="fas fa-user-plus"></i> Create Account</span>
+          <span class="btn-loader d-none"><i class="fas fa-spinner fa-spin"></i> Creating...</span>
         </button>
+
+        <!-- Success Messages Container -->
+        <div id="successMessages" class="d-none text-center">
+          <div class="success-message">
+            <i class="fas fa-check-circle"></i>
+            <span>Registration successful! Please check your email to confirm.</span>
+          </div>
+          <div class="success-message">
+            <i class="fas fa-info-circle"></i>
+            <span>Please check your spam/junk folder if you don't receive the confirmation email in your inbox.</span>
+          </div>
+          <div class="success-message">
+            <i class="fas fa-address-book"></i>
+            <span>Add noreply@skreenit.com to your contacts to ensure future emails reach your inbox.</span>
+          </div>
+          <div class="redirect-timer">
+            <i class="fas fa-clock"></i>
+            <span>Redirecting to login in <span id="countdown">5</span> seconds...</span>
+          </div>
+        </div>
 
         <div class="auth-actions">
           Already have an account? <a href="login.html" id="loginLink">Sign in</a>

@@ -1,57 +1,31 @@
 import os
+import json
 import time
 from typing import List, Union, Optional, Dict, Any
 from utils_others.logger import logger
-
 
 class EmailError(Exception):
     """Custom exception for email sending errors."""
     pass
 
-
 def send_email(
     to: Union[str, List[str]],
     subject: str,
-    html: str,
+    html: Optional[str] = None,
     text: Optional[str] = None,
     from_addr: Optional[str] = None,
     email_type: str = "default",
     reply_to: Optional[str] = None,
     retries: int = 2,
-    template_id: Optional[str] = None,
+    template_id: Optional[str] = "email-confirmation-1", # Updated ID
     template_data: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """
-    Sends an email using the Resend API.
-    Supports both direct HTML and Resend templates.
-    
-    Args:
-        to: Email recipient(s)
-        subject: Email subject
-        html: HTML content (for direct emails)
-        text: Plain text fallback
-        from_addr: Sender email override
-        email_type: Type for sender selection
-        reply_to: Reply-to address
-        retries: Number of retry attempts
-        template_id: Resend template ID (optional)
-        template_data: Template variables dict (optional)
-    
-    Raises EmailError on failure.
-    """
-
-    # ---------------------------------------------------------
-    # Import Resend safely
-    # ---------------------------------------------------------
     try:
         import resend
     except Exception as e:
         logger.error(f"Resend import failed: {str(e)}")
         raise EmailError(f"Resend import failed: {e}")
 
-    # ---------------------------------------------------------
-    # API Key
-    # ---------------------------------------------------------
     api_key = os.getenv("RESEND_API_KEY")
     if not api_key:
         logger.error("Missing RESEND_API_KEY")
@@ -60,116 +34,77 @@ def send_email(
     resend.api_key = api_key
 
     # ---------------------------------------------------------
-    # Normalize recipients
+    # Determine Sender
     # ---------------------------------------------------------
-    if isinstance(to, str):
-        to = [to]
-
-    if not to:
-        raise EmailError("Recipient list cannot be empty")
-
-    # ---------------------------------------------------------
-    # Determine sender address
-    # ---------------------------------------------------------
-    if from_addr is None:
-        senders = {
-            "onboarding": os.getenv("EMAIL_ONBOARDING", "onboarding@skreenit.com"),
-            "welcome": os.getenv("EMAIL_WELCOME", "welcome@skreenit.com"),
-            "verification": os.getenv("EMAIL_VERIFICATION", "verification@skreenit.com"),
-            "info": os.getenv("EMAIL_INFO", "info@skreenit.com"),
-            "support": os.getenv("EMAIL_SUPPORT", "support@skreenit.com"),
-            "noreply": os.getenv("EMAIL_NOREPLY", "do-not-reply@skreenit.com"),
-            "default": os.getenv("EMAIL_FROM", "info@skreenit.com"),
-        }
-        from_addr = senders.get(email_type, senders["default"])
-
-    # ---------------------------------------------------------
-    # Validate required fields
-    # ---------------------------------------------------------
-    if template_id and template_data:
-        # Template mode - requires template_id and template_data
-        if not subject:
-            raise EmailError("Subject is required for template emails")
-    else:
-        # HTML mode - requires subject and html
-        if not subject or not html:
-            raise EmailError("Subject and HTML content are required")
-
-    # ---------------------------------------------------------
-    # Prepare payload
-    # ---------------------------------------------------------
+    senders = {
+        "onboarding": os.getenv("EMAIL_ONBOARDING", "onboarding@skreenit.com"),
+        "welcome": os.getenv("EMAIL_WELCOME", "welcome@skreenit.com"),
+        "verification": os.getenv("EMAIL_VERIFICATION", "verification@skreenit.com"),
+        "support": os.getenv("EMAIL_SUPPORT", "support@skreenit.com"),
+        "default": os.getenv("EMAIL_FROM", "info@skreenit.com"),
+    }
     
-    # Build proper "From" with display name
     display_names = {
         "onboarding": "Skreenit Onboarding",
         "welcome": "Skreenit Team",
-        "verification": "Skreenit Security",
-        "info": "Skreenit",
+        "verification": "Skreenit",
         "support": "Skreenit Support",
-        "noreply": "Skreenit",
-        "default": "Skreenit",
     }
+
+    actual_from = from_addr or senders.get(email_type, senders["default"])
     display_name = display_names.get(email_type, "Skreenit")
-    from_formatted = f"{display_name} <{from_addr}>"
-    
-    if template_id and template_data:
-        # Use Resend Template
-        payload = {
-            "from": from_formatted,
-            "to": to,
-            "subject": subject,
-            "template": template_id,
-            "template_data": template_data,
-            "headers": {
-                "List-Unsubscribe": f"<mailto:unsubscribe@skreenit.com?subject=unsubscribe>",
-                "X-Mailer": "Skreenit Email System",
-            }
+    from_formatted = f"{display_name} <{actual_from}>"
+
+    # ---------------------------------------------------------
+    # Prepare Payload (THE FIX IS HERE)
+    # ---------------------------------------------------------
+    payload: Dict[str, Any] = {
+        "from": from_formatted,
+        "to": to,
+        "subject": subject,
+    }
+
+    if template_id:
+        payload["template"] = {
+            "id": template_id,
+            "variables": template_data or {}
         }
-        logger.info(f"Using Resend template: {template_id}")
     else:
-        # Use direct HTML
-        payload = {
-            "from": from_formatted,
-            "to": to,
-            "subject": subject,
-            "html": html,
-            "text": text or "This is an HTML email. Please enable HTML view.",
-            "headers": {
-                "List-Unsubscribe": f"<mailto:unsubscribe@skreenit.com?subject=unsubscribe>",
-                "X-Mailer": "Skreenit Email System",
-            }
-        }
+        # Standard HTML/Text fallback
+        if html:
+            payload["html"] = html
+        if text:
+            payload["text"] = text
+        
+        if not html and not text:
+            raise EmailError("Either template_id or html/text must be provided")
 
     if reply_to:
         payload["reply_to"] = reply_to
 
     # ---------------------------------------------------------
-    # Retry logic for transient failures
+    # Execution
     # ---------------------------------------------------------
     for attempt in range(retries + 1):
         try:
+            logger.info(f"Attempting email send to: {to} using template: {template_id}")
+            
+            # Pass the dictionary directly to avoid Python 'from' keyword error
             response = resend.Emails.send(payload)
 
-            # Normalize response
-            if isinstance(response, dict):
-                logger.info("Email sent successfully", extra={"to": to, "type": email_type})
-                return response
-
-            if hasattr(response, "__dict__"):
-                logger.info("Email sent successfully", extra={"to": to, "type": email_type})
-                return response.__dict__
-
-            logger.info("Email sent successfully", extra={"to": to, "type": email_type})
-            return {"status": "sent", "raw": str(response)}
+            if response:
+                logger.info("Email sent successfully")
+                # Normalize return value
+                return response if isinstance(response, dict) else getattr(response, "__dict__", {"status": "success"})
+            
+            raise EmailError("Empty response from Resend")
 
         except Exception as e:
-            logger.error(
-                f"Email sending failed (attempt {attempt + 1}): {str(e)}",
-                extra={"to": to, "subject": subject, "type": email_type},
-            )
+            error_msg = str(e)
+            logger.error(f"Email sending failed (attempt {attempt + 1}): {error_msg}")
 
             if attempt < retries:
-                time.sleep(1.0)  # small backoff
+                time.sleep(1.0)
                 continue
-
-            raise EmailError(f"Email sending failed after retries: {e}")
+            
+            raise EmailError(f"Email sending failed after {retries + 1} attempts: {error_msg}")

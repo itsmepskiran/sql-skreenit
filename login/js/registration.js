@@ -109,6 +109,8 @@ async function handleRegistrationSubmit(e) {
             password: password,
             full_name: formData.get('full_name').trim(),
             role: formData.get('role') || 'candidate',
+            mobile: formData.get('mobile') || '',
+            location: formData.get('location') || '',
             // Default metadata to ensure proper onboarding redirect on next login
             metadata: {
                 onboarded: false,
@@ -121,13 +123,30 @@ async function handleRegistrationSubmit(e) {
         const result = await handleResponse(response);
 
         console.log("✅ Registration successful:", result);
-        notify("Registration successful! Please check your email to confirm.", "success");
-        notify("Please check your spam/junk folder after registration if you don't receive the confirmation email in your inbox.", "success");
-        notify("Add noreply@skreenit.com to your contacts to ensure future emails reach your inbox.", "success");
-        // 4. Delayed redirect to login page
-        setTimeout(() => {
-            window.location.href = getLoginUrl();
-        }, 3000);
+        
+        // Hide form and show success messages
+        if (form) form.classList.add("d-none");
+        const successMessages = document.getElementById("successMessages");
+        
+        if (successMessages) {
+            successMessages.classList.remove("d-none");
+            successMessages.style.display = "block";
+            successMessages.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            notify("Registration successful", "success");
+        }
+        
+        // Start countdown timer
+        let countdown = 5;
+        const countdownEl = document.getElementById("countdown");
+        const timer = setInterval(() => {
+            countdown--;
+            if (countdownEl) countdownEl.textContent = countdown;
+            if (countdown <= 0) {
+                clearInterval(timer);
+                window.location.href = getLoginUrl();
+            }
+        }, 1000);
 
     } catch (err) {
         console.error("❌ Registration error:", err);

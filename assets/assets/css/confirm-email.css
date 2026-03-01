@@ -1,0 +1,135 @@
+/* =========================================
+   5. CONFIRM-EMAIL.CSS - Email Confirmation Page
+   ========================================= */
+
+.confirmation-container {
+    background: var(--gradient-primary);
+    position: relative;
+}
+
+.confirmation-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('../images/branding-bg.jpg') center/cover;
+    opacity: 0.1;
+}
+
+.confirmation-card {
+    max-width: 500px;
+    padding: 40px;
+    text-align: center;
+}
+
+.confirmation-logo img {
+    width: 180px;
+    height: auto;
+    margin-bottom: 30px;
+}
+
+.confirmation-icon {
+    margin: 20px 0;
+    font-size: 48px;
+}
+
+.loading-icon { color: var(--primary-color); }
+.success-icon { color: #10b981; }
+.error-icon { color: #ef4444; }
+
+.confirmation-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #1f2937;
+}
+
+.confirmation-message {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    color: #6b7280;
+}
+
+.confirmation-message.loading { color: var(--primary-color); }
+.confirmation-message.success { color: #10b981; }
+.confirmation-message.error { color: #ef4444; }
+
+.confirmation-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--gradient-primary);
+    color: white;
+    padding: 12px 30px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.confirmation-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+}
+
+.confirmation-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.confirmation-footer p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.confirmation-help {
+    margin-top: 20px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.help-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+}
+
+.help-text a {
+    color: white;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.redirect-timer {
+    background: #f3f4f6;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.redirect-timer i {
+    color: var(--primary-color);
+    margin-right: 8px;
+}
+
+.redirect-timer span {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Hidden elements - controlled by JavaScript */
+#successIcon, #errorIcon, #successFooter, #errorFooter, #redirectTimer {
+    display: none;
+}

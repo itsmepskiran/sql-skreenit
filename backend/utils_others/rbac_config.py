@@ -10,7 +10,7 @@ ROLES_PERMISSIONS = {
         "profile:view",
         "profile:edit",
         "applications:view",
-        "dashboard:view",
+        "dashboard:read",
         "notifications:create",
         "analytics:view"
     ],
@@ -20,7 +20,7 @@ ROLES_PERMISSIONS = {
         "profile:edit",
         "applications:create",
         "applications:view",
-        "dashboard:view",
+        "dashboard:read",
         "video:upload"
     ],
     "admin": ["*"]

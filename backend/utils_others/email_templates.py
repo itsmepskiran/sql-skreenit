@@ -169,3 +169,121 @@ def write_default_templates() -> None:
 
 
 write_default_templates()
+# backend/utils_others/email_templates.py
+def get_verification_template(full_name, confirmation_url):
+    return f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your Skreenit Account</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 30px;
+        }}
+        .logo {{
+            max-width: 250px;
+            height: 85px;
+            border-radius: 8px;
+        }}
+        .brand-text {{
+            color: #666;
+            font-size: 14px;
+            font-style: italic;
+            margin-top: 10px;
+        }}
+        h1 {{
+            color: #272e35;
+            font-size: 33px;
+            margin: 20px 0 0 0;
+        }}
+        .confirmation-card {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+        }}
+        .confirmation-card h2 {{
+            font-size: 24px;
+            margin: 0 0 20px 0;
+        }}
+        .confirmation-card p {{
+            font-size: 16px;
+            text-align: left;
+            margin: 0 0 20px 0;
+        }}
+        .btn {{
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin: 30px 0;
+        }}
+        .footer {{
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 20px;
+        }}
+        .footer p {{
+            margin: 10px 0;
+        }}
+        .footer-text {{
+            text-align: left;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="https://login.skreenit.com" target="_blank">
+                <img src="https://assets.skreenit.com/assets/images/logobrand.png" alt="Skreenit Logo" class="logo">
+            </a>
+            <p class="brand-text">Skreenit Platform</p>
+            <h1>Welcome to Skreenit!</h1>
+        </div>
+        
+        <div class="confirmation-card">
+            <h2>Confirm Your Email Address</h2>
+            <p>Hi {full_name},</p>
+            <p>Thank you for registering! Please click the button below to confirm your email address and activate your account.</p>
+            <a href="{confirmation_url}" class="btn" target="_blank">Confirm Your Email Address</a>
+            <p style="font-size: 14px; opacity: 0.8; text-align: left; margin: 20px 0 0 0;">
+                This link will expire in 24 hours. If you didn't create this account, you can safely ignore this email.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-text">
+                <p><strong>Important:</strong> Please check your spam/junk folder if you don't see this email in your inbox.</p>
+                <p>Add noreply@skreenit.com to your contacts to ensure future emails reach your inbox.</p>
+            </div>
+            <p>&copy; 2026 Skreenit. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+    """

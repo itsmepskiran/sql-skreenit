@@ -46,6 +46,7 @@ function showConfirmationState(state, message, title = '') {
     const successFooterEl = document.getElementById("successFooter");
     const errorFooterEl = document.getElementById("errorFooter");
     const loadingFooterEl = document.getElementById("loadingFooter");
+    const redirectTimerEl = document.getElementById("redirectTimer");
 
     // Hide all icons and footers first
     loadingIconEl.style.display = 'none';
@@ -54,15 +55,17 @@ function showConfirmationState(state, message, title = '') {
     successFooterEl.style.display = 'none';
     errorFooterEl.style.display = 'none';
     loadingFooterEl.style.display = 'none';
+    redirectTimerEl.style.display = 'none';
 
     // Reset classes
-    messageEl.className = "confirmation-message";
+    messageEl.className = "text-center mb-4";
 
     switch(state) {
         case 'loading':
             pageTitleEl.textContent = 'Confirming Your Email...';
-            messageEl.textContent = message;
-            messageEl.classList.add('loading');
+            const subtitleEl = document.getElementById('subtitle');
+            if (subtitleEl) subtitleEl.textContent = message;
+            messageEl.innerHTML = `<p class="text-muted">${message}</p>`;
             loadingIconEl.style.display = 'block';
             loadingFooterEl.style.display = 'block';
             loginBtnEl.style.display = 'none';
@@ -70,22 +73,43 @@ function showConfirmationState(state, message, title = '') {
             
         case 'success':
             pageTitleEl.textContent = 'Email Successfully Confirmed!';
-            messageEl.textContent = message;
-            messageEl.classList.add('success');
+            const successSubtitleEl = document.getElementById('subtitle');
+            if (successSubtitleEl) successSubtitleEl.textContent = message;
+            messageEl.innerHTML = `<p class="text-muted">${message}</p>`;
             successIconEl.style.display = 'block';
             successFooterEl.style.display = 'block';
             loginBtnEl.style.display = 'inline-block';
+            redirectTimerEl.style.display = 'block';
+            startRedirectTimer();
             break;
             
         case 'error':
             pageTitleEl.textContent = title || 'Confirmation Failed';
-            messageEl.textContent = message;
-            messageEl.classList.add('error');
+            const errorSubtitleEl = document.getElementById('subtitle');
+            if (errorSubtitleEl) errorSubtitleEl.textContent = message;
+            messageEl.innerHTML = `<p class="text-muted">${message}</p>`;
             errorIconEl.style.display = 'block';
             errorFooterEl.style.display = 'block';
             loginBtnEl.style.display = 'inline-block';
+            redirectTimerEl.style.display = 'block';
+            startRedirectTimer();
             break;
     }
+}
+
+function startRedirectTimer() {
+    let countdown = 5;
+    const countdownEl = document.getElementById("countdown");
+    
+    const timer = setInterval(() => {
+        countdown--;
+        if (countdownEl) countdownEl.textContent = countdown;
+        
+        if (countdown <= 0) {
+            clearInterval(timer);
+            window.location.href = CONFIG.PAGES.LOGIN;
+        }
+    }, 1000);
 }
 
 async function confirmEmail(token, email) {
@@ -106,23 +130,11 @@ async function confirmEmail(token, email) {
 
         if (result.ok) {
             showConfirmationState('success', result.message || "Email confirmed successfully! Your account has been activated.");
-            
-            setTimeout(() => {
-                window.location.href = `${CONFIG.PAGES.LOGIN}?confirmed=true`;
-            }, 3000);
         } else {
             showConfirmationState('error', result.message || "Confirmation failed. Please try again or contact support.");
-            
-            setTimeout(() => {
-                window.location.href = CONFIG.PAGES.LOGIN;
-            }, 5000);
         }
     } catch (error) {
         console.error('Email confirmation error:', error);
         showConfirmationState('error', "Something went wrong. Please check your internet connection and try again.");
-        
-        setTimeout(() => {
-            window.location.href = CONFIG.PAGES.LOGIN;
-        }, 5000);
     }
 }

@@ -19,11 +19,11 @@ EXCLUDED_PATHS = {
     "/redoc",
     "/health",
     "/api/v1/health",
-    "/api/v1/auth/login",
-    "/api/v1/auth/register",
-    "/api/v1/auth/confirm-email",
-    "/api/v1/auth/reset-password",
-    "/api/v1/auth/refresh-token",
+    "/api/v1/login",
+    "/api/v1/register",
+    "/api/v1/confirm-email",
+    "/api/v1/reset-password",
+    "/api/v1/refresh-token",
     "/api/v1/system/info",
 }
 

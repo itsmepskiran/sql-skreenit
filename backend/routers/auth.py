@@ -131,19 +131,19 @@ async def mark_onboarded(request: Request):
 # ---------------------------------------------------------
 @router.post("/register")
 async def register(request: Request):
-    """Register a new user with custom authentication - accepts FormData."""
+    """Register a new user with custom authentication - accepts JSON."""
     try:
-        # Parse FormData manually
-        form_data = await request.form()
+        # Parse JSON body
+        body = await request.json()
         
         # Extract fields
-        full_name = form_data.get("full_name", "").strip()
-        email = form_data.get("email", "").strip().lower()
-        password = form_data.get("password", "").strip()
-        mobile = form_data.get("mobile", "").strip()
-        location = form_data.get("location", "").strip()
-        role = form_data.get("role", "").strip()
-        email_redirect_to = form_data.get("email_redirect_to")
+        full_name = body.get("full_name", "").strip()
+        email = body.get("email", "").strip().lower()
+        password = body.get("password", "").strip()
+        mobile = body.get("mobile", "").strip()
+        location = body.get("location", "").strip()
+        role = body.get("role", "").strip()
+        email_redirect_to = body.get("email_redirect_to")
         
         logger.info(f"Registration attempt for email: {email}", extra={
             "request_id": getattr(request.state, "request_id", None)
@@ -158,7 +158,7 @@ async def register(request: Request):
         
         auth_service = get_auth_service()
         
-        result = auth_service.register(
+        result = await auth_service.register(
             full_name=full_name, 
             email=email, 
             password=password, 

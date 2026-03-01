@@ -1,4 +1,5 @@
 import os
+from unittest import result
 import jwt
 import bcrypt
 from datetime import datetime, timedelta
@@ -7,6 +8,7 @@ from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from services.mysql_service import UserService
 from utils_others.logger import logger
+from services.email_service import EmailService
 
 class AuthService:
     """
@@ -21,6 +23,7 @@ class AuthService:
         self.jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
         self.access_token_expire_minutes = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 30))
         self.refresh_token_expire_days = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", 7))
+        self.email_service = EmailService()
 
     def _hash_password(self, password: str) -> str:
         """Hash password using bcrypt."""
@@ -65,7 +68,7 @@ class AuthService:
             "refresh_token": refresh_token
         }
 
-    def register(self, full_name: str, email: str, password: str, 
+    async def register(self, full_name: str, email: str, password: str, 
                  mobile: str, location: str, role: str, 
                  email_redirect_to: Optional[str] = None) -> Dict[str, Any]:
         """Register a new user and return user data with tokens."""
@@ -93,7 +96,7 @@ class AuthService:
             tokens = self._generate_tokens(created_user)
 
             # Verification email logic remains encapsulated here
-            self._send_verification_email(created_user, tokens['access_token'], email_redirect_to)
+            await self._send_verification_email(created_user, tokens['access_token'], email_redirect_to)
 
             return {
                 "ok": True,
@@ -111,41 +114,25 @@ class AuthService:
             logger.error(f"Registration failed for {email}: {str(e)}")
             raise ValueError(str(e))
 
-    def _send_verification_email(self, user, token, redirect_url):
-        """Internal helper for Resend email integration."""
+    async def _send_verification_email(self, user, token, redirect_url):
         try:
-            from utils_others.resend_email import send_email
-            from utils_others.logger import logger
-            from utils_others.email_templates import EmailTemplates
-            
-            confirmation_link = f"{redirect_url}?token={token}&email={user['email']}"
+            base_url = redirect_url or os.getenv("FRONTEND_BASE_URL") or "https://login.skreenit.com"
+            confirmation_link = f"{base_url}/confirm-email.html?token={token}&email={user['email']}"
             full_name = user.get('full_name', 'User')
             
-            # Generate HTML email using Jinja2 template
-            email_templates = EmailTemplates()
-            email_content = email_templates.registration_confirmation({
-                "full_name": full_name,
-                "role": user.get('role', 'User'),
-                "login_url": confirmation_link
-            })
-            
-            # Send as direct HTML email (not Resend template)
-            send_email(
-                to=user['email'], 
-                subject=email_content["subject"], 
-                html=email_content["html"],
-                text=email_content["text"],
-                email_type="verification"
+            result = await self.email_service.send_verification_email(
+                to_email=user['email'],
+                full_name=full_name,
+                confirmation_url=confirmation_link
             )
-            
-            logger.info(f"Confirmation email sent to {user['email']}")
+
+            if result["status"] == "success":
+                logger.info(f"Confirmation email sent to {user['email']}")
+            else:
+                logger.warning(f"Email delivery skipped: {str(result['message'])}")
             
         except Exception as e:
             logger.warning(f"Email delivery skipped: {str(e)}")
-            # Fallback: Log for development
-            logger.info(f"DEVELOPMENT MODE - Email Confirmation Link: {confirmation_link}")
-            logger.info(f"Token: {token}")
-            logger.info(f"Email: {user['email']}")
 
     def login(self, email: str, password: str) -> Dict[str, Any]:
         """Verify credentials and return user session."""

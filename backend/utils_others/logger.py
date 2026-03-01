@@ -3,10 +3,11 @@ import sys
 from logging.handlers import RotatingFileHandler
 import os
 import json
-import contextvars  # ✅ Added
+import contextvars  # 
 from datetime import datetime
+import multiprocessing
 
-# ✅ Define ContextVar for Request ID (Global within the request)
+# 
 request_id_context = contextvars.ContextVar("request_id", default=None)
 
 # ---------------------------------------------------------
@@ -83,8 +84,10 @@ def setup_logging():
     console_handler.addFilter(RequestIDFilter())
     logger.addHandler(console_handler)
 
-    # File handler
-    if os.getenv("ENVIRONMENT", "development") != "production":
+    # File handler - only in main process to avoid Windows permission conflicts
+    # when uvicorn subprocesses try to access the same log file during shutdown
+    is_main_process = multiprocessing.parent_process() is None
+    if is_main_process and os.getenv("ENVIRONMENT", "development") != "production":
         file_handler = RotatingFileHandler(
             os.path.join(log_dir, "app.log"),
             maxBytes=10 * 1024 * 1024,
