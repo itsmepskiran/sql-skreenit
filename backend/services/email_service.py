@@ -4,7 +4,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from utils_others.logger import logger
-from utils_others.email_templates import get_verification_template
+from utils_others.email_templates import EmailTemplates
 
 class EmailService:
     def __init__(self):
@@ -44,13 +44,21 @@ class EmailService:
     async def send_verification_email(self, to_email, full_name, confirmation_url):
         """Send verification email using onboarding@skreenit.com"""
         try:
-            html_content = get_verification_template(full_name, confirmation_url)
+            # Use EmailTemplates class with welcome.html template
+            email_templates = EmailTemplates()
+            template_data = email_templates.registration_confirmation({
+                "full_name": full_name,
+                "email": to_email,
+                "role": "candidate"
+            })
+            
+            html_content = template_data["html"]
             sender_email, sender_name = self.get_sender_info("onboarding")
             
             msg = MIMEMultipart()
             msg["From"] = f"{sender_name} <{sender_email}>"
             msg["To"] = to_email
-            msg["Subject"] = "Confirm Your Skreenit Account"
+            msg["Subject"] = template_data["subject"]
             msg.attach(MIMEText(html_content, "html"))
             
             # Use main email for SMTP authentication, but send from alias

@@ -134,12 +134,16 @@ def register_exception_handlers(app: FastAPI) -> None:
                 "request_id": getattr(request.state, "request_id", None),
             },
         )
+        
+        # Use actual error message if available, otherwise generic
+        error_message = str(exc) if str(exc) else "Internal server error"
+        
         return JSONResponse(
             status_code=500,
             content={
                 "ok": False,
                 "error": "server_error",
-                "message": "Internal server error",
+                "message": error_message,
                 "request_id": getattr(request.state, "request_id", None),
             },
         )

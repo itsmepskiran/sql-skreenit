@@ -3,11 +3,12 @@ from dotenv import load_dotenv
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import Response, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+from jinja2 import Environment, FileSystemLoader
 from utils_others.logger import logger
 from utils_others.error_handler import register_exception_handlers
 
@@ -67,8 +68,23 @@ def custom_openapi():
     return app.openapi_schema
 
 app.openapi = custom_openapi
+
 # ---------------------------------------------------------
-# Mount Static Files (Logos) - CRITICAL FIX
+# Setup Jinja2 Template Environment
+# ---------------------------------------------------------
+template_dir = os.path.join(BASE_DIR, "..", "assets", "templates")
+if os.path.exists(template_dir):
+    template_env = Environment(
+        loader=FileSystemLoader(template_dir),
+        autoescape=True
+    )
+    print(f"✅ Templates loaded from: {template_dir}")
+else:
+    print(f"⚠️ Warning: Templates directory not found at {template_dir}")
+    template_env = None
+
+# ---------------------------------------------------------
+# Mount Static Files (Logos & Assets) - CRITICAL FIX
 # ---------------------------------------------------------
 logos_dir = os.path.join(BASE_DIR, "logos")
 if os.path.exists(logos_dir):
@@ -77,25 +93,59 @@ if os.path.exists(logos_dir):
 else:
     print(f"⚠️ Warning: Logos directory not found at {logos_dir}")
 
+# Mount assets directory for templates to access static files
+assets_dir = os.path.join(BASE_DIR, "..", "assets")
+if os.path.exists(assets_dir):
+    app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+    print(f"✅ Mounted assets from: {assets_dir}")
+else:
+    print(f"⚠️ Warning: Assets directory not found at {assets_dir}")
+
 # ---------------------------------------------------------
 # Browser Display (Root)
 # ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 async def root_page():
-    # Uses f-string so {ENV} prints the actual value
-    return f"""
-    <html>
-        <head>
-            <title>Skreenit Backend API</title>
-            <meta http-equiv="refresh" content="5;url=https://www.skreenit.com" />
-        </head>
-        <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-            <img src="/logos/logobrand.png" alt="Skreenit Logo" style="max-width: 200px;" />
-            <h2>Skreenit Backend API</h2>
-            <p>Running in <strong>{ENV}</strong> mode.</p>
-        </body>
-    </html>
-    """
+    if not template_env:
+        # Fallback to simple HTML if template not found
+        return HTMLResponse("""
+        <html>
+            <head><title>Skreenit Backend API</title></head>
+            <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                <h2>Skreenit Backend API</h2>
+                <p>Running in {} mode.</p>
+            </body>
+        </html>
+        """.format(ENV))
+    
+    try:
+        template = template_env.get_template("welcome.html")
+        
+        # Prepare template context
+        context = {
+            "ENV": ENV,
+            "loginLink": "https://login.skreenit.com" if IS_PROD else "http://localhost:8080/login.html",
+            "full_name": "User",  # Default name for welcome page
+            "confirmation_url": "#"  # Default placeholder
+        }
+        
+        # Render template with context
+        html_content = template.render(**context)
+        return HTMLResponse(html_content)
+        
+    except Exception as e:
+        logger.error(f"Error rendering template: {str(e)}")
+        # Fallback to simple response
+        return HTMLResponse(f"""
+        <html>
+            <head><title>Skreenit Backend API</title></head>
+            <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                <h2>Skreenit Backend API</h2>
+                <p>Running in {ENV} mode.</p>
+                <p>Template Error: {str(e)}</p>
+            </body>
+        </html>
+        """)
 
 # ---------------------------------------------------------
 # Logging
