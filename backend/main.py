@@ -35,8 +35,8 @@ app = FastAPI(
     title="Skreenit API",
     description="Backend API for Skreenit recruitment platform",
     version="1.0.0",
-    docs_url=None if IS_PROD else "/docs",
-    redoc_url=None if IS_PROD else "/redoc",
+    docs_url="/docs",
+    redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
 

@@ -92,7 +92,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <a href="{loginLink}" target="_blank">
+            <a href="{{loginLink}}" target="_blank">
                 <img src="https://assets.skreenit.com/assets/images/logobrand.png" alt="Skreenit Logo" class="logo">
             </a>
             <p class="brand-text">Skreenit Platform</p>
@@ -100,10 +100,10 @@
         
         <div class="confirmation-card">
             <h2>Welcome to Skreenit!</h2>
-            <p>Hi {full_name},</p>
+            <p>Hi {{full_name}},</p>
             <p>Thank you for registering! Please click the button below to confirm your email address and activate your account.</p>
             
-            <a href="{confirmation_url}" class="btn" target="_blank">Confirm Your Email Address</a>
+            <a href="{{confirmation_url}}" class="btn" target="_blank">Confirm Your Email Address</a>
             
             <p style="font-size: 14px; opacity: 0.8; text-align: left; margin: 20px 0 0 0;">
                 This link will expire in 24 hours. If you didn't create this account, you can safely ignore this email.

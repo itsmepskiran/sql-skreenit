@@ -23,7 +23,7 @@ class EmailTemplates:
 
     def __init__(self):
         # Fix path - go up one level to assets directory
-        self.template_dir = Path(__file__).resolve().parent / "assets" / "templates"
+        self.template_dir = Path(__file__).resolve().parent.parent.parent / "assets" / "templates"
         self.template_dir.mkdir(exist_ok=True)
 
         self.env = Environment(
@@ -126,7 +126,7 @@ def write_default_templates() -> None:
     Safe to run multiple times.
     """
     # Use same path as __init__ method
-    template_dir = Path(__file__).resolve().parent / "templates"
+    template_dir = Path(__file__).resolve().parent.parent.parent / "templates"
     template_dir.mkdir(exist_ok=True)
 
     templates = {

@@ -8,8 +8,7 @@ from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from services.mysql_service import UserService
 from utils_others.logger import logger
-from utils_others.email_templates import EmailTemplates
-from utils_others.resend_email import send_email
+from services.email_service import EmailService
 
 class AuthService:
     """
@@ -24,7 +23,7 @@ class AuthService:
         self.jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
         self.access_token_expire_minutes = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 30))
         self.refresh_token_expire_days = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", 7))
-        self.email_templates = EmailTemplates()
+        self.email_service = EmailService()
 
     def _hash_password(self, password: str) -> str:
         """Hash password using bcrypt."""
@@ -121,21 +120,11 @@ class AuthService:
             confirmation_link = f"{base_url}/confirm-email.html?token={token}&email={user['email']}"
             full_name = user.get('full_name', 'User')
             
-            # Use EmailTemplates class to render welcome.html template
-            template_data = self.email_templates.registration_confirmation({
-                "full_name": full_name,
-                "role": user.get("role", "candidate"),
-                "email": user["email"],
-                "login_url": f"{base_url}/login.html",
-                "confirmation_url": confirmation_link
-            })
-            
-            # Send email using Resend service
-            await send_email(
-                to=user['email'],
-                subject=template_data["subject"],
-                html=template_data["html"],
-                email_type="verification"
+            # Send email using SMTP EmailService
+            await self.email_service.send_verification_email(
+                to_email=user['email'],
+                full_name=full_name,
+                confirmation_url=confirmation_link
             )
             
             logger.info(f"Verification email sent to {user['email']}")
