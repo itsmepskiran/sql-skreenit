@@ -177,7 +177,7 @@ DEFAULT_ALLOWED_ORIGINS = [
     "https://app.skreenit.com",
     "https://hrms.skreenit.com",
     "https://jobs.skreenit.com",
-    "https://aiskreenit.onrender.com",
+    
 ]
 
 LOCAL_DEV_ORIGINS = [

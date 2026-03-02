@@ -293,6 +293,41 @@ class CustomAuth {
       throw error;
     }
   }
+
+  // Update user metadata (e.g., mark as onboarded)
+  async updateUser({ data }) {
+    try {
+      const token = this.storage.getItem('access_token');
+      if (!token) {
+        throw new Error('No access token found');
+      }
+
+      const response = await fetch(`${this.baseURL}/mark-onboarded`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+      if (!result.ok) {
+        throw new Error(result.detail || 'User update failed');
+      }
+
+      // Update local user data with new metadata
+      const currentUser = await this.getUserData();
+      if (currentUser) {
+        currentUser.onboarded = data.onboarded || currentUser.onboarded;
+        this.storage.setItem('user_data', JSON.stringify(currentUser));
+      }
+
+      return { data: { user: currentUser }, error: null };
+    } catch (error) {
+      console.error('[CustomAuth] User update error:', error);
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance

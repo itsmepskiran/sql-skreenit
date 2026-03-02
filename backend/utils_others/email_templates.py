@@ -5,6 +5,16 @@ from jinja2 import Environment, FileSystemLoader, TemplateNotFound, select_autoe
 from utils_others.logger import logger
 
 
+# Frontend page URLs configuration (environment-aware like config.js)
+def is_local():
+    """Check if running in local development"""
+    return ['localhost', '127.0.0.1', ''].__contains__(os.getenv('ENVIRONMENT', 'development'))
+
+PAGES = {
+    'LOGIN': (os.getenv("FRONTEND_BASE_URL", "https://login.skreenit.com") if not is_local() else "http://localhost:3000") + "/login.html"
+}
+
+
 class EmailTemplates:
     """
     Loads and renders HTML email templates using Jinja2.
@@ -259,7 +269,7 @@ def get_verification_template(full_name, confirmation_url):
 <body>
     <div class="container">
         <div class="header">
-            <a href="https://login.skreenit.com" target="_blank">
+            <a href="{PAGES['LOGIN']}" target="_blank">
                 <img src="https://assets.skreenit.com/assets/images/logobrand.png" alt="Skreenit Logo" class="logo">
             </a>
             <p class="brand-text">Skreenit Platform</p>

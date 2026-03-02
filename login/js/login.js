@@ -47,7 +47,10 @@ async function handlePostLoginRedirect() {
                 'jobs.skreenit.com',
                 'login.skreenit.com',
                 'dashboard.skreenit.com',
-                'applicant.skreenit.com'
+                'applicant.skreenit.com',
+                'recruiter.skreenit.com',
+                'storage.skreenit.com',
+                'assets.skreenit.com'
             ];
 
             if (allowedDomains.some(domain => redirectUrl.hostname.endsWith(domain))) {
@@ -119,13 +122,20 @@ form.addEventListener("submit", async (e) => {
     if (!wasRedirected) {
       if (role === 'candidate') {
         if (!isOnboarded) {
-          // If profile is not complete, send to applicant subdomain form
+          // If candidate profile is not complete, send to applicant subdomain form
           window.location.href = CONFIG.PAGES.APPLY_FORM;
         } else {
+          // If candidate is onboarded, send to candidate dashboard
           window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
         }
       } else if (role === 'recruiter') {
-        window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+        if (!isOnboarded) {
+          // If recruiter profile is not complete, send to recruiter profile form
+          window.location.href = CONFIG.PAGES.RECRUITER_PROFILE;
+        } else {
+          // If recruiter is onboarded, send to recruiter dashboard
+          window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+        }
       } else {
         // Fallback for admin or undefined roles
         await redirectByRole();

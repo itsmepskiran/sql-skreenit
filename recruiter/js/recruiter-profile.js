@@ -165,6 +165,9 @@ async function handleProfileSubmit(event) {
     const res = await backendPut("/recruiter/profile", payload);
     await handleResponse(res);
     
+    // Mark recruiter as onboarded after successful profile submission
+    await customAuth.updateUser({ data: { onboarded: true } });
+    
     await customAuth.refreshSession();
     
     originalProfileData = { ...originalProfileData, ...payload, about_company: payload.about }; 
@@ -172,7 +175,7 @@ async function handleProfileSubmit(event) {
     btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
     btn.style.backgroundColor = '#10b981';
 
-    // ✅ FIX: Also update 'recruiterName' in the sidebar on save success
+    // FIX: Also update 'recruiterName' in the sidebar on save success
     const sidebarNameEl = document.getElementById('recruiterName');
     if (sidebarNameEl) sidebarNameEl.textContent = payload.contact_name;
 

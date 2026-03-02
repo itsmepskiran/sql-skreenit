@@ -4,8 +4,9 @@ import '@shared/js/mobile.js';
 
 // Setup Assets
 const isLocal = CONFIG.IS_LOCAL;
-const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
 document.getElementById('brandImg').src = `${assetsBase}/assets/images/logobrand.png`;
+document.getElementById('logoImg').src = `${assetsBase}/assets/images/logo.png`;
 
 document.addEventListener("DOMContentLoaded", () => {
     const messageEl = document.getElementById("message");

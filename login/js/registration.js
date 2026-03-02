@@ -6,7 +6,7 @@ import '@shared/js/mobile.js';
 
 // 1. Setup Dynamic Assets
 const isLocal = CONFIG.IS_LOCAL;
-const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
 
 // Update Logos using central assetsBase
 const logoImg = document.getElementById('logoImg');
@@ -137,7 +137,7 @@ async function handleRegistrationSubmit(e) {
         }
         
         // Start countdown timer
-        let countdown = 5;
+        let countdown = 15;
         const countdownEl = document.getElementById("countdown");
         const timer = setInterval(() => {
             countdown--;
