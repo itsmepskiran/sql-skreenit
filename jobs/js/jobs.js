@@ -9,7 +9,7 @@ const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
 
 // Update logo
 const logoImg = document.getElementById('logoImg');
-if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+if (logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
 
 // ===============================
 // GLOBAL ELEMENTS

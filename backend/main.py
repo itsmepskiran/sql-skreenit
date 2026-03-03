@@ -119,14 +119,11 @@ async def root_page():
         """.format(ENV))
     
     try:
-        template = template_env.get_template("welcome.html")
+        template = template_env.get_template("backend.html")
         
         # Prepare template context
         context = {
-            "ENV": ENV,
-            "loginLink": "https://login.skreenit.com" if IS_PROD else "http://localhost:8080/login.html",
-            "full_name": "User",  # Default name for welcome page
-            "confirmation_url": "#"  # Default placeholder
+            "jobsLink": "https://jobs.skreenit.com/jobs.html" if IS_PROD else "http://localhost:8080/jobs/jobs.html"
         }
         
         # Render template with context
