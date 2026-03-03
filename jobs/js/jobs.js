@@ -1,6 +1,6 @@
 // jobs/js/jobs.js
 import { customAuth } from '@shared/js/auth-config.js';
-import { backendGet, handleResponse } from '@shared/js/backend-client.js';
+import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 
