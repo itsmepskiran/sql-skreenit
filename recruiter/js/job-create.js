@@ -198,7 +198,7 @@ function setupNavigation() {
     if(logoutBtn) {
         logoutBtn.addEventListener("click", async () => {
             await customAuth.signOut();
-            window.location.href = CONFIG.PAGES.LOGIN;
+            window.location.href = CONFIG.PAGES.JOBS;
         });
     }
 }

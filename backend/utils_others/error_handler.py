@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi import HTTPException
@@ -77,12 +78,25 @@ def register_exception_handlers(app: FastAPI) -> None:
                 "request_id": getattr(request.state, "request_id", None),
             },
         )
+        
+        # Convert errors to safe JSON format (handle bytes)
+        def make_safe(obj):    
+            if isinstance(obj, bytes):
+                return obj.decode('utf-8', errors='replace')
+            elif isinstance(obj, dict):
+                return {k: make_safe(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [make_safe(item) for item in obj]
+            return obj
+        
+        safe_errors = make_safe(exc.errors())
+        
         return JSONResponse(
             status_code=422,
             content={
                 "ok": False,
                 "error": "validation_error",
-                "message": exc.errors(),
+                "message": safe_errors,
                 "request_id": getattr(request.state, "request_id", None),
             },
         )

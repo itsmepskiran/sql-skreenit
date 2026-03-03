@@ -103,6 +103,51 @@
     .form-row .form-group {
         width: 100%;
     }
+
+    /* Talent Cards - Tablet */
+    .talent-card-row {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .talent-card-row .card-main-info {
+        flex: 1 1 60%;
+    }
+
+    .talent-card-row .card-job-info {
+        flex: 1 1 40%;
+        padding-left: 58px;
+    }
+
+    .talent-card-row .card-status-info {
+        flex: 1 1 auto;
+        padding-left: 58px;
+    }
+
+    .talent-card-row .card-actions-toolbar {
+        flex: 1 1 100%;
+        justify-content: flex-start;
+        padding-left: 58px;
+    }
+
+    /* Profile Cards */
+    .profile-header-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+    }
+
+    .profile-avatar-large {
+        width: 100px;
+        height: 100px;
+    }
+
+    /* Activity Grid */
+    .activity-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
 }
 
 /* =========================================
@@ -356,6 +401,73 @@
         width: 36px;
         height: 36px;
     }
+
+    /* Talent Cards - Mobile */
+    .talent-card-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .talent-card-row .card-main-info,
+    .talent-card-row .card-job-info,
+    .talent-card-row .card-status-info,
+    .talent-card-row .card-actions-toolbar {
+        width: 100%;
+        padding-left: 0;
+        flex: none;
+    }
+
+    .talent-card-row .card-selection {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .talent-card-row .avatar-box {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        font-size: 0.875rem;
+    }
+
+    /* Form Row Grids */
+    .form-row,
+    .form-row-3 {
+        grid-template-columns: 1fr;
+    }
+
+    /* Profile Section */
+    .profile-section {
+        padding: 1rem;
+    }
+
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Video Container */
+    #videoContainer,
+    #videoPlayer {
+        max-width: 100%;
+    }
+
+    /* Recording Interface */
+    #videoRecordingContainer {
+        padding: 1rem;
+    }
+
+    #introCameraFeed,
+    #introPlaybackFeed {
+        max-height: 250px;
+    }
+
+    /* Modal Card */
+    .custom-modal-card {
+        max-width: 95%;
+        margin: 1rem;
+        padding: 1rem;
+    }
 }
 
 /* =========================================
@@ -419,6 +531,76 @@
         left: 20px;
         right: 20px;
     }
+
+    /* Talent Cards - Extra Small */
+    .talent-card-row {
+        padding: 0.75rem;
+    }
+
+    .talent-card-row .full-name {
+        font-size: 0.95rem;
+    }
+
+    .talent-card-row .sub-text,
+    .talent-card-row .job-name {
+        font-size: 0.75rem;
+    }
+
+    /* Action Buttons */
+    .action-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* Badges */
+    .badge-success,
+    .badge-pending,
+    .badge-interview-pending {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+
+    /* Stats Cards */
+    .stat-card {
+        padding: 0.75rem;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .stat-info h3 {
+        font-size: 1.25rem;
+    }
+
+    .stat-info p {
+        font-size: 0.8rem;
+    }
+
+    /* Recording Controls */
+    .record-btn-modern {
+        padding: 10px 20px;
+        font-size: 0.875rem;
+    }
+
+    .timer-display {
+        font-size: 1rem;
+    }
+
+    /* Video Elements */
+    #introCameraFeed,
+    #introPlaybackFeed {
+        max-height: 200px;
+    }
+
+    /* Mobile Menu Toggle */
+    .btn-menu-mobile {
+        width: 36px;
+        height: 36px;
+        font-size: 1.25rem;
+    }
 }
 
 /* =========================================
@@ -470,6 +652,17 @@
         width: 20px;
         height: 20px;
     }
+
+    /* Larger touch targets for talent cards */
+    .talent-card-row {
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+    }
+
+    .action-btn {
+        width: 44px;
+        height: 44px;
+    }
 }
 
 /* =========================================
@@ -486,5 +679,46 @@
 
     .main-content {
         padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* =========================================
+   8. HIGH DPI / RETINA DISPLAYS
+   ========================================= */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .avatar-box,
+    .avatar-circle,
+    .stat-icon,
+    .action-btn {
+        /* Sharper rendering on high DPI */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* =========================================
+   9. PRINT STYLES
+   ========================================= */
+@media print {
+    .sidebar,
+    .btn-menu-mobile,
+    .sidebar-overlay,
+    .dashboard-header .btn,
+    .action-btn,
+    .logout-btn {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 0;
+    }
+
+    .card,
+    .talent-card-row,
+    .job-card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ccc;
     }
 }

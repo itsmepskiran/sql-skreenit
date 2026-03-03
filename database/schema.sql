@@ -42,19 +42,19 @@ CREATE TABLE IF NOT EXISTS companies (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- RECRUITER PROFILES TABLE
+-- RECRUITER PROFILES TABLE (Cleaned - removed duplicate columns)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS recruiter_profiles (
     id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     user_id VARCHAR(36) NOT NULL UNIQUE,
     company_id VARCHAR(36) NULL,
-    company_name VARCHAR(255) NULL,
-    company_website VARCHAR(500) NULL,
+    -- REMOVED: company_name (belongs in companies table)
+    -- REMOVED: company_website (belongs in companies table)
     contact_name VARCHAR(255) NULL,
     contact_email VARCHAR(255) NULL,
     location VARCHAR(255) NULL,
-    about TEXT NULL,
-    avatar_url VARCHAR(500) NULL,
+    company_description TEXT NULL,  -- RENAMED from 'about' to match frontend
+    -- REMOVED: avatar_url (belongs in users table)
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_recruiter_profiles_user_id (user_id),
@@ -64,17 +64,17 @@ CREATE TABLE IF NOT EXISTS recruiter_profiles (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- CANDIDATE PROFILES TABLE
+-- CANDIDATE PROFILES TABLE (Cleaned - removed duplicate columns)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS candidate_profiles (
     id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     user_id VARCHAR(36) NOT NULL UNIQUE,
-    full_name VARCHAR(255) NULL,
-    email VARCHAR(255) NULL,
-    phone VARCHAR(50) NULL,
-    location VARCHAR(255) NULL,
+    -- REMOVED: full_name (belongs in users table)
+    -- REMOVED: email (belongs in users table)
+    -- REMOVED: phone (belongs in users table)
+    -- REMOVED: location (belongs in users table)
     summary TEXT NULL,
-    avatar_url VARCHAR(500) NULL,
+    -- REMOVED: avatar_url (belongs in users table)
     resume_url VARCHAR(500) NULL,
     intro_video_url VARCHAR(500) NULL,
     linkedin_url VARCHAR(500) NULL,
@@ -92,13 +92,13 @@ CREATE TABLE IF NOT EXISTS candidate_profiles (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS candidate_education (
     id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    candidate_id VARCHAR(36) NOT NULL,
+    candidate_id VARCHAR(36) NOT NULL,  -- FK to candidate_profiles.id (not user_id)
     degree VARCHAR(255) NOT NULL,
     institution VARCHAR(255) NOT NULL,
     completion_year INT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_candidate_education_candidate_id (candidate_id),
-    FOREIGN KEY (candidate_id) REFERENCES candidate_profiles(user_id) ON DELETE CASCADE
+    FOREIGN KEY (candidate_id) REFERENCES candidate_profiles(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS candidate_education (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS candidate_experience (
     id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    candidate_id VARCHAR(36) NOT NULL,
+    candidate_id VARCHAR(36) NOT NULL,  -- FK to candidate_profiles.id (not user_id)
     job_title VARCHAR(255) NOT NULL,
     company VARCHAR(255) NOT NULL,
     start_date VARCHAR(50) NULL,
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS candidate_experience (
     description TEXT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_candidate_experience_candidate_id (candidate_id),
-    FOREIGN KEY (candidate_id) REFERENCES candidate_profiles(user_id) ON DELETE CASCADE
+    FOREIGN KEY (candidate_id) REFERENCES candidate_profiles(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

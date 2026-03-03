@@ -350,7 +350,7 @@ function setupNavigation(role) {
     const logoutBtn = document.getElementById("logoutBtn");
     if(logoutBtn) logoutBtn.onclick = async () => {
         await customAuth.signOut();
-        window.location.href = CONFIG.PAGES.LOGIN;
+        window.location.href = CONFIG.PAGES.JOBS;
     };
 }
 

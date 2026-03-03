@@ -15,7 +15,7 @@ from middleware.role_required import ensure_permission
 from models.applicant_models import ApplicationCreate
 from utils_others.logger import logger
 
-router = APIRouter(tags=["Applicant"])
+router = APIRouter(prefix="/applicant", tags=["Applicant"])
 
 # ============================================================
 # HELPER FUNCTIONS
@@ -26,29 +26,35 @@ def get_user_from_request(request: Request):
     return getattr(request.state, "user", None)
 
 def handle_file_upload(file: UploadFile, upload_path: str, public_url_base: str) -> str:
-    """Handle file upload to Hostinger file system."""
+    """Handle file upload to R2 storage."""
     if not file:
         return None
     
     try:
-        # Create filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{timestamp}_{file.filename}"
-        file_path = os.path.join(upload_path, filename)
+        # Import R2 service
+        from services.r2_service import R2Service
+        r2_service = R2Service()
         
-        # Ensure upload directory exists
-        os.makedirs(upload_path, exist_ok=True)
+        # Determine folder from upload_path
+        if "profilepics" in upload_path or "profile-images" in upload_path:
+            folder = "profilepics"
+        elif "resumes" in upload_path:
+            folder = "resumes"
+        elif "videos" in upload_path:
+            folder = "videos"
+        else:
+            folder = "uploads"
         
-        # Save file
-        with open(file_path, "wb") as buffer:
-            content = file.file.read()
-            buffer.write(content)
+        # Read file content
+        file_content = file.file.read()
         
-        # Return public URL
-        return f"{public_url_base}/{filename}"
+        # Upload to R2
+        public_url = r2_service.upload_file(file_content, file.filename, folder)
+        
+        return public_url
     
     except Exception as e:
-        logger.error(f"File upload failed: {str(e)}")
+        logger.error(f"R2 file upload failed: {str(e)}")
         raise HTTPException(status_code=500, detail="File upload failed")
 
 # ============================================================
@@ -62,10 +68,10 @@ async def get_profile(request: Request):
     user = get_user_from_request(request)
     
     try:
-        profile = candidate_service.get_profile(user["id"])
+        profile = candidate_service.get_profile(user["sub"])
         if not profile:
             # Create empty profile if doesn't exist
-            profile = candidate_service.upsert_profile(user["id"], {})
+            profile = candidate_service.upsert_profile(user["sub"], {})
         
         return {"ok": True, "data": profile}
     
@@ -73,14 +79,81 @@ async def get_profile(request: Request):
         logger.error(f"Get profile failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/profile")
-async def update_profile(request: Request, profile_data: dict):
-    """Update candidate profile."""
+@router.put("/profile")
+async def update_profile_put(request: Request, profile_data: Optional[dict] = None, resume: Optional[UploadFile] = File(None), profile_image: Optional[UploadFile] = File(None), intro_video: Optional[UploadFile] = File(None)):
+    """Update candidate profile (PUT method)."""
     ensure_permission(request, "profile:update")
     user = get_user_from_request(request)
     
     try:
-        result = candidate_service.upsert_profile(user["id"], profile_data)
+        # Handle FormData (when files are uploaded)
+        content_type = request.headers.get("content-type", "")
+        if "multipart/form-data" in content_type:
+            form = await request.form()
+            data = {}
+            
+            # Process form fields
+            for key, value in form.items():
+                if hasattr(value, 'filename'):  # Skip files - handle separately
+                    continue
+                # Convert string values to appropriate types
+                if key in ['skills', 'experience', 'education']:
+                    try:
+                        data[key] = json.loads(value) if value else []
+                    except (ValueError, AttributeError):
+                        data[key] = []
+                elif key == 'experience_years':
+                    try:
+                        data[key] = int(value) if value else None
+                    except (ValueError, AttributeError):
+                        data[key] = None
+                else:
+                    data[key] = value
+            
+            # Handle file uploads
+            if resume and resume.filename:
+                resume_url = handle_file_upload(
+                    resume,
+                    os.getenv("RESUME_UPLOAD_PATH", "/datastorage/resumes"),
+                    os.getenv("RESUME_PUBLIC_URL", "https://storage.skreenit.com/datastorage/resumes")
+                )
+                data["resume_url"] = resume_url
+            
+            if profile_image and profile_image.filename:
+                image_url = handle_file_upload(
+                    profile_image,
+                    os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/datastorage/profilepics"),
+                    os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://storage.skreenit.com/datastorage/profilepics")
+                )
+                data["avatar_url"] = image_url
+            
+            if intro_video and intro_video.filename:
+                video_url = handle_file_upload(
+                    intro_video,
+                    os.getenv("VIDEO_UPLOAD_PATH", "/datastorage/videos"),
+                    os.getenv("VIDEO_PUBLIC_URL", "https://storage.skreenit.com/datastorage/videos")
+                )
+                data["intro_video_url"] = video_url
+            
+            profile_data = data
+        elif profile_data is None:
+            profile_data = {}
+        
+        result = candidate_service.upsert_profile(user["sub"], profile_data)
+        return {"ok": True, "data": result}
+    
+    except Exception as e:
+        logger.error(f"Update profile failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/profile")
+async def update_profile(request: Request, profile_data: dict):
+    """Update candidate profile (POST method - alias for compatibility)."""
+    ensure_permission(request, "profile:update")
+    user = get_user_from_request(request)
+    
+    try:
+        result = candidate_service.upsert_profile(user["sub"], profile_data)
         return {"ok": True, "data": result}
     
     except Exception as e:
@@ -94,7 +167,7 @@ async def save_education(request: Request, education_data: List[dict]):
     user = get_user_from_request(request)
     
     try:
-        result = candidate_service.save_education(user["id"], education_data)
+        result = candidate_service.save_education(user["sub"], education_data)
         return {"ok": True, "data": result}
     
     except Exception as e:
@@ -108,7 +181,7 @@ async def save_experience(request: Request, experience_data: List[dict]):
     user = get_user_from_request(request)
     
     try:
-        result = candidate_service.save_experience(user["id"], experience_data)
+        result = candidate_service.save_experience(user["sub"], experience_data)
         return {"ok": True, "data": result}
     
     except Exception as e:
@@ -125,12 +198,12 @@ async def upload_avatar(request: Request, file: UploadFile = File(...)):
         # Upload file
         avatar_url = handle_file_upload(
             file, 
-            os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/uploads/profile-images"),
-            os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://yourdomain.com/uploads/profile-images")
+            os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/datastorage/profilepics"),
+            os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://storage.skreenit.com/datastorage/profilepics")
         )
         
         # Update profile
-        candidate_service.upsert_profile(user["id"], {"avatar_url": avatar_url})
+        candidate_service.upsert_profile(user["sub"], {"avatar_url": avatar_url})
         
         return {"ok": True, "data": {"avatar_url": avatar_url}}
     
@@ -148,12 +221,12 @@ async def upload_resume(request: Request, file: UploadFile = File(...)):
         # Upload file
         resume_url = handle_file_upload(
             file,
-            os.getenv("RESUME_UPLOAD_PATH", "/uploads/resumes"),
-            os.getenv("RESUME_PUBLIC_URL", "https://yourdomain.com/uploads/resumes")
+            os.getenv("RESUME_UPLOAD_PATH", "/datastorage/resumes"),
+            os.getenv("RESUME_PUBLIC_URL", "https://storage.skreenit.com/datastorage/resumes")
         )
         
         # Update profile
-        candidate_service.upsert_profile(user["id"], {"resume_url": resume_url})
+        candidate_service.upsert_profile(user["sub"], {"resume_url": resume_url})
         
         return {"ok": True, "data": {"resume_url": resume_url}}
     
@@ -172,7 +245,7 @@ async def check_status(request: Request, job_id: str):
     user = get_user_from_request(request)
     
     try:
-        status = candidate_service.check_application_status(job_id, user["id"])
+        status = candidate_service.check_application_status(job_id, user["sub"])
         return {"ok": True, "data": status}
     
     except Exception as e:
@@ -188,7 +261,7 @@ async def apply_for_job(request: Request, payload: ApplicationCreate):
     try:
         # Prepare data
         data = payload.model_dump()
-        data["candidate_id"] = user["id"]
+        data["candidate_id"] = user["sub"]
         
         result = candidate_service.submit_application(data)
         return {"ok": True, "data": result}
@@ -204,7 +277,7 @@ async def get_applications(request: Request):
     user = get_user_from_request(request)
     
     try:
-        applications = candidate_service.get_candidate_applications(user["id"])
+        applications = candidate_service.get_candidate_applications(user["sub"])
         return {"ok": True, "data": applications}
     
     except Exception as e:
@@ -225,12 +298,12 @@ async def upload_intro_video(request: Request, file: UploadFile = File(...)):
         # Upload file
         video_url = handle_file_upload(
             file,
-            os.getenv("VIDEO_UPLOAD_PATH", "/uploads/videos"),
-            os.getenv("VIDEO_PUBLIC_URL", "https://yourdomain.com/uploads/videos")
+            os.getenv("VIDEO_UPLOAD_PATH", "/datastorage/videos"),
+            os.getenv("VIDEO_PUBLIC_URL", "https://storage.skreenit.com/datastorage/videos")
         )
         
         # Update profile
-        candidate_service.upsert_profile(user["id"], {"intro_video_url": video_url})
+        candidate_service.upsert_profile(user["sub"], {"intro_video_url": video_url})
         
         return {"ok": True, "data": {"video_url": video_url}}
     
@@ -245,7 +318,7 @@ async def save_video_response(request: Request, data: dict):
     user = get_user_from_request(request)
     
     try:
-        data["candidate_id"] = user["id"]
+        data["candidate_id"] = user["sub"]
         result = video_service.save_video_response(data)
         return {"ok": True, "data": result}
     
@@ -260,7 +333,7 @@ async def get_candidate_videos(request: Request):
     user = get_user_from_request(request)
     
     try:
-        videos = video_service.get_candidate_videos(user["id"])
+        videos = video_service.get_candidate_videos(user["sub"])
         return {"ok": True, "data": videos}
     
     except Exception as e:

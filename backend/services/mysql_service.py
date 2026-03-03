@@ -61,6 +61,7 @@ class UserService(MySQLService):
                 "full_name": user.full_name,
                 "phone": user.phone,
                 "role": user.role,
+                "location": user.location,
                 "avatar_url": user.avatar_url,
                 "onboarded": user.onboarded,
                 "user_metadata": user.user_metadata
@@ -82,6 +83,7 @@ class UserService(MySQLService):
                 existing_user.full_name = auth_user.get("full_name", existing_user.full_name)
                 existing_user.phone = auth_user.get("phone", existing_user.phone)
                 existing_user.role = auth_user.get("role", existing_user.role)
+                existing_user.location = auth_user.get("location", existing_user.location)
                 existing_user.avatar_url = auth_user.get("avatar_url", existing_user.avatar_url)
                 existing_user.user_metadata = auth_user.get("metadata", existing_user.user_metadata)
                 existing_user.last_sign_in_at = datetime.now(timezone.utc)
@@ -96,6 +98,7 @@ class UserService(MySQLService):
                     full_name=auth_user.get("full_name"),
                     phone=auth_user.get("phone"),
                     role=auth_user.get("role", "candidate"),
+                    location=auth_user.get("location"),
                     avatar_url=auth_user.get("avatar_url"),
                     user_metadata=auth_user.get("metadata"),
                     onboarded=False,
@@ -129,6 +132,7 @@ class UserService(MySQLService):
                 "full_name": user.full_name,
                 "phone": user.phone,
                 "role": user.role,
+                "location": user.location,
                 "avatar_url": user.avatar_url,
                 "onboarded": user.onboarded,
                 "email_verified": user.email_confirmed_at is not None,
@@ -148,6 +152,7 @@ class UserService(MySQLService):
                 "full_name": user.full_name,
                 "phone": user.phone,
                 "role": user.role,
+                "location": user.location,
                 "avatar_url": user.avatar_url,
                 "onboarded": user.onboarded,
                 "email_verified": user.email_confirmed_at is not None,
@@ -176,6 +181,7 @@ class UserService(MySQLService):
                     full_name=user_data.get("full_name"),
                     phone=user_data.get("phone"),
                     role=user_data.get("role", "candidate"),
+                    location=user_data.get("location"),
                     avatar_url=user_data.get("avatar_url"),
                     password_hash=user_data.get("password"),  # Store hashed password
                     onboarded=user_data.get("onboarded", False),
@@ -193,9 +199,14 @@ class UserService(MySQLService):
                     "full_name": new_user.full_name,
                     "phone": new_user.phone,
                     "role": new_user.role,
+                    "location": new_user.location,
                     "avatar_url": new_user.avatar_url,
                     "onboarded": new_user.onboarded,
-                    "email_verified": new_user.email_confirmed_at is not None
+                    "email_confirmed_at": new_user.email_confirmed_at,
+                    "user_metadata": new_user.user_metadata,
+                    "created_at": new_user.created_at,
+                    "updated_at": new_user.updated_at,
+                    "last_sign_in_at": new_user.last_sign_in_at
                 }
                 
             except IntegrityError as e:
@@ -562,52 +573,144 @@ class CandidateService(MySQLService):
     
     def upsert_profile(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create or update candidate profile."""
+        # Separate data for different tables
+        user_fields = ["full_name", "phone", "location"]
+        profile_fields = [
+            "summary", "avatar_url", "resume_url", "intro_video_url",
+            "linkedin_url", "portfolio_url", "skills", "experience_years",
+            "preferred_job_type", "expected_salary", "languages", 
+            "willing_to_relocate", "availability"
+        ]
+        separate_tables = ["experience", "education"]
+        
+        # Filter data for each table
+        user_data = {k: v for k, v in data.items() if k in user_fields}
+        profile_data = {k: v for k, v in data.items() if k in profile_fields}
+        experience_data = data.get("experience", [])
+        education_data = data.get("education", [])
+        
         with self.session_factory() as db:
+            # Update user table if needed
+            if user_data:
+                user = db.query(User).filter(User.id == user_id).first()
+                if user:
+                    for key, value in user_data.items():
+                        if hasattr(user, key):
+                            setattr(user, key, value)
+            
+            # Get or create profile first (needed for experience/education FK)
             existing_profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == user_id).first()
             
-            if existing_profile:
-                # Update existing profile
-                for key, value in data.items():
-                    if key != "user_id" and hasattr(existing_profile, key):
-                        setattr(existing_profile, key, value)
-                db.commit()
-                db.refresh(existing_profile)
-                return {"id": existing_profile.id, "action": "updated"}
-            else:
-                # Create new profile
-                profile = CandidateProfile(
+            if not existing_profile:
+                # Create new profile if doesn't exist
+                existing_profile = CandidateProfile(
                     id=generate_uuid(),
-                    user_id=user_id,
-                    **data
+                    user_id=user_id
                 )
-                db.add(profile)
-                db.commit()
-                db.refresh(profile)
-                return {"id": profile.id, "action": "created"}
+                db.add(existing_profile)
+                db.flush()  # Get the ID without committing
+            
+            profile_id = existing_profile.id  # This is the FK for experience/education
+            
+            # Handle experience
+            if experience_data:
+                db.query(CandidateExperience).filter(CandidateExperience.candidate_id == profile_id).delete()
+                for exp in experience_data:
+                    experience = CandidateExperience(
+                        id=generate_uuid(),
+                        candidate_id=profile_id,
+                        job_title=exp.get("job_title"),
+                        company=exp.get("company"),
+                        start_date=exp.get("start_date"),
+                        end_date=exp.get("end_date"),
+                        description=exp.get("description")
+                    )
+                    db.add(experience)
+            
+            # Handle education
+            if education_data:
+                db.query(CandidateEducation).filter(CandidateEducation.candidate_id == profile_id).delete()
+                for edu in education_data:
+                    education = CandidateEducation(
+                        id=generate_uuid(),
+                        candidate_id=profile_id,
+                        degree=edu.get("degree"),
+                        institution=edu.get("institution"),
+                        completion_year=edu.get("completion_year")
+                    )
+                    db.add(education)
+            
+            # Update candidate profile fields
+            for key, value in profile_data.items():
+                if hasattr(existing_profile, key):
+                    setattr(existing_profile, key, value)
+            
+            db.commit()
+            db.refresh(existing_profile)
+            return {"id": existing_profile.id, "action": "updated" if existing_profile else "created"}
     
     def get_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
-        """Get candidate profile."""
+        """Get candidate profile - combines user data + profile data."""
         with self.session_factory() as db:
-            profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == user_id).first()
-            if not profile:
+            # Get user data (full_name, email, phone from users table)
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
                 return None
             
-            return {
-                "id": profile.id,
-                "user_id": profile.user_id,
-                "full_name": profile.full_name,
-                "email": profile.email,
-                "phone": profile.phone,
-                "location": profile.location,
-                "summary": profile.summary,
-                "avatar_url": profile.avatar_url,
-                "resume_url": profile.resume_url,
-                "intro_video_url": profile.intro_video_url,
-                "linkedin_url": profile.linkedin_url,
-                "portfolio_url": profile.portfolio_url,
-                "skills": profile.skills or [],
-                "experience_years": profile.experience_years
+            # Debug logging
+            print(f"DEBUG: User from DB: id={user.id}, full_name={user.full_name}, email={user.email}, phone={user.phone}, location={user.location}")
+            
+            # Get profile data (extended fields from candidate_profiles)
+            profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == user_id).first()
+            
+            # Get experience data - use profile.id if profile exists
+            profile_id = profile.id if profile else None
+            experience_records = db.query(CandidateExperience).filter(CandidateExperience.candidate_id == profile_id).all() if profile_id else []
+            experience = [
+                {
+                    "job_title": exp.job_title,
+                    "company": exp.company,
+                    "start_date": exp.start_date,
+                    "end_date": exp.end_date,
+                    "description": exp.description
+                }
+                for exp in experience_records
+            ]
+            
+            # Get education data - use profile.id if profile exists
+            education_records = db.query(CandidateEducation).filter(CandidateEducation.candidate_id == profile_id).all() if profile_id else []
+            education = [
+                {
+                    "degree": edu.degree,
+                    "institution": edu.institution,
+                    "completion_year": edu.completion_year
+                }
+                for edu in education_records
+            ]
+            
+            # Combine user + profile data
+            result = {
+                "id": user.id,
+                "user_id": user.id,
+                "full_name": user.full_name,  # From users table
+                "email": user.email,  # From users table
+                "phone": user.phone,  # From users table only
+                "location": user.location,  # From users table only
+                "summary": profile.summary if profile else None,
+                "avatar_url": user.avatar_url,  # From users table only
+                "resume_url": profile.resume_url if profile else None,
+                "intro_video_url": profile.intro_video_url if profile else None,
+                "linkedin_url": profile.linkedin_url if profile else None,
+                "portfolio_url": profile.portfolio_url if profile else None,
+                "skills": profile.skills if profile else [],
+                "experience_years": profile.experience_years if profile else None,
+                "experience": experience,  # Add experience data
+                "education": education,    # Add education data
+                "onboarded": user.onboarded
             }
+            
+            print(f"DEBUG: Profile result: {result}")
+            return result
     
     def save_education(self, candidate_id: str, education_list: List[Dict[str, Any]]) -> bool:
         """Save candidate education."""

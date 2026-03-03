@@ -34,10 +34,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "font-src 'self' https: data:; "
             "connect-src 'self' "
                 "https://www.skreenit.com https://skreenit.com "
-                "https://login.skreenit.com https://auth.skreenit.com "
+                "https://login.skreenit.com https://assets.skreenit.com "
                 "https://applicant.skreenit.com https://recruiter.skreenit.com "
                 "https://dashboard.skreenit.com https://backend.skreenit.com "
-                "https://aiskreenit.onrender.com; "
+                "https://skreenit.onrender.com https://storage.skreenit.com https://jobs.skreenit.com https://in.skreenit.com https://legal.skreenit.com https://app.skreenit.com;"
             "frame-ancestors 'none'; "
         )
 

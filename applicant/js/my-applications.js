@@ -234,7 +234,7 @@ function setupNavigation() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             await customAuth.signOut();
-            window.location.href = CONFIG.PAGES.LOGIN; // Uses the master config
+            window.location.href = CONFIG.PAGES.JOBS;
         });
     }
 

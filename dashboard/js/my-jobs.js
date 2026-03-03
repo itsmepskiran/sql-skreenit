@@ -72,7 +72,7 @@ function setupNavigation() {
     const backToDashboardBtn = document.getElementById('backToDashboardBtn');
     if (backToDashboardBtn) backToDashboardBtn.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER);
     if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER);
-    if(navJobs) navJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY-JOBS);
+    if(navJobs) navJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_JOBS);
     if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.APPLICATION_LIST);
     if(navProfile) navProfile.addEventListener('click', () => window.location.href = CONFIG.PAGES.RECRUITER_PROFILE);
     if(postBtn) postBtn.addEventListener('click', () => window.location.href = CONFIG.PAGES.JOB_CREATE);
@@ -80,7 +80,7 @@ function setupNavigation() {
     if(logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             await customAuth.signOut();
-            window.location.href = CONFIG.PAGES.LOGIN;
+            window.location.href = CONFIG.PAGES.JOBS;
         });
     }
 

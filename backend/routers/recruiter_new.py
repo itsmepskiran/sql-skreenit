@@ -15,7 +15,7 @@ from middleware.role_required import ensure_permission
 from models.recruiter_models import CompanyCreate, RecruiterProfileCreate, JobCreateRequest, JobUpdateRequest
 from utils_others.logger import logger
 
-router = APIRouter(tags=["Recruiter"])
+router = APIRouter(prefix="/recruiter", tags=["Recruiter"])
 
 # ============================================================
 # HELPER FUNCTIONS
@@ -335,4 +335,134 @@ async def get_candidate_details(request: Request, candidate_id: str):
         raise
     except Exception as e:
         logger.error(f"Get candidate details failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================
+# JOB SKILLS ENDPOINTS
+# ============================================================
+
+@router.post("/jobs/{job_id}/skills")
+async def add_job_skill(request: Request, job_id: str, skill_data: dict):
+    """Add a skill to a job posting."""
+    ensure_permission(request, "jobs:update")
+    user = get_user_from_request(request)
+    
+    try:
+        # Verify job belongs to recruiter
+        job = recruiter_service.get_job(job_id, user["id"])
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        payload = {
+            "job_id": job_id,
+            "skill_name": skill_data.get("skill_name")
+        }
+        
+        result = recruiter_service.add_job_skill(payload)
+        return {"ok": True, "data": result}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Add job skill failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/jobs/{job_id}/skills")
+async def list_job_skills(request: Request, job_id: str):
+    """List all skills for a job posting."""
+    ensure_permission(request, "jobs:read")
+    
+    try:
+        skills = recruiter_service.list_job_skills(job_id)
+        return {"ok": True, "data": skills}
+    
+    except Exception as e:
+        logger.error(f"List job skills failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/jobs/{job_id}/skills/{skill_id}")
+async def delete_job_skill(request: Request, job_id: str, skill_id: str):
+    """Delete a skill from a job posting."""
+    ensure_permission(request, "jobs:update")
+    user = get_user_from_request(request)
+    
+    try:
+        # Verify job belongs to recruiter
+        job = recruiter_service.get_job(job_id, user["id"])
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        recruiter_service.delete_job_skill(skill_id)
+        return {"ok": True, "message": "Skill deleted successfully"}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete job skill failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================
+# INTERVIEW QUESTIONS ENDPOINTS
+# ============================================================
+
+@router.post("/jobs/{job_id}/questions")
+async def add_interview_question(request: Request, job_id: str, question_data: dict):
+    """Add an interview question to a job posting."""
+    ensure_permission(request, "jobs:update")
+    user = get_user_from_request(request)
+    
+    try:
+        # Verify job belongs to recruiter
+        job = recruiter_service.get_job(job_id, user["id"])
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        payload = {
+            "job_id": job_id,
+            "question": question_data.get("question"),
+            "question_order": question_data.get("question_order", 0),
+            "time_limit": question_data.get("time_limit", 120)
+        }
+        
+        result = recruiter_service.add_interview_question(payload)
+        return {"ok": True, "data": result}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Add interview question failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/jobs/{job_id}/questions")
+async def list_interview_questions(request: Request, job_id: str):
+    """List all interview questions for a job posting."""
+    ensure_permission(request, "jobs:read")
+    
+    try:
+        questions = recruiter_service.list_interview_questions(job_id)
+        return {"ok": True, "data": questions}
+    
+    except Exception as e:
+        logger.error(f"List interview questions failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/jobs/{job_id}/questions/{question_id}")
+async def delete_interview_question(request: Request, job_id: str, question_id: str):
+    """Delete an interview question from a job posting."""
+    ensure_permission(request, "jobs:update")
+    user = get_user_from_request(request)
+    
+    try:
+        # Verify job belongs to recruiter
+        job = recruiter_service.get_job(job_id, user["id"])
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        recruiter_service.delete_interview_question(question_id)
+        return {"ok": True, "message": "Question deleted successfully"}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete interview question failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

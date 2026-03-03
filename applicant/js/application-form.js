@@ -1,5 +1,6 @@
 import { customAuth } from '@shared/js/auth-config.js';;
 import { backendGet, backendPut, handleResponse } from '@shared/js/backend-client.js';
+import { notify } from '@shared/js/auth-pages.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 const isLocal = CONFIG.IS_LOCAL;
@@ -19,6 +20,16 @@ let form, nextBtn, prevBtn, submitBtn, steps, sections, successModal, logoutBtn,
 let resumeInput, skillInput, addSkillBtn, skillsContainer;
 let addExpBtn, addEduBtn;
 let profileImageInput, introVideoInput, removeVideoBtn;
+
+// Video Recording State
+let introVideoRecorder = null;
+let introVideoChunks = [];
+let introVideoStream = null;
+let introVideoBlob = null;
+let isRecordingIntro = false;
+let introTimerInterval = null;
+let introRecordingSeconds = 0;
+let hasIntroVideoRecorded = false;
 
 /* -------------------------------------------------------
    MAIN INITIALIZATION
@@ -61,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
 ------------------------------------------------------- */
 async function checkAuth() {
     const user = await customAuth.getUserData();
+    console.log("🔐 Auth user data:", user);
     if (!user) { window.location.href = CONFIG.PAGES.LOGIN; return false; }
   
     if ((user.role || '').toLowerCase() !== 'candidate') {
@@ -70,9 +82,15 @@ async function checkAuth() {
     updateSidebarProfile(user);
 
     if(form) {
-        setVal('full_name', user.full_name || '');
-        setVal('full_name', user.user_metadata.full_name || '');
-        setVal('email', user.email || '');
+        const userMeta = user.user_metadata || {};
+        console.log("📝 Setting form values:", { 
+            full_name: user.full_name || userMeta.full_name,
+            email: user.email || userMeta.email,
+            phone: user.phone || userMeta.phone
+        });
+        setVal('full_name', user.full_name || userMeta.full_name || '');
+        setVal('email', user.email || userMeta.email || '');
+        setVal('phone', user.phone || userMeta.phone || '');
     }
     return true;
 }
@@ -80,14 +98,17 @@ async function checkAuth() {
 function updateSidebarProfile(user) {
     const nameEl = document.getElementById("userName");
     const avatarEl = document.getElementById("userAvatar"); 
+    const userMeta = user.user_metadata || {};
 
-    if(nameEl) nameEl.textContent = user.user_metadata.full_name || user.email.split('@')[0];
+    if(nameEl) nameEl.textContent = userMeta.full_name || user.full_name || (user.email ? user.email.split('@')[0] : 'User');
     
     if(avatarEl) {
-        if (user.user_metadata.avatar_url) {
-            avatarEl.innerHTML = `<img src="${user.user_metadata.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+        if (userMeta.avatar_url || user.avatar_url) {
+            const avatarUrl = userMeta.avatar_url || user.avatar_url;
+            avatarEl.innerHTML = `<img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
         } else {
-            const initials = (user.user_metadata.full_name || user.email).match(/\b\w/g) || [];
+            const nameForInitials = userMeta.full_name || user.full_name || user.email || '?';
+            const initials = nameForInitials.match(/\b\w/g) || [];
             const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
             avatarEl.innerHTML = text; 
         }
@@ -104,14 +125,50 @@ function setVal(name, val) {
 ------------------------------------------------------- */
 async function loadExistingProfile() {
     try {
+        console.log("🔍 Fetching profile from /api/v1/applicant/profile...");
         const res = await backendGet('/applicant/profile');
+        console.log("📡 Profile API response status:", res.status);
+        
         const json = await handleResponse(res);
+        console.log("✅ Profile data received:", json);
+        
         const profile = json.data || {};
+        console.log("📋 Profile object:", profile);
 
-        // 1. Pre-fill Basic Info
-        if(profile.phone) setVal('phone', profile.phone);
-        if(profile.location) setVal('location', profile.location);
-        if(profile.bio) setVal('summary', profile.bio);
+        // 1. Pre-fill Basic Info with debug logging
+        console.log("📝 Pre-filling fields...");
+        if(profile.full_name) {
+            console.log("Setting full_name:", profile.full_name);
+            setVal('full_name', profile.full_name);
+        } else {
+            console.warn("⚠️ full_name not in profile");
+        }
+        
+        if(profile.email) {
+            console.log("Setting email:", profile.email);
+            setVal('email', profile.email);
+        } else {
+            console.warn("⚠️ email not in profile");
+        }
+        
+        if(profile.phone) {
+            console.log("Setting phone:", profile.phone);
+            setVal('phone', profile.phone);
+        } else {
+            console.warn("⚠️ phone not in profile");
+        }
+        
+        if(profile.location) {
+            console.log("Setting location:", profile.location);
+            setVal('location', profile.location);
+        } else {
+            console.warn("⚠️ location not in profile");
+        }
+        
+        if(profile.bio || profile.summary) {
+            console.log("Setting summary:", profile.bio || profile.summary);
+            setVal('summary', profile.bio || profile.summary);
+        }
         if(profile.linkedin_url) setVal('linkedin_url', profile.linkedin_url);
         if(profile.portfolio_url) setVal('portfolio_url', profile.portfolio_url);
 
@@ -162,19 +219,25 @@ async function loadExistingProfile() {
         
         // 7. Show Existing Introduction Video
         if(profile.intro_video_url) {
-            const video = document.getElementById('previewVideoElement');
-            const uploadArea = document.getElementById('videoUploadArea');
-            const previewArea = document.getElementById('videoPreviewArea');
+            // Show in accepted state since video already exists
+            const introVideoAccepted = document.getElementById('introVideoAccepted');
+            const introRecordingControls = document.getElementById('introRecordingControls');
+            const introCameraFeed = document.getElementById('introCameraFeed');
             
-            if(video) {
-                video.src = profile.intro_video_url;
-                video.load();
-            }
+            if(introVideoAccepted) introVideoAccepted.style.display = 'block';
+            if(introRecordingControls) introRecordingControls.style.display = 'none';
+            if(introCameraFeed) introCameraFeed.style.display = 'none';
             
-            if(uploadArea) uploadArea.style.display = 'none';
-            if(previewArea) previewArea.style.display = 'block';
+            // Store the existing video URL for reference
+            hasIntroVideoRecorded = true;
             
-            document.getElementById('introVideoFileName').innerHTML = `<span class="text-success"><i class="fas fa-check-circle"></i> Introduction video uploaded</span>`;
+            // Update accepted state with message
+            const acceptedVideoDuration = document.getElementById('acceptedVideoDuration');
+            if(acceptedVideoDuration) acceptedVideoDuration.textContent = 'Existing video from profile';
+            
+            // Set a flag in the hidden input to indicate we have an existing video
+            const blobInput = document.getElementById('introVideoRecordedBlob');
+            if(blobInput) blobInput.value = 'existing';
         }
 
     } catch (err) {
@@ -240,7 +303,7 @@ function setupEventListeners() {
             if(file) {
                 // Validate file size (max 2MB)
                 if(file.size > 2 * 1024 * 1024) {
-                    alert('Image size should be less than 2MB');
+                    notify('Image size should be less than 2MB', 'error');
                     profileImageInput.value = '';
                     return;
                 }
@@ -264,67 +327,30 @@ function setupEventListeners() {
         });
     }
     
-    // Introduction Video Upload Handler
-    if(introVideoInput) {
-        introVideoInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(file) {
-                // Validate file size (max 50MB)
-                if(file.size > 50 * 1024 * 1024) {
-                    alert('Video size should be less than 50MB');
-                    introVideoInput.value = '';
-                    return;
-                }
-                
-                // Show file name and preview
-                document.getElementById('introVideoFileName').innerHTML = `<i class="fas fa-video"></i> ${file.name}`;
-                
-                // Create preview
-                const videoURL = URL.createObjectURL(file);
-                const video = document.getElementById('previewVideoElement');
-                const uploadArea = document.getElementById('videoUploadArea');
-                const previewArea = document.getElementById('videoPreviewArea');
-                
-                if(video) {
-                    video.src = videoURL;
-                    video.load();
-                }
-                
-                // Switch UI to show preview
-                if(uploadArea) uploadArea.style.display = 'none';
-                if(previewArea) previewArea.style.display = 'block';
-            }
-        });
-    }
+    // Introduction Video Recording Setup
+    setupIntroVideoRecording();
     
-    // Remove Video Button
+    // Remove Video Button (legacy - kept for compatibility)
     if(removeVideoBtn) {
         removeVideoBtn.addEventListener('click', () => {
             introVideoInput.value = '';
-            document.getElementById('introVideoFileName').textContent = '';
-            document.getElementById('videoUploadArea').style.display = 'block';
-            document.getElementById('videoPreviewArea').style.display = 'none';
-            const video = document.getElementById('previewVideoElement');
-            if(video) {
-                video.pause();
-                video.src = '';
-            }
+            resetIntroVideoRecording();
         });
     }
     
     if(form) form.addEventListener('submit', handleFormSubmit);
     
-    if(logoutBtn) logoutBtn.addEventListener('click', async () => { await customAuth.signOut(); window.location.href = CONFIG.PAGES.LOGIN; });
+    if(logoutBtn) logoutBtn.addEventListener('click', async () => { await customAuth.signOut(); window.location.href = CONFIG.PAGES.JOBS; });
     if(goToDashboardBtn) goToDashboardBtn.addEventListener('click', () => { window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; });
     
-    document.querySelectorAll('.nav-item').forEach(item => { 
-        item.addEventListener('click', () => { 
-            const text = item.textContent.trim().toLowerCase();
-            if(text.includes('dashboard')) window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; 
-            if(text.includes('applications')) window.location.href = CONFIG.PAGES.MY_APPLICATIONS; 
-            if(text.includes('profile')) window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE; 
-        }); 
-    });
+    // Sidebar Navigation (ID-based for consistency)
+    const navDashboard = document.getElementById('navDashboard');
+    const navApplications = document.getElementById('navApplications');
+    const navProfile = document.getElementById('navProfile');
+    
+    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE);
+    if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS);
+    if(navProfile) navProfile.addEventListener('click', () => window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE);
 }
 
 function validateStep(step) {
@@ -340,7 +366,26 @@ function validateStep(step) {
             input.classList.remove("input-error"); 
         }
     });
-    if (!isValid) alert('Please fill in all required fields.');
+    
+    // Special validation for video step (step 6)
+    if(step === 6) {
+        const introVideoInput = document.getElementById('introVideoFile');
+        const hasExistingVideo = document.getElementById('introVideoAccepted')?.style.display === 'block';
+        
+        // Check if we have a newly recorded video or an existing one from profile
+        const hasVideoFile = introVideoInput && introVideoInput.files && introVideoInput.files.length > 0;
+        
+        // Check for existing video from profile (shown in accepted state)
+        const videoAcceptedDiv = document.getElementById('introVideoAccepted');
+        const isVideoAccepted = videoAcceptedDiv && videoAcceptedDiv.style.display === 'block';
+        
+        if(!hasVideoFile && !isVideoAccepted) {
+            isValid = false;
+            notify('Please record and accept your introduction video before submitting.', 'error');
+        }
+    }
+    
+    if (!isValid && step !== 6) notify('Please fill in all required fields.', 'error');
     return isValid;
 }
 
@@ -407,6 +452,57 @@ function renderSkills() {
 }
 window.removeSkill = (s) => { skills = skills.filter(k => k !== s); renderSkills(); };
 
+function resetIntroVideoRecording() {
+    introVideoBlob = null;
+    introVideoChunks = [];
+    hasIntroVideoRecorded = false;
+    introVideoInput.value = '';
+    
+    const playback = document.getElementById('introPlaybackFeed');
+    const camera = document.getElementById('introCameraFeed');
+    
+    if(playback) {
+        playback.src = '';
+        playback.style.display = 'none';
+    }
+    if(camera) camera.style.display = 'block';
+    
+    document.getElementById('introRecordingControls').style.display = 'flex';
+    document.getElementById('introStopControls').style.display = 'none';
+    document.getElementById('introReviewControls').style.display = 'none';
+    document.getElementById('introVideoAccepted').style.display = 'none';
+    document.getElementById('recordingIndicator').style.display = 'none';
+    
+    resetIntroTimer();
+    
+    // Re-initialize camera
+    initIntroCamera();
+}
+
+function startIntroTimer() {
+    introRecordingSeconds = 0;
+    const display = document.getElementById('introTimerDisplay');
+    if(display) display.textContent = '00:00';
+    
+    introTimerInterval = setInterval(() => {
+        introRecordingSeconds++;
+        const mins = Math.floor(introRecordingSeconds / 60).toString().padStart(2, '0');
+        const secs = (introRecordingSeconds % 60).toString().padStart(2, '0');
+        if(display) display.textContent = `${mins}:${secs}`;
+    }, 1000);
+}
+
+function stopIntroTimer() {
+    clearInterval(introTimerInterval);
+}
+
+function resetIntroTimer() {
+    stopIntroTimer();
+    introRecordingSeconds = 0;
+    const display = document.getElementById('introTimerDisplay');
+    if(display) display.textContent = '00:00';
+}
+
 /* -------------------------------------------------------
    SUBMISSION
 ------------------------------------------------------- */
@@ -419,7 +515,7 @@ async function handleFormSubmit(e) {
     const hasExistingResume = resumeTextElement && resumeTextElement.innerText.includes('Existing Resume');
     
     if (resumeInput && !resumeInput.files[0] && !hasExistingResume) { 
-        alert("Please upload your resume."); 
+        notify("Please upload your resume.", "error"); 
         return; 
     }
 
@@ -434,7 +530,7 @@ async function handleFormSubmit(e) {
             const inputs = item.querySelectorAll('input, textarea');
             let exp = {};
             inputs.forEach(i => {
-                if(i.name.includes('title')) exp.title = i.value;
+                if(i.name.includes('title')) exp.job_title = i.value;
                 if(i.name.includes('company')) exp.company = i.value;
                 if(i.name.includes('start')) exp.start_date = i.value;
                 if(i.name.includes('end')) exp.end_date = i.value;
@@ -491,7 +587,7 @@ async function handleFormSubmit(e) {
         if(successModal) successModal.classList.add('active');
 
     } catch (err) {
-        console.error(err); alert(`Submission failed: ${err.message}`);
+        notify("Submission failed: " + (err.message || "Unknown error"), "error");
         submitBtn.disabled = false; submitBtn.textContent = "Submit Application";
     }
 }

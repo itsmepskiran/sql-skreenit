@@ -49,7 +49,8 @@ class EmailService:
             template_data = email_templates.registration_confirmation({
                 "full_name": full_name,
                 "email": to_email,
-                "role": "candidate"
+                "role": "candidate",
+                "confirmation_url": confirmation_url
             })
             
             html_content = template_data["html"]

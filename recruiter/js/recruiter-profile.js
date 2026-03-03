@@ -99,7 +99,7 @@ function populateForm(data) {
     setValue("contact_name", data.contact_name);
     setValue("contact_email", data.contact_email);
     setValue("location", data.location);
-    setValue("about", data.about_company || data.about); 
+    setValue("company_description", data.company_description || data.about_company || data.about); 
     
     const idEl = document.getElementById("company_id");
     if(idEl) idEl.value = data.company_display_id || "Pending (Save Profile First)";
@@ -158,7 +158,7 @@ async function handleProfileSubmit(event) {
     contact_name: document.getElementById("contact_name").value.trim(),
     contact_email: document.getElementById("contact_email").value.trim(),
     location: document.getElementById("location").value.trim() || null,
-    about: document.getElementById("about").value.trim() || null,
+    company_description: document.getElementById("company_description").value.trim() || null,
   };
 
   try {
@@ -170,7 +170,7 @@ async function handleProfileSubmit(event) {
     
     await customAuth.refreshSession();
     
-    originalProfileData = { ...originalProfileData, ...payload, about_company: payload.about }; 
+    originalProfileData = { ...originalProfileData, ...payload, about_company: payload.company_description }; 
     
     btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
     btn.style.backgroundColor = '#10b981';
@@ -216,7 +216,7 @@ function setupNavigation() {
     if(logoutBtn) {
         logoutBtn.addEventListener("click", async () => {
             await customAuth.signOut();
-            window.location.href = CONFIG.PAGES.LOGIN;
+            window.location.href = CONFIG.PAGES.JOBS;
         });
     }
 

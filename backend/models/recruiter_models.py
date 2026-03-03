@@ -6,14 +6,11 @@ from typing import Optional
 # -------------------------------------------------------------------
 
 class RecruiterProfileBase(BaseModel):
-    company_name: Optional[str] = None
-    company_website: Optional[str] = None
     contact_name: Optional[str] = None
     contact_email: Optional[EmailStr] = None
     location: Optional[str] = None
-    # 'about' maps to the frontend payload
-    about: Optional[str] = None 
-    avatar_url: Optional[str] = None
+    # Renamed from 'about' to match database column 'company_description'
+    company_description: Optional[str] = None
 
 # -------------------------------------------------------------------
 # COMPANY MODELS

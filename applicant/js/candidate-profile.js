@@ -1,5 +1,6 @@
 import { customAuth } from '@shared/js/auth-config.js';
 import { backendPost, backendGet, handleResponse } from '@shared/js/backend-client.js';
+import { notify } from '@shared/js/auth-pages.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 const isLocal = CONFIG.IS_LOCAL;
@@ -29,7 +30,7 @@ async function updateSidebarProfile(user) {
     const designationEl = document.getElementById("userDesignation");
     const avatarEl = document.getElementById("userAvatar"); 
 
-    if(nameEl) nameEl.textContent = user.full_name || user.email.split('@')[0];
+    if(nameEl) nameEl.textContent = user.user_metadata?.full_name || user.full_name || user.email?.split('@')[0];
 
     if(designationEl) {
         designationEl.textContent = "Fresher"; 
@@ -47,10 +48,12 @@ async function updateSidebarProfile(user) {
     }
 
     if(avatarEl) {
-        if (user.avatar_url) {
-            avatarEl.innerHTML = `<img src="${user.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+        if (user.user_metadata?.avatar_url || user.avatar_url) {
+            const avatarUrl = user.user_metadata?.avatar_url || user.avatar_url;
+            avatarEl.innerHTML = `<img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
         } else {
-            const initials = (user.full_name || user.email).match(/\b\w/g) || [];
+            const nameForInitials = user.user_metadata?.full_name || user.full_name || user.email || 'U';
+            const initials = nameForInitials.match(/\b\w/g) || [];
             avatarEl.innerHTML = `
                 <div style="width:60px; height:60px; border-radius:50%; background:#6366f1; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:18px;">
                     ${initials ? initials[0] + (initials[1] || '') : 'U'}
@@ -472,38 +475,40 @@ function collectFormData() {
 }
 
 function setupNavigation() {
-    // Setup navigation handlers
+    // Sidebar Navigation
+    const navDashboard = document.getElementById('navDashboard');
+    const navApplications = document.getElementById('navApplications');
+    const navProfile = document.getElementById('navProfile');
     const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
+
+    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE);
+    if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS);
+    if(navProfile) navProfile.addEventListener('click', () => window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE);
+
+    if(logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
                 await customAuth.signOut();
-                window.location.href = CONFIG.PAGES.LOGIN;
+                window.location.href = CONFIG.PAGES.JOBS;
             } catch (err) {
-                alert('Logout failed: ' + err.message);
+                notify('Logout failed: ' + err.message, 'error');
             }
         });
     }
 
     const saveBtn = document.getElementById('saveProfileBtn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', saveProfile);
-    }
+    if(saveBtn) saveBtn.addEventListener('click', saveProfile);
 
     const addEduBtn = document.getElementById('addEducationBtn');
-    if (addEduBtn) {
-        addEduBtn.addEventListener('click', addEducation);
-    }
+    if(addEduBtn) addEduBtn.addEventListener('click', addEducation);
 
     const addExpBtn = document.getElementById('addExperienceBtn');
-    if (addExpBtn) {
-        addExpBtn.addEventListener('click', addExperience);
-    }
+    if(addExpBtn) addExpBtn.addEventListener('click', addExperience);
 
     const skillsInput = document.getElementById('skillsInput');
-    if (skillsInput) {
+    if(skillsInput) {
         skillsInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+            if(e.key === 'Enter') {
                 e.preventDefault();
                 addSkill();
             }
@@ -514,4 +519,247 @@ function setupNavigation() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
+    setupInlineVideoRecorder();
 });
+
+/* -------------------------------------------------------
+   INLINE VIDEO RECORDER FOR PROFILE EDIT
+------------------------------------------------------- */
+let inlineVideoRecorder = null;
+let inlineVideoChunks = [];
+let inlineVideoStream = null;
+let inlineVideoBlob = null;
+let isInlineRecording = false;
+let inlineTimerInterval = null;
+let inlineRecordingSeconds = 0;
+
+function setupInlineVideoRecorder() {
+    // Replace Video button opens the recorder modal
+    const replaceVideoBtn = document.getElementById('replaceVideoBtn');
+    const videoRecorderModal = document.getElementById('videoRecorderModal');
+    const closeVideoRecorderBtn = document.getElementById('closeVideoRecorderBtn');
+    
+    if(replaceVideoBtn && videoRecorderModal) {
+        replaceVideoBtn.addEventListener('click', () => {
+            videoRecorderModal.classList.add('active');
+            initInlineCamera();
+        });
+    }
+    
+    if(closeVideoRecorderBtn && videoRecorderModal) {
+        closeVideoRecorderBtn.addEventListener('click', () => {
+            videoRecorderModal.classList.remove('active');
+            resetInlineRecorder();
+        });
+    }
+    
+    // Recording controls
+    const startBtn = document.getElementById('inlineRecordBtn');
+    const stopBtn = document.getElementById('inlineStopBtn');
+    const retakeBtn = document.getElementById('inlineRetakeBtn');
+    const saveBtn = document.getElementById('inlineSaveVideoBtn');
+    
+    if(startBtn) startBtn.addEventListener('click', startInlineRecording);
+    if(stopBtn) stopBtn.addEventListener('click', stopInlineRecording);
+    if(retakeBtn) retakeBtn.addEventListener('click', retakeInlineVideo);
+    if(saveBtn) saveBtn.addEventListener('click', saveInlineVideo);
+    
+    // File upload fallback
+    const uploadInput = document.getElementById('inlineUploadVideoFile');
+    if(uploadInput) {
+        uploadInput.addEventListener('change', handleInlineVideoUpload);
+    }
+}
+
+async function initInlineCamera() {
+    try {
+        inlineVideoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const videoEl = document.getElementById('inlineRecorderVideo');
+        if(videoEl) videoEl.srcObject = inlineVideoStream;
+    } catch(err) {
+        notify('Camera access denied. Please allow camera access to record video.', 'error');
+    }
+}
+
+function startInlineRecording() {
+    inlineVideoChunks = [];
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+    
+    try {
+        inlineVideoRecorder = new MediaRecorder(inlineVideoStream, { mimeType });
+    } catch(err) {
+        notify('Could not start recording. Please check camera permissions.', 'error');
+        return;
+    }
+    
+    inlineVideoRecorder.ondataavailable = (e) => {
+        if(e.data.size > 0) inlineVideoChunks.push(e.data);
+    };
+    
+    inlineVideoRecorder.onstop = () => {
+        inlineVideoBlob = new Blob(inlineVideoChunks, { type: 'video/webm' });
+        const videoURL = URL.createObjectURL(inlineVideoBlob);
+        
+        // Show preview
+        const previewEl = document.getElementById('inlinePreviewVideo');
+        if(previewEl) {
+            previewEl.src = videoURL;
+            previewEl.load();
+        }
+        
+        document.getElementById('inlineRecordingPreview').style.display = 'block';
+        document.getElementById('inlineRecorderVideo').style.display = 'none';
+        document.getElementById('inlineRecordingIndicator').style.display = 'none';
+        
+        // Switch buttons
+        document.getElementById('inlineRecordBtn').style.display = 'none';
+        document.getElementById('inlineStopBtn').style.display = 'none';
+        document.getElementById('inlineRetakeBtn').style.display = 'inline-flex';
+        document.getElementById('inlineSaveVideoBtn').style.display = 'inline-flex';
+        
+        stopInlineTimer();
+    };
+    
+    inlineVideoRecorder.start();
+    isInlineRecording = true;
+    
+    // Update UI
+    document.getElementById('inlineRecordBtn').style.display = 'none';
+    document.getElementById('inlineStopBtn').style.display = 'inline-flex';
+    document.getElementById('inlineRecordingIndicator').style.display = 'block';
+    
+    startInlineTimer();
+}
+
+function stopInlineRecording() {
+    if(inlineVideoRecorder && isInlineRecording) {
+        inlineVideoRecorder.stop();
+        isInlineRecording = false;
+    }
+}
+
+function retakeInlineVideo() {
+    inlineVideoBlob = null;
+    inlineVideoChunks = [];
+    
+    document.getElementById('inlineRecordingPreview').style.display = 'none';
+    document.getElementById('inlineRecorderVideo').style.display = 'block';
+    document.getElementById('inlineRetakeBtn').style.display = 'none';
+    document.getElementById('inlineSaveVideoBtn').style.display = 'none';
+    document.getElementById('inlineRecordBtn').style.display = 'inline-flex';
+    
+    resetInlineTimer();
+}
+
+async function saveInlineVideo() {
+    if(!inlineVideoBlob) return;
+    
+    const progressBar = document.getElementById('inlineVideoProgressBar');
+    const progressText = document.getElementById('inlineVideoProgressText');
+    const uploadProgress = document.getElementById('inlineVideoUploadProgress');
+    
+    uploadProgress.style.display = 'block';
+    progressBar.style.width = '30%';
+    progressText.textContent = 'Uploading video...';
+    
+    try {
+        const formData = new FormData();
+        formData.append('intro_video', inlineVideoBlob, 'intro_video.webm');
+        
+        const response = await backendPost('/applicant/upload-intro-video', formData);
+        const result = await handleResponse(response);
+        
+        if(result.data && result.data.video_url) {
+            progressBar.style.width = '100%';
+            progressText.textContent = 'Video saved successfully!';
+            
+            // Update profile with new video URL
+            await backendPost('/applicant/update-profile', {
+                intro_video_url: result.data.video_url
+            });
+            
+            notify('Video updated successfully!', 'success');
+            
+            // Close modal and reload
+            setTimeout(() => {
+                document.getElementById('videoRecorderModal').classList.remove('active');
+                window.location.reload();
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Upload failed');
+        }
+    } catch(err) {
+        uploadProgress.style.display = 'none';
+        notify('Video upload failed: ' + err.message, 'error');
+    }
+}
+
+async function handleInlineVideoUpload(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    
+    if(file.size > 50 * 1024 * 1024) {
+        notify('Video file must be less than 50MB', 'error');
+        return;
+    }
+    
+    inlineVideoBlob = file;
+    
+    // Show preview
+    const videoURL = URL.createObjectURL(file);
+    const previewEl = document.getElementById('inlinePreviewVideo');
+    if(previewEl) {
+        previewEl.src = videoURL;
+        previewEl.load();
+    }
+    
+    document.getElementById('inlineRecordingPreview').style.display = 'block';
+    document.getElementById('inlineRecorderVideo').style.display = 'none';
+    document.getElementById('inlineRecordBtn').style.display = 'none';
+    document.getElementById('inlineStopBtn').style.display = 'none';
+    document.getElementById('inlineRetakeBtn').style.display = 'inline-flex';
+    document.getElementById('inlineSaveVideoBtn').style.display = 'inline-flex';
+    
+    document.getElementById('inlineUploadFileName').textContent = file.name;
+}
+
+function startInlineTimer() {
+    inlineRecordingSeconds = 0;
+    const display = document.getElementById('inlineTimerDisplay');
+    if(display) display.textContent = '00:00';
+    
+    inlineTimerInterval = setInterval(() => {
+        inlineRecordingSeconds++;
+        const mins = Math.floor(inlineRecordingSeconds / 60).toString().padStart(2, '0');
+        const secs = (inlineRecordingSeconds % 60).toString().padStart(2, '0');
+        if(display) display.textContent = `${mins}:${secs}`;
+    }, 1000);
+}
+
+function stopInlineTimer() {
+    clearInterval(inlineTimerInterval);
+}
+
+function resetInlineTimer() {
+    stopInlineTimer();
+    inlineRecordingSeconds = 0;
+    const display = document.getElementById('inlineTimerDisplay');
+    if(display) display.textContent = '00:00';
+}
+
+function resetInlineRecorder() {
+    inlineVideoBlob = null;
+    inlineVideoChunks = [];
+    isInlineRecording = false;
+    
+    document.getElementById('inlineRecordingPreview').style.display = 'none';
+    document.getElementById('inlineRecorderVideo').style.display = 'block';
+    document.getElementById('inlineRetakeBtn').style.display = 'none';
+    document.getElementById('inlineSaveVideoBtn').style.display = 'none';
+    document.getElementById('inlineRecordBtn').style.display = 'inline-flex';
+    document.getElementById('inlineStopBtn').style.display = 'none';
+    document.getElementById('inlineRecordingIndicator').style.display = 'none';
+    document.getElementById('inlineVideoUploadProgress').style.display = 'none';
+    
+    resetInlineTimer();
+}

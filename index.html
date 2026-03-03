@@ -26,16 +26,18 @@
       loadSharedCSS('core.css');
       loadSharedCSS('components.css');
       loadSharedCSS('landing.css');
+      loadSharedCSS('mobile.css');
+      loadSharedCSS('auth.css')
     </script>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 </head>
-<body>    <header class="header" id="header">
+<body>  
+<header class="header" id="header">
         <div class="container">
             <nav class="nav">
-                <a href="#home" class="logo">
-                    <img src="./assets/assets/images/logobrand.png" alt="Skreenit" class="animate-pulse" />
-                    Skreenit
+                <a href="#home" class="logo-link">
+                    <img id="logoImg" src="./assets/assets/images/logo.png" alt="Skreenit" class="animate-pulse" />
                 </a>
                 <ul class="nav-menu">
                     <li><a href="#home">Home</a></li>
@@ -56,6 +58,9 @@
                     <button id="appBtnNav" class="btn btn-secondary">
                         <i class="fas fa-mobile-alt"></i> App
                     </button>
+                    <button id="knowMoreBtnNav" class="btn btn-outline">
+                        <i class="fas fa-info-circle"></i> Know More
+                    </button>
                 </div>
                 <button class="mobile-menu-toggle">
                     <i class="fas fa-bars"></i>
@@ -73,10 +78,10 @@
                 <h1>AI-Powered Recruitment Revolution</h1>
                 <p>Transform your hiring process with intelligent candidate matching, automated video screening, and comprehensive analytics. Connect top talent with leading companies seamlessly.</p>
                 <div class="hero-buttons">
-                    <a href="https://login.skreenit.com/registration" class="btn btn-primary btn-large">
+                    <a href="${CONFIG.PAGES.REGISTER}" id="heroRegisterBtn" class="btn btn-primary btn-large">
                         <i class="fas fa-rocket"></i> Start Free Trial
                     </a>
-                    <a href="https://login.skreenit.com/login" class="btn btn-secondary btn-large">
+                    <a href="${CONFIG.PAGES.LOGIN}" id="heroLoginBtn" class="btn btn-secondary btn-large">
                         <i class="fas fa-sign-in-alt"></i> Sign In
                     </a>
                 </div>
@@ -163,7 +168,7 @@
                         <li><i class="fas fa-times cross"></i> Advanced AI features</li>
                         <li><i class="fas fa-times cross"></i> Priority support</li>
                     </ul>
-                    <a href="https://login.skreenit.com/registration" class="btn btn-outline-primary" style="width: 100%; display: inline-block;">Get Started</a>
+                    <a href="" id="pricingStarterBtn" class="btn btn-outline-primary" style="width: 100%; display: inline-block;">Get Started</a>
                 </div>
                 
                 <div class="pricing-card featured animate-fadeInUp">
@@ -179,7 +184,7 @@
                         <li><i class="fas fa-check check"></i> Custom workflows</li>
                         <li><i class="fas fa-check check"></i> API access</li>
                     </ul>
-                    <a href="https://login.skreenit.com/registration" class="btn btn-primary" style="width: 100%; display: inline-block;">Most Popular</a>
+                    <a href="" id="pricingProBtn" class="btn btn-primary" style="width: 100%; display: inline-block;">Most Popular</a>
                 </div>
                 
                 <div class="pricing-card animate-fadeInUp">
@@ -195,7 +200,7 @@
                         <li><i class="fas fa-check check"></i> Advanced security features</li>
                         <li><i class="fas fa-check check"></i> 24/7 phone support</li>
                     </ul>
-                    <a href="https://login.skreenit.com/registration" class="btn btn-outline-primary" style="width: 100%; display: inline-block;">Contact Sales</a>
+                    <a href="" id="pricingEnterpriseBtn" class="btn btn-outline-primary" style="width: 100%; display: inline-block;">Contact Sales</a>
                 </div>
             </div>
         </div>
@@ -226,7 +231,7 @@
                 <h2>Ready to Transform Your Hiring Process?</h2>
                 <p>Join thousands of companies and candidates who trust Skreenit for their recruitment needs. Start your free trial today and experience the future of hiring.</p>
                 <div class="hero-buttons" style="margin-bottom: 0;">
-                    <a href="https://login.skreenit.com/registration" class="btn btn-primary btn-large" style="background: white; color: var(--primary-color);">
+                    <a href="${CONFIG.PAGES.REGISTER}" id="ctaRegisterBtn" class="btn btn-primary btn-large" style="background: white; color: var(--primary-color);">
                         <i class="fas fa-rocket"></i> Start Free Trial
                     </a>
                 </div>
@@ -241,7 +246,7 @@
                     <h3>Skreenit</h3>
                     <p>AI-powered recruitment platform transforming how companies hire top talent. Streamline your hiring process with intelligent matching and automated screening.</p>
                     <div style="margin-top: 1rem;">
-                        <img src="./assets/assets/images/logobrand.png" alt="Skreenit" class="footer-logo-clean">
+                        <img src="./assets/assets/images/logo.png" alt="Skreenit" class="footer-logo-clean">
                     </div>
                 </div>
 
@@ -268,7 +273,7 @@
                             <i class="fas fa-envelope"></i>
                             <div>
                                 <h4>Email Us</h4>
-                                <p>support@skreenit.com</p>
+                                <p><a href="mailto:support@skreenit.com">support@skreenit.com</a></p>
                             </div>
                         </div>
                         <div class="contact-item">
@@ -317,7 +322,7 @@
 
             <div class="footer-bottom">
                 <p>
-                    &copy; 2024 Skreenit. Product of BMG Group and PSK Services. All rights reserved.
+                    &copy; 2025 Skreenit. Product of BMG Group and PSK Services. All rights reserved.
                     <span style="margin: 0 10px; opacity: 0.5;">|</span>
                     <a href="https://legal.skreenit.com/privacy-policy.html">Privacy Policy</a>
                     <span style="margin: 0 10px; opacity: 0.5;">|</span>
@@ -339,6 +344,9 @@
         const routeToApp = () => alert("Mobile App coming to Play Store and App store soon!");
 
         // Navigation Bar
+        document.getElementById('knowMoreBtnNav')?.addEventListener('click', () => {
+            window.location.href = CONFIG.PAGES.INDEX;
+        });
         document.getElementById('loginBtnNav')?.addEventListener('click', routeToLogin);
         document.getElementById('registerBtnNav')?.addEventListener('click', routeToRegister);
         document.getElementById('hrmsBtnNav')?.addEventListener('click', routeToHRMS);
@@ -348,6 +356,11 @@
         document.getElementById('heroLoginBtn')?.addEventListener('click', routeToLogin);
         document.getElementById('heroRegisterBtn')?.addEventListener('click', routeToRegister);
         document.getElementById('ctaRegisterBtn')?.addEventListener('click', routeToRegister);
+
+        // Pricing Section
+        document.getElementById('pricingStarterBtn')?.addEventListener('click', routeToRegister);
+        document.getElementById('pricingProBtn')?.addEventListener('click', routeToRegister);
+        document.getElementById('pricingEnterpriseBtn')?.addEventListener('click', routeToRegister);
 
         // 2. MOBILE MENU TOGGLE (Moved inside DOMContentLoaded)
         const mobileToggle = document.querySelector('.mobile-menu-toggle');

@@ -12,7 +12,7 @@ from services.auth_service import get_current_user
 from middleware.role_required import ensure_permission
 from utils_others.logger import logger
 
-router = APIRouter(tags=["Dashboard"])
+router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 # ============================================================
 # HELPER FUNCTIONS

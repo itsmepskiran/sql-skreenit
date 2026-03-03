@@ -12,7 +12,7 @@ from middleware.role_required import ensure_permission
 from models.notification_models import NotificationRequest, NotificationResponse
 from utils_others.logger import logger
 
-router = APIRouter(tags=["Notifications"])
+router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
 # ============================================================
 # HELPER FUNCTIONS

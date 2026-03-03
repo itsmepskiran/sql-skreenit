@@ -95,13 +95,16 @@ function updateHeaderForAuth() {
         // Add logout handler
         document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
     } else {
-        // User is not logged in - show login/register buttons
+        // User is not logged in - show login/register/know more buttons
         headerActions.innerHTML = `
             <a href="${CONFIG.PAGES.LOGIN}" class="btn btn-outline">
                 <i class="fas fa-sign-in-alt"></i> Login
             </a>
             <a href="${CONFIG.PAGES.REGISTER}" class="btn btn-primary">
                 <i class="fas fa-user-plus"></i> Register
+            </a>
+            <a href="${CONFIG.PAGES.INDEX}" class="btn btn-outline" target="_blank">
+                <i class="fas fa-info-circle"></i> Know More
             </a>
         `;
     }

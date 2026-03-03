@@ -125,15 +125,22 @@ async function handleRegistrationSubmit(e) {
         console.log("✅ Registration successful:", result);
         
         // Hide form and show success messages
-        if (form) form.classList.add("d-none");
+        if (form) {
+            form.classList.add("d-none");
+            form.style.display = "none"; // Force hide
+        }
+        
         const successMessages = document.getElementById("successMessages");
         
         if (successMessages) {
             successMessages.classList.remove("d-none");
             successMessages.style.display = "block";
-            successMessages.scrollIntoView({ behavior: 'smooth' });
+            successMessages.style.visibility = "visible";
+            successMessages.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            console.log("✅ Success message displayed");
         } else {
-            notify("Registration successful", "success");
+            console.warn("⚠️ successMessages element not found, using notify");
+            notify("Registration successful! Please check your email to confirm.", "success");
         }
         
         // Start countdown timer

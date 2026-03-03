@@ -31,7 +31,7 @@
 
   <script>
     loadSharedCSS('core.css'); loadSharedCSS('layout.css'); 
-    loadSharedCSS('forms.css'); loadSharedCSS('special.css'); 
+    loadSharedCSS('components.css'); loadSharedCSS('special.css'); 
     loadSharedCSS('mobile.css');
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -203,53 +203,96 @@
 
                 <!-- New Step 6: Introduction Video -->
                 <section class="form-section" id="step6">
-                    <h2>Introduction Video</h2>
-                    <p class="text-muted mb-3">Introduce yourself in a 60-90 second video. This helps recruiters know you better!</p>
+                    <h2>Introduction Video <span class="text-danger">*</span></h2>
+                    <p class="text-muted mb-3">Record a 60-90 second video introducing yourself. This helps recruiters know you better! <strong class="text-danger">(Required)</strong></p>
                     
-                    <div id="videoUploadContainer">
-                        <!-- Upload Area -->
-                        <div class="upload-area" id="videoUploadArea">
-                            <i class="fas fa-video upload-icon"></i>
-                            <h3>Upload Introduction Video</h3>
-                            <p class="text-muted mb-3">WebM, MP4 format (Max 50MB)</p>
-                            <input type="file" id="introVideoFile" name="intro_video" accept="video/webm,video/mp4" hidden />
-                            <button type="button" class="btn btn-primary" onclick="document.getElementById('introVideoFile').click()">Choose Video File</button>
-                            <div class="file-name mt-3 fw-bold" id="introVideoFileName"></div>
-                        </div>
-                        
-                        <!-- Video Preview (shown after upload) -->
-                        <div id="videoPreviewArea" style="display: none; text-align: center;">
-                            <video id="previewVideoElement" controls style="max-width: 100%; max-height: 300px; border-radius: 12px; box-shadow: var(--shadow-md);">
-                                <source src="" type="video/webm">
-                                Your browser does not support the video tag.
-                            </video>
-                            <div style="margin-top: 1rem; display: flex; gap: 0.75rem; justify-content: center;">
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('introVideoFile').click()">
-                                    <i class="fas fa-exchange-alt"></i> Change Video
+                    <div id="videoRecordingContainer" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; background: #f8fafc;">
+                        <!-- Recording Interface -->
+                        <div id="videoRecorderInterface">
+                            <!-- Camera Feed -->
+                            <div style="position: relative; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
+                                <video id="introCameraFeed" autoplay muted playsinline style="width: 100%; max-height: 350px; display: block;"></video>
+                                <video id="introPlaybackFeed" controls style="width: 100%; max-height: 350px; display: none;"></video>
+                                
+                                <!-- Recording Indicator -->
+                                <div id="recordingIndicator" style="display: none; position: absolute; top: 15px; right: 15px; background: rgba(239, 68, 68, 0.9); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                                    <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 6px; animation: pulse 1s infinite;"></i>
+                                    <span id="introTimerDisplay">00:00</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Recording Controls -->
+                            <div id="introRecordingControls" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                                <button type="button" id="startIntroRecordingBtn" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.1rem;">
+                                    <i class="fas fa-video" style="margin-right: 8px;"></i>Start Recording
                                 </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm" id="removeVideoBtn">
-                                    <i class="fas fa-trash"></i> Remove
+                                <p class="text-muted" style="font-size: 0.9rem; margin: 0;">
+                                    <i class="fas fa-info-circle"></i> Click to start recording your intro video
+                                </p>
+                            </div>
+                            
+                            <!-- Stop Controls (shown while recording) -->
+                            <div id="introStopControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                                <button type="button" id="stopIntroRecordingBtn" class="btn btn-danger" style="padding: 14px 40px; font-size: 1.1rem;">
+                                    <i class="fas fa-stop-circle" style="margin-right: 8px;"></i>Stop Recording
                                 </button>
+                                <p class="text-muted" style="font-size: 0.9rem; margin: 0; color: #dc2626;">
+                                    <i class="fas fa-exclamation-triangle"></i> Recording in progress... Click stop when done (60-90 seconds recommended)
+                                </p>
+                            </div>
+                            
+                            <!-- Review Controls (shown after recording) -->
+                            <div id="introReviewControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                                <div style="display: flex; gap: 1rem;">
+                                    <button type="button" id="retakeIntroVideoBtn" class="btn btn-secondary">
+                                        <i class="fas fa-redo" style="margin-right: 8px;"></i>Retake
+                                    </button>
+                                    <button type="button" id="acceptIntroVideoBtn" class="btn btn-success">
+                                        <i class="fas fa-check" style="margin-right: 8px;"></i>Accept Video
+                                    </button>
+                                </div>
+                                <p class="text-muted" style="font-size: 0.9rem; margin: 0;">
+                                    Review your video. Retake if needed, or accept to proceed.
+                                </p>
+                            </div>
+                            
+                            <!-- Video Accepted State -->
+                            <div id="introVideoAccepted" style="display: none; text-align: center; padding: 1rem;">
+                                <div style="background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                                    <i class="fas fa-check-circle" style="color: #16a34a; font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                    <p style="color: #166534; margin: 0; font-weight: 600;">Video recorded successfully!</p>
+                                    <p style="color: #166534; margin: 0.25rem 0 0 0; font-size: 0.9rem;">Duration: <span id="acceptedVideoDuration">--</span></p>
+                                </div>
+                                <button type="button" id="reRecordIntroVideoBtn" class="btn btn-outline-primary">
+                                    <i class="fas fa-video" style="margin-right: 8px;"></i>Re-record Video
+                                </button>
+                            </div>
+                            
+                            <!-- Upload Progress -->
+                            <div id="introVideoUploadProgress" style="display: none; margin-top: 1rem; text-align: center;">
+                                <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; max-width: 400px; margin: 0 auto;">
+                                    <div id="introVideoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                                </div>
+                                <p id="introVideoProgressText" style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.5rem;">Uploading video... 0%</p>
                             </div>
                         </div>
                         
-                        <!-- Upload Progress -->
-                        <div id="videoUploadProgress" style="display: none; margin-top: 1rem;">
-                            <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden;">
-                                <div id="videoProgressBarForm" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
-                            </div>
-                            <p id="videoProgressTextForm" style="font-size: 0.85rem; color: var(--text-light); text-align: center; margin-top: 0.5rem;">Uploading... 0%</p>
-                        </div>
+                        <!-- Hidden input to store video blob for form submission -->
+                        <input type="hidden" id="introVideoRecordedBlob" name="intro_video_recorded" />
                     </div>
+                    
+                    <!-- Hidden file input for profile edit mode (fallback) -->
+                    <input type="file" id="introVideoFile" name="intro_video" accept="video/webm" hidden />
                     
                     <div class="alert alert-info mt-3" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem;">
                         <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
                         <strong>Tips for a great intro video:</strong>
                         <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0; font-size: 0.9rem;">
-                            <li>Keep it under 90 seconds</li>
+                            <li>Keep it between 60-90 seconds</li>
                             <li>Find a quiet, well-lit place</li>
                             <li>Mention your name, experience, and what you're looking for</li>
                             <li>Speak clearly and confidently</li>
+                            <li>Dress professionally</li>
                         </ul>
                     </div>
                 </section>

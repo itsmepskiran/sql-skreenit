@@ -95,8 +95,14 @@ class AuthService:
 
             tokens = self._generate_tokens(created_user)
 
-            # Verification email logic remains encapsulated here
-            await self._send_verification_email(created_user, tokens['access_token'], email_redirect_to)
+            # Verification email logic - NON-BLOCKING
+            # Fire and forget - don't let email failures break registration
+            try:
+                await self._send_verification_email(created_user, tokens['access_token'], email_redirect_to)
+            except Exception as email_err:
+                logger.error(f"Failed to send verification email for {email}: {str(email_err)}")
+                # Continue with registration even if email fails
+                # User can request resend later
 
             return {
                 "ok": True,
@@ -139,6 +145,10 @@ class AuthService:
         user = self.user_service.get_user_for_auth(email)  # Use secure auth method
         if not user or not self._verify_password(password, user["password"]):
             raise ValueError("Invalid email or password")
+
+        # Check if email is confirmed
+        if not user.get("email_confirmed_at"):
+            raise ValueError("Please confirm your email before logging in. Check your inbox for the verification link.")
 
         tokens = self._generate_tokens(user)
         self.user_service.update_last_login(user["id"])

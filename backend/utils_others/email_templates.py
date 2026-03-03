@@ -68,6 +68,7 @@ class EmailTemplates:
                     "full_name": user_data.get("full_name"),
                     "role": user_data.get("role"),
                     "email": user_data.get("email"),
+                    "logo_url": f"{self.frontend_url.replace('/login.html', '')}/logos/logobrand.png",
                     "loginLink": f"{self.frontend_url}/login.html",
                     "confirmation_url": user_data.get("confirmation_url"),
                 },

@@ -222,6 +222,9 @@ section { padding: 100px 0; }
 .animate-float { animation: float 6s ease-in-out infinite; }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
 
+/* Mobile Menu Toggle - Hidden on Desktop */
+.mobile-menu-toggle { display: none; }
+
 /* Mobile Responsiveness */
 @media (max-width: 1024px) {
     .footer-content { grid-template-columns: 1fr 1fr 1fr; }

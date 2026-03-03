@@ -112,12 +112,12 @@ async def mark_onboarded(request: Request):
     
     try:
         user_service = get_user_service()
-        success = user_service.mark_as_onboarded(user["user_id"])
+        success = user_service.mark_as_onboarded(user["sub"])
         
         if not success:
             raise HTTPException(status_code=404, detail="User not found")
         
-        logger.info("User marked as onboarded", extra={"user_id": user["user_id"]})
+        logger.info("User marked as onboarded", extra={"user_id": user["sub"]})
         return {"ok": True, "message": "User onboarded successfully"}
     
     except HTTPException:
@@ -311,6 +311,6 @@ async def logout(request: Request):
     """Logout user (client-side token removal)."""
     user = getattr(request.state, "user", None)
     if user:
-        logger.info(f"User logged out", extra={"user_id": user["user_id"]})
+        logger.info(f"User logged out", extra={"user_id": user.get("sub", "unknown")})
     
     return {"ok": True, "message": "Logged out successfully"}
