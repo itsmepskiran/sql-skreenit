@@ -33,30 +33,32 @@
         loadSharedCSS('components.css');
         loadSharedCSS('landing.css');
         loadSharedCSS('jobs.css');
+        loadSharedCSS('warning-ribbon.css');
         loadSharedCSS('mobile.css');
     </script>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 </head>
 <body class="jobs-page">
-    <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <a href="/index.html" class="logo-link">
-                <img src="../assets/assets/images/logo.png" id="logoImg" alt="Skreenit">
-                <span>Skreenit</span>
+            <a href="https://skreenit.com" class="logo-link">
+                <img src="" id="logoImg" alt="Skreenit" style="max-width: 120px;"/>
             </a>
-            <div class="header-actions" id="headerActions">
-                <a href="/login/login.html" class="btn btn-outline">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </a>
-                <a href="/login/registration.html" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> Register
-                </a>
+
+            <div class="ad-slider-container">
+                <div class="ad-wrapper" id="adWrapper">
+                    <div class="ad-item">🚀 Get noticed faster with an Intro Video!</div>
+                    <div class="ad-item">💎 Premium: Get 1-on-1 career coaching.</div>
+                    <div class="ad-item">🔥 New: 200+ Remote Tech jobs added today.</div>
+                    <div class="ad-item">📱 Download the Skreenit App for instant alerts.</div>
+                </div>
             </div>
+
+            <div class="header-actions" id="headerActions">
+                </div>
         </div>
     </header>
-
     <!-- Main Content -->
     <div class="jobs-page-container">
         <div class="page-header">
@@ -131,6 +133,22 @@
                     </div>
                     <button class="btn btn-primary" id="searchBtn">
                         <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error/Warning Messages -->
+            <div id="errorBox" class="warning-ribbon d-none">
+                <div class="warning-content">
+                    <div class="warning-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="warning-message">
+                        <strong>Job Search Issue</strong>
+                        <p class="warning-details">Please check your connection and try again</p>
+                    </div>
+                    <button type="button" class="warning-close" onclick="hideWarning('errorBox')">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>

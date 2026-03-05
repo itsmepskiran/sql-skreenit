@@ -30,32 +30,56 @@ async function updateSidebarProfile(user) {
     const designationEl = document.getElementById("userDesignation");
     const avatarEl = document.getElementById("userAvatar"); 
 
-    if(nameEl) nameEl.textContent = user.user_metadata.full_name || user.email.split('@')[0];
+    // Set name - use full_name from user object or fallback to email
+    if(nameEl) nameEl.textContent = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
 
+    // Set default designation and load from profile
     if(designationEl) {
-        designationEl.textContent = "Candidate"; // Default fallback
+        const defaultTitle = "Candidate";
+        designationEl.textContent = defaultTitle;
+        
         try {
             const res = await backendGet('/applicant/profile');
             const json = await handleResponse(res);
             const profile = json.data || {};
 
-            // ✅ Look for the correct database property: profile.experience[0].title
+            // Use correct field name: job_title instead of title
             if (profile.experience && profile.experience.length > 0) {
-                designationEl.textContent = profile.experience[0].title || "Candidate";
+                designationEl.textContent = profile.experience[0].job_title || defaultTitle;
             }
         } catch (err) {
-            // Silent fail
+            console.warn("Failed to load profile for designation:", err);
+            // Keep default title
         }
     }
 
+    // Handle avatar - get from profile since user object doesn't have avatar_url
     if(avatarEl) {
-        if (user.user_metadata.avatar_url) {
-            avatarEl.innerHTML = `<img src="${user.user_metadata.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
-        } else {
-            const initials = (user.user_metadata.full_name || user.email).match(/\b\w/g) || [];
-            const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-            avatarEl.innerHTML = text; 
-        }
+        // Get avatar from profile API
+        const updateAvatarFromProfile = async () => {
+            try {
+                const res = await backendGet('/applicant/profile');
+                const json = await handleResponse(res);
+                const profile = json.data || {};
+                
+                if (profile.avatar_url) {
+                    avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+                } else {
+                    const nameForInitials = user.full_name || user.email || 'User';
+                    const initials = nameForInitials.match(/\b\w/g) || [];
+                    const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+                    avatarEl.innerHTML = text; 
+                }
+            } catch (err) {
+                // Fallback to initials
+                const nameForInitials = user.full_name || user.email || 'User';
+                const initials = nameForInitials.match(/\b\w/g) || [];
+                const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+                avatarEl.innerHTML = text;
+            }
+        };
+        
+        updateAvatarFromProfile();
     }
 }
 

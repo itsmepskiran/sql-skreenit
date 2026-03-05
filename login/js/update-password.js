@@ -1,23 +1,28 @@
 // login/js/update-password.js
-import { customAuth } from '@shared/js/auth-config.js';;
 import { CONFIG } from '@shared/js/config.js';
+import { showError, showSuccess, hideWarning } from '@shared/js/warning-ribbon.js';
 import '@shared/js/mobile.js';
 
 const isLocal = CONFIG.IS_LOCAL;
-// Points to the root assets folder
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 
 // Update Logo
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
 
-// Update Brand Logo (if you have an ID for it)
+// Update Brand Logo
 const brandImg = document.getElementById('brandImg');
 if(brandImg) brandImg.src = `${assetsBase}/assets/images/logobrand.png`;
-document.getElementById('homeLink').href = CONFIG.PAGES.INDEX;
-document.getElementById('loginLink').href = CONFIG.PAGES.LOGIN;
-document.getElementById('termsLink').href = CONFIG.PAGES.TERMS;
-document.getElementById('privacyLink').href = CONFIG.PAGES.PRIVACY;
+
+// Update links - handle elements that may not exist
+const loginLink = document.getElementById('loginLink');
+if(loginLink) loginLink.href = CONFIG.PAGES.LOGIN;
+const termsLink = document.getElementById('termsLink');
+if(termsLink) termsLink.href = CONFIG.PAGES.TERMS;
+const privacyLink = document.getElementById('privacyLink');
+if(privacyLink) privacyLink.href = CONFIG.PAGES.PRIVACY;
+const logoLink = document.querySelector('.logo-link');
+if(logoLink) logoLink.href = CONFIG.PAGES.INDEX;
 
 document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("passwordForm");
@@ -25,38 +30,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   const confirmPasswordInput = document.getElementById("confirmPassword");
   const submitBtn = document.getElementById("submitBtn");
 
-  const errorElement = document.getElementById("error-message");
-  const errorText = document.getElementById("error-text");
-  const successElement = document.getElementById("success-message");
-  const successText = document.getElementById("success-text");
+  // Get token from URL query params (not hash)
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
 
-  // FIXED: Replaced inline styles with d-none utility class
-  function showError(message) {
-    errorText.textContent = message;
-    errorElement.classList.remove("d-none");
-    successElement.classList.add("d-none"); // Ensure success box is hidden
+  // Validate token on page load
+  if (!token) {
+    showError("errorBox", "Invalid or missing reset token. Please request a new password reset link.", "Invalid Token");
+    form.classList.add("d-none");
+    return;
   }
 
-  // FIXED: Replaced inline styles with d-none utility class
-  function showSuccess(message) {
-    successText.textContent = message;
-    successElement.classList.remove("d-none");
-    errorElement.classList.add("d-none"); // Ensure error box is hidden
-  }
+  try {
+    // Verify token is valid
+    const response = await fetch(`${CONFIG.API_BASE}/verify-reset-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
 
-  // Extract tokens from URL hash
-  const hashParams = new URLSearchParams(window.location.hash.substring(1));
-  const accessToken = hashParams.get("access_token");
-  const refreshToken = hashParams.get("refresh_token");
-
-  // Clean URL
-  if (window.location.hash) {
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-
-  if (!accessToken || !refreshToken) {
-    showError("Invalid or expired link. Please use the latest email link.");
-    // FIXED: Hide form using d-none class
+    if (!response.ok) {
+      const result = await response.json();
+      showError("errorBox", result.detail || "Invalid or expired reset link. Please request a new one.", "Expired Link");
+      form.classList.add("d-none");
+      return;
+    }
+  } catch (err) {
+    showError("errorBox", "Failed to verify reset link. Please try again later.", "Verification Failed");
     form.classList.add("d-none");
     return;
   }
@@ -89,7 +89,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     Object.entries(requirements).forEach(([id, isValid]) => {
-      document.getElementById(id).classList.toggle("valid", isValid);
+      const el = document.getElementById(id);
+      if(el) el.classList.toggle("valid", isValid);
     });
 
     let color = "#ef4444";
@@ -103,35 +104,38 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   passwordInput.addEventListener("input", (e) => updatePasswordStrength(e.target.value));
 
-  // Toggle password visibility
-  document.querySelectorAll(".toggle-password").forEach((button) => {
-    button.addEventListener("click", function () {
-      const input = this.previousElementSibling;
-      input.type = input.type === "password" ? "text" : "password";
-      this.querySelector("i").classList.toggle("fa-eye");
-      this.querySelector("i").classList.toggle("fa-eye-slash");
-    });
-  });
+  // Global toggle password function for onclick handlers
+  window.togglePassword = function(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.nextElementSibling;
+    if (input.type === "password") {
+      input.type = "text";
+      button.querySelector("i").classList.remove("fa-eye");
+      button.querySelector("i").classList.add("fa-eye-slash");
+    } else {
+      input.type = "password";
+      button.querySelector("i").classList.remove("fa-eye-slash");
+      button.querySelector("i").classList.add("fa-eye");
+    }
+  };
 
   // Submit handler
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     
-    // FIXED: Clear both messages at the start of a new attempt
-    errorElement.classList.add("d-none");
-    successElement.classList.add("d-none");
+    hideWarning("errorBox");
 
     const password = passwordInput.value.trim();
     const confirmPassword = confirmPasswordInput.value.trim();
 
     if (password !== confirmPassword) {
-      showError("Passwords do not match.");
+      showError("errorBox", "Passwords do not match.", "Password Mismatch");
       return;
     }
 
     const strength = checkPasswordStrength(password);
     if (!strength.isStrong) {
-      showError("Please ensure your password meets all requirements.");
+      showError("errorBox", "Please ensure your password meets all requirements.", "Weak Password");
       return;
     }
 
@@ -139,24 +143,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
 
-      // Set session from reset link tokens
-      const { error: sessionError } = await customAuth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken
+      // Reset password using token
+      const response = await fetch(`${CONFIG.API_BASE}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password })
       });
-      if (sessionError) throw sessionError;
 
-      // Update password
-      const { error: updateError } = await customAuth.updateUser({ password });
-      if (updateError) throw updateError;
+      const result = await response.json();
 
-      showSuccess("Password updated successfully! Redirecting to login...");
+      if (!response.ok || !result.ok) {
+        throw new Error(result.detail || 'Failed to reset password');
+      }
+
+      showSuccess("errorBox", "Password updated successfully! Redirecting to login...", "Success");
       setTimeout(() => {
         window.location.href = `${CONFIG.PAGES.LOGIN}?reset=success`;
       }, 2000);
 
     } catch (err) {
-      showError(err.message || "An error occurred. Please try again.");
+      showError("errorBox", err.message || "An error occurred. Please try again.", "Reset Failed");
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = '<i class="fas fa-save"></i> Set Password';

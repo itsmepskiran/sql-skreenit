@@ -311,6 +311,28 @@ async def upload_intro_video(request: Request, file: UploadFile = File(...)):
         logger.error(f"Intro video upload failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/delete-intro-video")
+async def delete_intro_video(request: Request):
+    """Delete intro video."""
+    ensure_permission(request, "profile:update")
+    user = get_user_from_request(request)
+    
+    try:
+        # Get current profile to remove old video file
+        profile = candidate_service.get_profile(user["sub"])
+        if profile and profile.get("intro_video_url"):
+            # TODO: Delete file from storage (implement R2 file deletion)
+            pass
+        
+        # Update profile to remove video URL
+        candidate_service.upsert_profile(user["sub"], {"intro_video_url": None})
+        
+        return {"ok": True, "success": True}
+    
+    except Exception as e:
+        logger.error(f"Intro video delete failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/save-video-response")
 async def save_video_response(request: Request, data: dict):
     """Save video response for job application."""

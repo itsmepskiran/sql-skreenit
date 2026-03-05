@@ -1,0 +1,57 @@
+
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo"><img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;" /></div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item" id="navDashboard"><i class="fas fa-home"></i><span>Dashboard</span></li>
+        <li class="nav-item" id="navApplications"><i class="fas fa-briefcase"></i><span>My Applications</span></li>
+        <li class="nav-item active" id="navProfile"><i class="fas fa-user"></i><span>My Profile</span></li>
+      </ul>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+             <i class="fas fa-user"></i>
+          </div>
+          <div class="user-details">
+            <span id="userName" class="user-name">Loading...</span>
+            <span id="userDesignation" class="user-role">Candidate</span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <header class="dashboard-header">
+        <h1>My Profile</h1>
+        <button id="editProfileBtn" class="btn btn-primary"><i class="fas fa-edit me-2"></i> Edit Profile</button>
+      </header>
+
+      <div class="dashboard-content">
+        
+        <div class="profile-card">
+            <div class="profile-avatar" id="viewAvatar" style="position: relative; overflow: hidden;">
+                <span id="avatarInitials">?</span>
+                <img id="profileImage" src="" alt="Profile" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; position: absolute; top: 0; left: 0;">
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name" id="viewName">Loading Name...</h2>
+                <div class="profile-role" id="viewRole">Candidate / Role</div>
+                
+                <div class="profile-meta">
+                    <span><i class="fas fa-envelope"></i> <span id="viewEmail">...</span></span>
+                    <span><i class="fas fa-phone"></i> <span id="viewPhone">...</span></span>
+                    <span><i class="fas fa-map-marker-alt"></i> <span id="viewLocation">...</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+            <!-- Introduction Video Section -->
+            <div class="profile-section" id="introVideoSection" style="grid-column: 1 / -1; margin-bottom: 1.5rem;">
+                <h3><i class="fas fa-video"></i> Introduction Video</h3>
+                <div id="videoContainer" style="display: flex; flex-direction: column; gap: 1rem;">

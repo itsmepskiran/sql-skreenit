@@ -125,3 +125,37 @@ class EmailService:
         except Exception as e:
             logger.error(f"Failed to send notification email: {str(e)}")
             return {"status": "error", "message": str(e)}
+    
+    async def send_password_reset_email(self, to_email, full_name, reset_url):
+        """Send password reset email using the template system"""
+        try:
+            sender_email, sender_name = self.get_sender_info("support")
+            
+            # Use EmailTemplates class
+            email_templates = EmailTemplates()
+            template_data = email_templates.password_reset({
+                "full_name": full_name,
+                "reset_url": reset_url
+            })
+            
+            html_content = template_data["html"]
+            
+            msg = MIMEMultipart()
+            msg["From"] = f"{sender_name} <{sender_email}>"
+            msg["To"] = to_email
+            msg["Subject"] = template_data["subject"]
+            msg.attach(MIMEText(html_content, "html"))
+            
+            # Use main email for SMTP authentication
+            auth_email = "support@skreenit.com"
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                server.starttls()
+                server.login(auth_email, self.password)
+                server.send_message(msg)
+            
+            logger.info(f"Password reset email sent from {sender_email} to {to_email}")
+            return {"status": "success", "message": "Email sent successfully"}
+            
+        except Exception as e:
+            logger.error(f"Failed to send password reset email: {str(e)}")
+            return {"status": "error", "message": str(e)}

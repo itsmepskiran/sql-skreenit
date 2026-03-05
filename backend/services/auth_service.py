@@ -142,13 +142,26 @@ class AuthService:
 
     def login(self, email: str, password: str) -> Dict[str, Any]:
         """Verify credentials and return user session."""
+        print(f"DEBUG: Login attempt for email: {email}")
         user = self.user_service.get_user_for_auth(email)  # Use secure auth method
-        if not user or not self._verify_password(password, user["password"]):
+        print(f"DEBUG: User found: {user is not None}")
+        if not user:
+            print(f"DEBUG: User not found for email {email}")
+            raise ValueError("Invalid email or password")
+        
+        print(f"DEBUG: User email_verified: {user.get('email_verified')}")
+        print(f"DEBUG: User has password: {bool(user.get('password'))}")
+        
+        if not self._verify_password(password, user["password"]):
+            print(f"DEBUG: Password mismatch for user {user['id']}")
             raise ValueError("Invalid email or password")
 
         # Check if email is confirmed
-        if not user.get("email_confirmed_at"):
+        if not user.get("email_verified"):
+            print(f"DEBUG: Email not confirmed for user {user['id']}")
             raise ValueError("Please confirm your email before logging in. Check your inbox for the verification link.")
+        
+        print(f"DEBUG: Login successful for user {user['id']}")
 
         tokens = self._generate_tokens(user)
         self.user_service.update_last_login(user["id"])
@@ -160,6 +173,7 @@ class AuthService:
             "user": {
                 "id": user["id"],
                 "email": user["email"],
+                "full_name": user["full_name"],
                 "role": user["role"],
                 "onboarded": user["onboarded"]
             }
@@ -191,6 +205,68 @@ class AuthService:
             raise ValueError("Confirmation token has expired")
         except jwt.InvalidTokenError:
             raise ValueError("Invalid confirmation token")
+
+    def generate_password_reset_token(self, email: str) -> str:
+        """Generate a short-lived JWT token for password reset."""
+        now = datetime.utcnow()
+        payload = {
+            "sub": email,
+            "type": "password_reset",
+            "iat": now,
+            "exp": now + timedelta(hours=1)  # 1 hour expiration
+        }
+        return jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithm)
+
+    def verify_password_reset_token(self, token: str) -> str:
+        """Verify password reset token and return the associated email."""
+        try:
+            payload = jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithm])
+            if payload.get("type") != "password_reset":
+                raise ValueError("Invalid token type")
+            return payload.get("sub")
+        except jwt.ExpiredSignatureError:
+            raise ValueError("Password reset link has expired")
+        except jwt.InvalidTokenError:
+            raise ValueError("Invalid password reset token")
+
+    def reset_password(self, token: str, new_password: str) -> Dict[str, Any]:
+        """Reset user password using reset token."""
+        email = self.verify_password_reset_token(token)
+        if not email:
+            raise ValueError("Invalid token")
+        
+        user = self.user_service.get_user_by_email(email)
+        if not user:
+            raise ValueError("User not found")
+        
+        # Hash and update password
+        hashed_password = self._hash_password(new_password)
+        success = self.user_service.update_user_password(user["id"], hashed_password)
+        if not success:
+            raise ValueError("Failed to update password")
+        
+        return {"ok": True, "message": "Password updated successfully"}
+
+    async def send_password_reset_email(self, email: str, reset_token: str, redirect_url: Optional[str] = None):
+        """Send password reset email with reset link."""
+        try:
+            base_url = redirect_url or os.getenv("FRONTEND_BASE_URL") or "https://login.skreenit.com"
+            reset_link = f"{base_url}/update-password.html?token={reset_token}"
+            
+            user = self.user_service.get_user_by_email(email)
+            full_name = user.get('full_name', 'User') if user else 'User'
+            
+            await self.email_service.send_password_reset_email(
+                to_email=email,
+                full_name=full_name,
+                reset_url=reset_link
+            )
+            
+            logger.info(f"Password reset email sent to {email}")
+            return {"ok": True, "message": "Password reset email sent"}
+        except Exception as e:
+            logger.error(f"Failed to send password reset email: {str(e)}")
+            raise ValueError(str(e))
 
 # FastAPI Dependency Setup
 security = HTTPBearer()

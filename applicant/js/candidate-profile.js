@@ -21,7 +21,8 @@ async function checkAuth() {
     }
     
     await updateSidebarProfile(user);
-    loadProfile(user.id);
+    await loadProfile(user.id);
+    setupEditProfileButton();
     setupNavigation();
 }
 
@@ -30,32 +31,49 @@ async function updateSidebarProfile(user) {
     const designationEl = document.getElementById("userDesignation");
     const avatarEl = document.getElementById("userAvatar"); 
 
-    if(nameEl) nameEl.textContent = user.user_metadata?.full_name || user.full_name || user.email?.split('@')[0];
+    // Fetch profile data once for all sidebar updates
+    let profileData = null;
+    try {
+        const res = await backendGet('/applicant/profile');
+        const json = await handleResponse(res);
+        profileData = json.data;
+    } catch (err) {
+        console.log('Could not fetch profile for sidebar:', err);
+    }
 
+    // Update name with priority: profile full_name > user full_name > email
+    let displayName = user.full_name || user.email?.split('@')[0] || 'User';
+    if (profileData?.full_name) {
+        displayName = profileData.full_name;
+    }
+    
+    if(nameEl) nameEl.textContent = displayName;
+
+    // Update designation based on experience/education
     if(designationEl) {
-        designationEl.textContent = "Fresher"; 
-        try {
-            const res = await backendGet('/applicant/profile');
-            const json = await handleResponse(res);
-            const profile = json.data || {};
-
-            if (profile.experience && profile.experience.length > 0) {
-                designationEl.textContent = profile.experience[0].title || "Fresher";
-            }
-        } catch (err) {
-            // Silent fail
+        if (profileData?.experience && profileData.experience.length > 0) {
+            // Sort experience by start_date (most recent first) to get latest job
+            const sortedExperience = [...profileData.experience].sort((a, b) => {
+                return new Date(b.start_date || 0) - new Date(a.start_date || 0);
+            });
+            const latestJob = sortedExperience[0];
+            designationEl.textContent = latestJob.job_title || 'Professional';
+        } else if (profileData?.education && profileData.education.length > 0) {
+            designationEl.textContent = 'Student';
+        } else {
+            designationEl.textContent = 'Candidate';
         }
     }
 
+    // Update avatar with profile image if available
     if(avatarEl) {
-        if (user.user_metadata?.avatar_url || user.avatar_url) {
-            const avatarUrl = user.user_metadata?.avatar_url || user.avatar_url;
-            avatarEl.innerHTML = `<img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+        if (profileData?.avatar_url && profileData.avatar_url !== null && profileData.avatar_url !== '' && profileData.avatar_url !== 'null') {
+            avatarEl.innerHTML = `<img src="${profileData.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" alt="Profile">`;
         } else {
-            const nameForInitials = user.user_metadata?.full_name || user.full_name || user.email || 'U';
-            const initials = nameForInitials.match(/\b\w/g) || [];
+            // Fallback to initials
+            const initials = displayName.match(/\b\w/g) || [];
             avatarEl.innerHTML = `
-                <div style="width:60px; height:60px; border-radius:50%; background:#6366f1; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:18px;">
+                <div style="width:100%; height:100%; border-radius:50%; background:#6366f1; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px;">
                     ${initials ? initials[0] + (initials[1] || '') : 'U'}
                 </div>
             `;
@@ -65,197 +83,341 @@ async function updateSidebarProfile(user) {
 
 async function loadProfile(userId) {
     try {
+        console.log('🔄 Loading profile for user:', userId);
         const res = await backendGet('/applicant/profile');
         const profile = await handleResponse(res);
         
+        console.log('📊 Profile response:', profile);
+        
         if (profile.data) {
-            populateForm(profile.data);
-            setupVideoUpload(userId);
+            console.log('✅ Profile data found, populating form');
+            populateForm(profile.data, userId);
             setupResumeDownload(profile.data);
+        } else {
+            console.log('❌ No profile data found');
         }
     } catch (err) {
         console.error('Failed to load profile:', err);
     }
 }
 
-function populateForm(profile) {
-    // Basic info
-    if (profile.full_name) document.getElementById('fullName').value = profile.full_name;
-    if (profile.phone) document.getElementById('phone').value = profile.phone;
-    if (profile.location) document.getElementById('location').value = profile.location;
-    if (profile.linkedin_url) document.getElementById('linkedin').value = profile.linkedin_url;
-    if (profile.github_url) document.getElementById('github').value = profile.github_url;
-    if (profile.portfolio_url) document.getElementById('portfolio').value = profile.portfolio_url;
+function populateForm(profile, userId) {
+    // Avatar display in main profile view
+    const profileImageEl = document.getElementById('profileImage');
+    const avatarInitialsEl = document.getElementById('avatarInitials');
+    
+    if (profile.avatar_url && profile.avatar_url !== null && profile.avatar_url !== '' && profile.avatar_url !== 'null') {
+        if (profileImageEl) {
+            profileImageEl.src = profile.avatar_url;
+            profileImageEl.style.display = 'block';
+        }
+        if (avatarInitialsEl) avatarInitialsEl.style.display = 'none';
+    } else {
+        // Show initials
+        const initials = (profile.full_name || 'User').match(/\b\w/g) || [];
+        const initialsText = initials ? initials[0] + (initials[1] || '') : 'U';
+        if (avatarInitialsEl) {
+            avatarInitialsEl.textContent = initialsText;
+            avatarInitialsEl.style.display = 'block';
+        }
+        if (profileImageEl) profileImageEl.style.display = 'none';
+    }
+    
+    // Basic info - populate view elements
+    if (profile.full_name) {
+        const nameEl = document.getElementById('viewName');
+        if (nameEl) nameEl.textContent = profile.full_name;
+    }
+    if (profile.phone) {
+        const phoneEl = document.getElementById('viewPhone');
+        if (phoneEl) phoneEl.textContent = profile.phone;
+    }
+    if (profile.location) {
+        const locationEl = document.getElementById('viewLocation');
+        if (locationEl) locationEl.textContent = profile.location;
+    }
+    if (profile.email) {
+        const emailEl = document.getElementById('viewEmail');
+        if (emailEl) emailEl.textContent = profile.email;
+    }
+
+    // Role/Designation in main profile
+    const roleEl = document.getElementById('viewRole');
+    if (roleEl) {
+        if (profile.experience && profile.experience.length > 0) {
+            // Sort experience by start_date (most recent first) to get latest job
+            const sortedExperience = [...profile.experience].sort((a, b) => {
+                return new Date(b.start_date || 0) - new Date(a.start_date || 0);
+            });
+            const latestJob = sortedExperience[0];
+            roleEl.textContent = `${latestJob.job_title || 'Professional'} at ${latestJob.company || ''}`;
+        } else if (profile.education && profile.education.length > 0) {
+            roleEl.textContent = 'Student';
+        } else {
+            roleEl.textContent = 'Fresher';
+        }
+    }
+
+    // Profile image
+    if (profile.avatar_url) {
+        const profileImg = document.getElementById('profileImage');
+        const avatarInitials = document.getElementById('avatarInitials');
+        if (profileImg) {
+            profileImg.src = profile.avatar_url;
+            profileImg.style.display = 'block';
+        }
+        if (avatarInitials) avatarInitials.style.display = 'none';
+    }
 
     // Education
     if (profile.education && profile.education.length > 0) {
-        const educationContainer = document.getElementById('educationContainer');
-        educationContainer.innerHTML = '';
-        
-        profile.education.forEach((edu, index) => {
-            const eduDiv = document.createElement('div');
-            eduDiv.className = 'education-item mb-3';
-            eduDiv.innerHTML = `
-                <div class="row">
-                    <div class="col-md-3">
-                        <input type="text" class="form-control" placeholder="Institution" value="${edu.institution || ''}" data-index="${index}" data-field="institution">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" class="form-control" placeholder="Degree" value="${edu.degree || ''}" data-index="${index}" data-field="degree">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" class="form-control" placeholder="Field of Study" value="${edu.field_of_study || ''}" data-index="${index}" data-field="field_of_study">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="date" class="form-control" placeholder="Start Date" value="${edu.start_date || ''}" data-index="${index}" data-field="start_date">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="date" class="form-control" placeholder="End Date" value="${edu.end_date || ''}" data-index="${index}" data-field="end_date">
-                    </div>
-                    <div class="col-md-1">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="removeEducation(${index})">Remove</button>
-                    </div>
+        const educationContainer = document.getElementById('viewEducationList');
+        if (educationContainer) {
+            educationContainer.innerHTML = profile.education.map(edu => `
+                <div class="education-item mb-3">
+                    <h6>${edu.degree || ''} - ${edu.institution || ''}</h6>
+                    <small class="text-muted">Completed: ${edu.completion_year || 'N/A'}</small>
                 </div>
-            `;
-            educationContainer.appendChild(eduDiv);
-        });
+            `).join('');
+        }
     }
 
     // Experience
     if (profile.experience && profile.experience.length > 0) {
-        const experienceContainer = document.getElementById('experienceContainer');
-        experienceContainer.innerHTML = '';
-        
-        profile.experience.forEach((exp, index) => {
-            const expDiv = document.createElement('div');
-            expDiv.className = 'experience-item mb-3';
-            expDiv.innerHTML = `
-                <div class="row">
-                    <div class="col-md-3">
-                        <input type="text" class="form-control" placeholder="Company" value="${exp.company || ''}" data-index="${index}" data-field="company">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" class="form-control" placeholder="Position" value="${exp.position || ''}" data-index="${index}" data-field="position">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="date" class="form-control" placeholder="Start Date" value="${exp.start_date || ''}" data-index="${index}" data-field="start_date">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="date" class="form-control" placeholder="End Date" value="${exp.end_date || ''}" data-index="${index}" data-field="end_date">
-                    </div>
-                    <div class="col-md-2">
-                        <textarea class="form-control" placeholder="Description" rows="3" data-index="${index}" data-field="description">${exp.description || ''}</textarea>
-                    </div>
-                    <div class="col-md-1">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="removeExperience(${index})">Remove</button>
-                    </div>
+        const experienceContainer = document.getElementById('viewExperienceList');
+        if (experienceContainer) {
+            experienceContainer.innerHTML = profile.experience.map(exp => `
+                <div class="experience-item mb-3">
+                    <h6>${exp.job_title || ''} at ${exp.company || ''}</h6>
+                    <small class="text-muted">${exp.start_date || ''} - ${exp.end_date || 'Present'}</small>
+                    <p class="mt-1">${exp.description || ''}</p>
                 </div>
-            `;
-            experienceContainer.appendChild(expDiv);
-        });
+            `).join('');
+        }
     }
 
     // Skills
     if (profile.skills && profile.skills.length > 0) {
-        const skillsContainer = document.getElementById('skillsContainer');
-        skillsContainer.innerHTML = '';
+        const skillsContainer = document.getElementById('viewSkills');
+        if (skillsContainer) {
+            skillsContainer.innerHTML = profile.skills.map(skill => 
+                `<span class="badge bg-primary text-white me-2 mb-2">${skill}</span>`
+            ).join('');
+        }
+    }
+
+    // Intro Video
+    console.log('🎥 Checking intro video URL:', profile.intro_video_url);
+    const videoCard = document.getElementById('videoCard');
+    const noVideoCard = document.getElementById('noVideoCard');
+    
+    if (profile.intro_video_url && profile.intro_video_url !== null && profile.intro_video_url !== '') {
+        console.log('✅ Video found, showing video card');
+        if (videoCard) videoCard.style.display = 'block';
+        if (noVideoCard) noVideoCard.style.display = 'none';
         
-        profile.skills.forEach((skill, index) => {
-            const skillDiv = document.createElement('div');
-            skillDiv.className = 'skill-item d-inline-block mb-2';
-            skillDiv.innerHTML = `
-                <span class="badge bg-primary text-white me-2">${skill}</span>
-                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeSkill(${index})">×</button>
-            `;
-            skillsContainer.appendChild(skillDiv);
+        // Setup video card buttons
+        setupVideoCardButtons(profile.intro_video_url, userId);
+    } else {
+        console.log('📹 No video found, showing no video card');
+        if (videoCard) videoCard.style.display = 'none';
+        if (noVideoCard) noVideoCard.style.display = 'block';
+        
+        // Setup add video button
+        setupAddVideoButton(userId);
+    }
+}
+
+function setupVideoCardButtons(videoUrl, userId) {
+    const playBtn = document.getElementById('playVideoBtn');
+    const deleteBtn = document.getElementById('deleteVideoBtn');
+    
+    if (playBtn) {
+        playBtn.addEventListener('click', () => {
+            openVideoModal(videoUrl);
+        });
+    }
+    
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to delete your introduction video?')) {
+                try {
+                    const response = await backendPost('/applicant/delete-intro-video', {});
+                    const result = await handleResponse(response);
+                    
+                    if (result.ok) {
+                        notify('Video deleted successfully!', 'success');
+                        
+                        // Show no video card and hide video card
+                        const videoCard = document.getElementById('videoCard');
+                        const noVideoCard = document.getElementById('noVideoCard');
+                        if (videoCard) videoCard.style.display = 'none';
+                        if (noVideoCard) noVideoCard.style.display = 'block';
+                        
+                        // Setup add video button
+                        setupAddVideoButton(userId);
+                        
+                        // Reload profile to update data
+                        await loadProfile(userId);
+                    } else {
+                        throw new Error('Delete failed');
+                    }
+                } catch (err) {
+                    console.error('Delete video error:', err);
+                    notify('Failed to delete video.', 'error');
+                }
+            }
         });
     }
 }
 
-function setupVideoUpload(userId) {
-    const videoInput = document.getElementById('introVideo');
-    const uploadBtn = document.getElementById('uploadVideoBtn');
-    const progressBar = document.getElementById('videoProgress');
-    const progressText = document.getElementById('progressText');
+function setupAddVideoButton(userId) {
+    const addVideoBtn = document.getElementById('addVideoBtn');
+    
+    if (addVideoBtn) {
+        addVideoBtn.addEventListener('click', () => {
+            // Redirect to application form with video step
+            window.location.href = '../applicant/detailed-application-form.html?step=6';
+        });
+    }
+}
 
-    if (!videoInput || !uploadBtn) return;
-
-    uploadBtn.addEventListener('click', async () => {
-        const file = videoInput.files[0];
-        if (!file) {
-            alert('Please select a video file');
-            return;
+function openVideoModal(videoUrl) {
+    const modal = document.getElementById('videoPlayerModal');
+    const videoPlayer = document.getElementById('modalVideoPlayer');
+    const closeBtn = document.getElementById('closeVideoPlayerBtn');
+    
+    if (videoPlayer) {
+        videoPlayer.src = videoUrl;
+    }
+    
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+    }
+    
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+            }
+            if (videoPlayer) {
+                videoPlayer.pause();
+                videoPlayer.src = '';
+            }
+        };
+    }
+    
+    // Close modal when clicking outside
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('active');
+            if (videoPlayer) {
+                videoPlayer.pause();
+                videoPlayer.src = '';
+            }
         }
+    };
+}
+
+function setupVideoUpload(userId) {
+    const videoInput = document.getElementById('introVideoFile');
+    const uploadBtn = document.getElementById('uploadVideoBtn');
+    const progressBar = document.getElementById('videoProgressBar');
+    const progressText = document.getElementById('videoProgressText');
+
+    if (!videoInput) return;
+
+    // Handle file selection
+    videoInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
         // Validate file
         if (!file.type.startsWith('video/')) {
-            alert('Please select a valid video file');
+            notify('Please select a video file.', 'error');
             return;
         }
 
-        if (file.size > 100 * 1024 * 1024) { // 100MB limit
-            alert('Video file must be less than 100MB');
+        if (file.size > 50 * 1024 * 1024) { // 50MB
+            notify('Video file must be less than 50MB.', 'error');
             return;
         }
+
+        // Show progress
+        const progressContainer = document.getElementById('videoUploadProgress');
+        const fileName = document.getElementById('videoFileName');
+        if (progressContainer) progressContainer.style.display = 'block';
+        if (fileName) fileName.textContent = file.name;
 
         try {
-            updateVideoProgress(10, 'Preparing upload...');
-            
+            // Upload video
             const formData = new FormData();
-            formData.append('video_file', file);
-            formData.append('candidate_id', userId);
+            formData.append('file', file);
 
             const response = await backendPost('/applicant/upload-intro-video', formData);
             const result = await handleResponse(response);
 
-            if (result.data && result.data.video_url) {
-                updateVideoProgress(100, 'Video uploaded successfully!');
+            if (result.ok) {
+                notify('Video uploaded successfully!', 'success');
                 
-                // Update profile with new video URL
-                await backendPost('/applicant/update-profile', {
-                    intro_video_url: result.data.video_url
-                });
-                
-                // Reload profile after a short delay
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
+                // Reload profile to show new video
+                await loadProfile(userId);
             } else {
-                throw new Error(result.error || 'Upload failed');
+                throw new Error('Upload failed');
             }
-
         } catch (err) {
-            updateVideoProgress(0, '');
-            alert('Video upload failed: ' + err.message);
+            console.error('Video upload error:', err);
+            notify('Failed to upload video.', 'error');
+        } finally {
+            // Hide progress
+            if (progressContainer) progressContainer.style.display = 'none';
         }
     });
 }
 
 function setupResumeDownload(profile) {
+    console.log('📄 Setting up resume download with profile:', profile);
+    
     const downloadBtn = document.getElementById('downloadResumeBtn');
-    if (!downloadBtn || !profile.resume_url) return;
-
-    downloadBtn.addEventListener('click', async () => {
-        try {
-            // Get signed URL from backend
-            const response = await backendGet(`/applicant/resume-url?path=${encodeURIComponent(profile.resume_url)}`);
-            const result = await handleResponse(response);
-            
-            if (result.data && result.data.signed_url) {
-                // Create temporary link and trigger download
-                const link = document.createElement('a');
-                link.href = result.data.signed_url;
-                link.download = 'resume.pdf';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else {
-                alert('Resume download failed');
-            }
-        } catch (err) {
-            alert('Failed to download resume: ' + err.message);
+    const viewBtn = document.getElementById('viewResumeBtn');
+    const resumeContainer = document.getElementById('resumeContainer');
+    const noResumeContainer = document.getElementById('noResumeContainer');
+    const resumeFileName = document.getElementById('resumeFileName');
+    
+    if (profile.resume_url && profile.resume_url !== null && profile.resume_url !== '' && resumeContainer) {
+        console.log('✅ Resume found, setting up buttons');
+        // Show resume container
+        if (resumeContainer) resumeContainer.style.display = 'flex';
+        if (noResumeContainer) noResumeContainer.style.display = 'none';
+        
+        // Extract filename from URL
+        const filename = profile.resume_url.split('/').pop() || 'resume.pdf';
+        if (resumeFileName) resumeFileName.textContent = filename;
+        
+        // Setup download button with direct href
+        if (downloadBtn) {
+            downloadBtn.href = profile.resume_url;
+            downloadBtn.download = filename;
+            downloadBtn.style.display = 'inline-flex';
+            console.log('✅ Download button configured');
         }
-    });
+        
+        // Setup view button with direct href
+        if (viewBtn) {
+            viewBtn.href = profile.resume_url;
+            viewBtn.target = '_blank';
+            viewBtn.style.display = 'inline-flex';
+            console.log('✅ View button configured');
+        }
+    } else {
+        console.log('📄 No resume found, showing upload area');
+        // Show no resume container
+        if (resumeContainer) resumeContainer.style.display = 'none';
+        if (noResumeContainer) noResumeContainer.style.display = 'block';
+    }
 }
 
 function updateVideoProgress(percent, text) {
@@ -476,12 +638,16 @@ function collectFormData() {
 
 function setupNavigation() {
     // Sidebar Navigation
+    const logoLink = document.getElementById('logoLink');
     const navDashboard = document.getElementById('navDashboard');
+    const navJobs = document.getElementById('navJobs');
     const navApplications = document.getElementById('navApplications');
     const navProfile = document.getElementById('navProfile');
     const logoutBtn = document.getElementById('logoutBtn');
 
+    if(logoLink) logoLink.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE);
     if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE);
+    if(navJobs) navJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.JOBS);
     if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS);
     if(navProfile) navProfile.addEventListener('click', () => window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE);
 
@@ -516,250 +682,15 @@ function setupNavigation() {
     }
 }
 
+// Setup Edit Profile button
+function setupEditProfileButton() {
+    const editProfileBtn = document.getElementById('editProfileBtn');
+    if (editProfileBtn) {
+        editProfileBtn.addEventListener('click', () => {
+            window.location.href = CONFIG.PAGES.APPLY_FORM;
+        });
+    }
+}
+
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuth();
-    setupInlineVideoRecorder();
-});
-
-/* -------------------------------------------------------
-   INLINE VIDEO RECORDER FOR PROFILE EDIT
-------------------------------------------------------- */
-let inlineVideoRecorder = null;
-let inlineVideoChunks = [];
-let inlineVideoStream = null;
-let inlineVideoBlob = null;
-let isInlineRecording = false;
-let inlineTimerInterval = null;
-let inlineRecordingSeconds = 0;
-
-function setupInlineVideoRecorder() {
-    // Replace Video button opens the recorder modal
-    const replaceVideoBtn = document.getElementById('replaceVideoBtn');
-    const videoRecorderModal = document.getElementById('videoRecorderModal');
-    const closeVideoRecorderBtn = document.getElementById('closeVideoRecorderBtn');
-    
-    if(replaceVideoBtn && videoRecorderModal) {
-        replaceVideoBtn.addEventListener('click', () => {
-            videoRecorderModal.classList.add('active');
-            initInlineCamera();
-        });
-    }
-    
-    if(closeVideoRecorderBtn && videoRecorderModal) {
-        closeVideoRecorderBtn.addEventListener('click', () => {
-            videoRecorderModal.classList.remove('active');
-            resetInlineRecorder();
-        });
-    }
-    
-    // Recording controls
-    const startBtn = document.getElementById('inlineRecordBtn');
-    const stopBtn = document.getElementById('inlineStopBtn');
-    const retakeBtn = document.getElementById('inlineRetakeBtn');
-    const saveBtn = document.getElementById('inlineSaveVideoBtn');
-    
-    if(startBtn) startBtn.addEventListener('click', startInlineRecording);
-    if(stopBtn) stopBtn.addEventListener('click', stopInlineRecording);
-    if(retakeBtn) retakeBtn.addEventListener('click', retakeInlineVideo);
-    if(saveBtn) saveBtn.addEventListener('click', saveInlineVideo);
-    
-    // File upload fallback
-    const uploadInput = document.getElementById('inlineUploadVideoFile');
-    if(uploadInput) {
-        uploadInput.addEventListener('change', handleInlineVideoUpload);
-    }
-}
-
-async function initInlineCamera() {
-    try {
-        inlineVideoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        const videoEl = document.getElementById('inlineRecorderVideo');
-        if(videoEl) videoEl.srcObject = inlineVideoStream;
-    } catch(err) {
-        notify('Camera access denied. Please allow camera access to record video.', 'error');
-    }
-}
-
-function startInlineRecording() {
-    inlineVideoChunks = [];
-    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
-    
-    try {
-        inlineVideoRecorder = new MediaRecorder(inlineVideoStream, { mimeType });
-    } catch(err) {
-        notify('Could not start recording. Please check camera permissions.', 'error');
-        return;
-    }
-    
-    inlineVideoRecorder.ondataavailable = (e) => {
-        if(e.data.size > 0) inlineVideoChunks.push(e.data);
-    };
-    
-    inlineVideoRecorder.onstop = () => {
-        inlineVideoBlob = new Blob(inlineVideoChunks, { type: 'video/webm' });
-        const videoURL = URL.createObjectURL(inlineVideoBlob);
-        
-        // Show preview
-        const previewEl = document.getElementById('inlinePreviewVideo');
-        if(previewEl) {
-            previewEl.src = videoURL;
-            previewEl.load();
-        }
-        
-        document.getElementById('inlineRecordingPreview').style.display = 'block';
-        document.getElementById('inlineRecorderVideo').style.display = 'none';
-        document.getElementById('inlineRecordingIndicator').style.display = 'none';
-        
-        // Switch buttons
-        document.getElementById('inlineRecordBtn').style.display = 'none';
-        document.getElementById('inlineStopBtn').style.display = 'none';
-        document.getElementById('inlineRetakeBtn').style.display = 'inline-flex';
-        document.getElementById('inlineSaveVideoBtn').style.display = 'inline-flex';
-        
-        stopInlineTimer();
-    };
-    
-    inlineVideoRecorder.start();
-    isInlineRecording = true;
-    
-    // Update UI
-    document.getElementById('inlineRecordBtn').style.display = 'none';
-    document.getElementById('inlineStopBtn').style.display = 'inline-flex';
-    document.getElementById('inlineRecordingIndicator').style.display = 'block';
-    
-    startInlineTimer();
-}
-
-function stopInlineRecording() {
-    if(inlineVideoRecorder && isInlineRecording) {
-        inlineVideoRecorder.stop();
-        isInlineRecording = false;
-    }
-}
-
-function retakeInlineVideo() {
-    inlineVideoBlob = null;
-    inlineVideoChunks = [];
-    
-    document.getElementById('inlineRecordingPreview').style.display = 'none';
-    document.getElementById('inlineRecorderVideo').style.display = 'block';
-    document.getElementById('inlineRetakeBtn').style.display = 'none';
-    document.getElementById('inlineSaveVideoBtn').style.display = 'none';
-    document.getElementById('inlineRecordBtn').style.display = 'inline-flex';
-    
-    resetInlineTimer();
-}
-
-async function saveInlineVideo() {
-    if(!inlineVideoBlob) return;
-    
-    const progressBar = document.getElementById('inlineVideoProgressBar');
-    const progressText = document.getElementById('inlineVideoProgressText');
-    const uploadProgress = document.getElementById('inlineVideoUploadProgress');
-    
-    uploadProgress.style.display = 'block';
-    progressBar.style.width = '30%';
-    progressText.textContent = 'Uploading video...';
-    
-    try {
-        const formData = new FormData();
-        formData.append('intro_video', inlineVideoBlob, 'intro_video.webm');
-        
-        const response = await backendPost('/applicant/upload-intro-video', formData);
-        const result = await handleResponse(response);
-        
-        if(result.data && result.data.video_url) {
-            progressBar.style.width = '100%';
-            progressText.textContent = 'Video saved successfully!';
-            
-            // Update profile with new video URL
-            await backendPost('/applicant/update-profile', {
-                intro_video_url: result.data.video_url
-            });
-            
-            notify('Video updated successfully!', 'success');
-            
-            // Close modal and reload
-            setTimeout(() => {
-                document.getElementById('videoRecorderModal').classList.remove('active');
-                window.location.reload();
-            }, 1500);
-        } else {
-            throw new Error(result.error || 'Upload failed');
-        }
-    } catch(err) {
-        uploadProgress.style.display = 'none';
-        notify('Video upload failed: ' + err.message, 'error');
-    }
-}
-
-async function handleInlineVideoUpload(e) {
-    const file = e.target.files[0];
-    if(!file) return;
-    
-    if(file.size > 50 * 1024 * 1024) {
-        notify('Video file must be less than 50MB', 'error');
-        return;
-    }
-    
-    inlineVideoBlob = file;
-    
-    // Show preview
-    const videoURL = URL.createObjectURL(file);
-    const previewEl = document.getElementById('inlinePreviewVideo');
-    if(previewEl) {
-        previewEl.src = videoURL;
-        previewEl.load();
-    }
-    
-    document.getElementById('inlineRecordingPreview').style.display = 'block';
-    document.getElementById('inlineRecorderVideo').style.display = 'none';
-    document.getElementById('inlineRecordBtn').style.display = 'none';
-    document.getElementById('inlineStopBtn').style.display = 'none';
-    document.getElementById('inlineRetakeBtn').style.display = 'inline-flex';
-    document.getElementById('inlineSaveVideoBtn').style.display = 'inline-flex';
-    
-    document.getElementById('inlineUploadFileName').textContent = file.name;
-}
-
-function startInlineTimer() {
-    inlineRecordingSeconds = 0;
-    const display = document.getElementById('inlineTimerDisplay');
-    if(display) display.textContent = '00:00';
-    
-    inlineTimerInterval = setInterval(() => {
-        inlineRecordingSeconds++;
-        const mins = Math.floor(inlineRecordingSeconds / 60).toString().padStart(2, '0');
-        const secs = (inlineRecordingSeconds % 60).toString().padStart(2, '0');
-        if(display) display.textContent = `${mins}:${secs}`;
-    }, 1000);
-}
-
-function stopInlineTimer() {
-    clearInterval(inlineTimerInterval);
-}
-
-function resetInlineTimer() {
-    stopInlineTimer();
-    inlineRecordingSeconds = 0;
-    const display = document.getElementById('inlineTimerDisplay');
-    if(display) display.textContent = '00:00';
-}
-
-function resetInlineRecorder() {
-    inlineVideoBlob = null;
-    inlineVideoChunks = [];
-    isInlineRecording = false;
-    
-    document.getElementById('inlineRecordingPreview').style.display = 'none';
-    document.getElementById('inlineRecorderVideo').style.display = 'block';
-    document.getElementById('inlineRetakeBtn').style.display = 'none';
-    document.getElementById('inlineSaveVideoBtn').style.display = 'none';
-    document.getElementById('inlineRecordBtn').style.display = 'inline-flex';
-    document.getElementById('inlineStopBtn').style.display = 'none';
-    document.getElementById('inlineRecordingIndicator').style.display = 'none';
-    document.getElementById('inlineVideoUploadProgress').style.display = 'none';
-    
-    resetInlineTimer();
-}
+document.addEventListener('DOMContentLoaded', checkAuth);

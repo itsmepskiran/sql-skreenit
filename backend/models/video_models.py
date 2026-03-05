@@ -29,9 +29,8 @@ class VideoResponseRequest(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class GeneralVideoInterviewRequest(BaseModel):
-    status: VideoStatus = VideoStatus.not_started
-    ai_analysis: Optional[Dict[str, Any]] = None
+class IntroVideoRequest(BaseModel):
+    video_url: str
     created_at: Optional[str] = None  # ISO datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -61,19 +60,17 @@ class VideoResponseList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class GeneralVideoInterview(BaseModel):
+class IntroVideo(BaseModel):
     id: str
     candidate_id: str
     video_url: Optional[str] = None
-    status: VideoStatus
-    ai_analysis: Optional[Dict[str, Any]] = None
-    created_at: Optional[str] = None
+    created_at: Optional[str] = None  # ISO datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class GeneralVideoInterviewList(BaseModel):
-    interviews: List[GeneralVideoInterview]
+class IntroVideoList(BaseModel):
+    videos: List[IntroVideo]
 
     model_config = ConfigDict(from_attributes=True)
 

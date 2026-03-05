@@ -32,14 +32,28 @@ async function loadData(userId) {
     try {
         // 1. Load Applications to get Stats and Status
         const appsRes = await backendGet('/applicant/applications');
-        const apps = (await handleResponse(appsRes)) || [];
+        const appsResponse = await handleResponse(appsRes);
+        
+        // Handle different response structures
+        let apps = [];
+        if (appsResponse && appsResponse.data) {
+            apps = Array.isArray(appsResponse.data) ? appsResponse.data : [];
+        } else if (Array.isArray(appsResponse)) {
+            apps = appsResponse;
+        }
+        
+        // Ensure apps is an array
+        if (!Array.isArray(apps)) {
+            console.warn('Applications API returned non-array data:', appsResponse);
+            apps = [];
+        }
         
         appliedJobIds = new Set(apps.map(a => a.job_id));
         
         // Update Stats
         const totalApps = apps.length;
-        if(document.getElementById("totalApplications")) {
-            document.getElementById("totalApplications").textContent = totalApps;
+        if(document.getElementById("statTotalApplications")) {
+            document.getElementById("statTotalApplications").textContent = totalApps;
         }
 
         renderApplications(apps);
@@ -70,8 +84,8 @@ async function fetchJobs(query = '') {
         
         renderJobs(filteredJobs);
         
-        if(document.getElementById("activeJobs")) {
-            document.getElementById("activeJobs").textContent = filteredJobs.length;
+        if(document.getElementById("statActiveJobs")) {
+            document.getElementById("statActiveJobs").textContent = filteredJobs.length;
         }
 
     } catch (err) {
@@ -243,17 +257,15 @@ async function viewMyResponse(applicationId) {
 }
 async function updateSidebarProfile(user) {
     const nameEl = document.getElementById("userName");
-    const designationEl = document.getElementById("userDesignation"); // Sidebar ID
-    const dashboardRoleEl = document.getElementById("candidateRole"); // Dashboard Main Area ID
+    const roleEl = document.getElementById("candidateRole"); // Sidebar Role ID
     const avatarEl = document.getElementById("userAvatar"); 
 
-    // 1. Set Name
-    if(nameEl) nameEl.textContent = user.user_metadata.full_name || user.email.split('@')[0];
+    // 1. Set Name - use full_name from user object or fallback to email
+    if(nameEl) nameEl.textContent = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
 
     // 2. Set Default Role
     const defaultTitle = "Candidate";
-    if(designationEl) designationEl.textContent = defaultTitle;
-    if(dashboardRoleEl) dashboardRoleEl.textContent = defaultTitle;
+    if(roleEl) roleEl.textContent = defaultTitle;
 
     try {
         const res = await backendGet('/applicant/profile');
@@ -261,27 +273,45 @@ async function updateSidebarProfile(user) {
         const profile = json.data || {};
 
         if (profile.experience && profile.experience.length > 0) {
-            const expTitle = profile.experience[0].title || defaultTitle;
+            const expTitle = profile.experience[0].job_title || defaultTitle; // Fixed: use job_title instead of title
             
-            // ✅ Update Sidebar
-            if (designationEl) designationEl.textContent = expTitle;
-            
-            // ✅ Update Dashboard/My Applications Main Section
-            if (dashboardRoleEl) dashboardRoleEl.textContent = expTitle;
+            // ✅ Update Sidebar Role
+            if (roleEl) roleEl.textContent = expTitle;
+        }
+        
+        // Update name with profile data if available
+        if (profile.full_name && nameEl) {
+            nameEl.textContent = profile.full_name;
         }
     } catch (err) {
         console.warn("Profile fetch failed, using defaults");
     }
 
-    // 3. Avatar logic remains the same
+    // 3. Avatar logic - use profile avatar_url since user object doesn't have user_metadata
     if(avatarEl) {
-        if (user.user_metadata.avatar_url) {
-            avatarEl.innerHTML = `<img src="${user.user_metadata.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
-        } else {
-            const initials = (user.user_metadata.full_name || user.email).match(/\b\w/g) || [];
-            const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-            avatarEl.innerHTML = text; 
-        }
+        // Get avatar from profile or use initials
+        const getAvatarFromProfile = async () => {
+            try {
+                const res = await backendGet('/applicant/profile');
+                const json = await handleResponse(res);
+                const profile = json.data || {};
+                
+                if (profile.avatar_url) {
+                    avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+                } else {
+                    const initials = (profile.full_name || user.full_name || user.email || 'User').match(/\b\w/g) || [];
+                    const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+                    avatarEl.innerHTML = text; 
+                }
+            } catch (err) {
+                // Fallback to email or name initials
+                const initials = (user.full_name || user.email || 'User').match(/\b\w/g) || [];
+                const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+                avatarEl.innerHTML = text;
+            }
+        };
+        
+        getAvatarFromProfile();
     }
 }
 function setupEventListeners() {

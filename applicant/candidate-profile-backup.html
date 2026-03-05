@@ -94,48 +94,45 @@
             <div class="profile-section" id="introVideoSection" style="grid-column: 1 / -1; margin-bottom: 1.5rem;">
                 <h3><i class="fas fa-video"></i> Introduction Video</h3>
                 <div id="videoContainer" style="display: flex; flex-direction: column; gap: 1rem;">
-                    <!-- Video Card (shown when video exists) -->
-                    <div id="videoCard" class="video-card" style="display: none; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 12px; background: #fff;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-video" style="color: white; font-size: 1.2rem;"></i>
-                                    </div>
-                                    <div>
-                                        <h6 style="margin: 0; font-weight: 600; color: var(--text-dark);">Introduction Video</h6>
-                                        <small class="text-muted">60-90 second introduction</small>
-                                    </div>
-                                </div>
-                                <p class="text-muted" style="margin: 0; font-size: 0.9rem;">Your introduction video is ready to view. Share your story with recruiters.</p>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button id="playVideoBtn" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-play"></i> View
-                                </button>
-                                <button id="deleteVideoBtn" class="btn btn-outline-danger btn-sm">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
+                    <!-- Video Player (shown when video exists) -->
+                    <div id="videoPlayer" style="display: none; position: relative; width: 100%; max-width: 600px;">
+                        <video id="introVideoElement" controls style="width: 100%; border-radius: 12px; box-shadow: var(--shadow-md);">
+                            <source src="" type="video/webm">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem;">
+                            <button id="replaceVideoBtn" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-upload"></i> Replace Video
+                            </button>
+                            <button id="deleteVideoBtn" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </div>
                     </div>
                     
-                    <!-- No Video State (shown when no video exists) -->
-                    <div id="noVideoCard" class="no-video-card" style="padding: 1.5rem; border: 2px dashed var(--border-color); border-radius: 12px; background: #f8fafc; text-align: center;">
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px;">
-                            <div style="width: 48px; height: 48px; background: #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-video" style="color: #64748b; font-size: 1.2rem;"></i>
-                            </div>
-                            <div style="text-align: left;">
-                                <h6 style="margin: 0; font-weight: 600; color: var(--text-dark);">No Introduction Video</h6>
-                                <small class="text-muted">Add a video to make your profile stand out</small>
-                            </div>
-                        </div>
-                        <button id="addVideoBtn" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus"></i> Add Introduction Video
+                    <!-- Upload Area (shown when no video) -->
+                    <div id="videoUploadArea" style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 2rem; text-align: center; background: #f8fafc;">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                        <h4 style="margin-bottom: 0.5rem; color: var(--text-dark);">Upload Introduction Video</h4>
+                        <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.9rem;">
+                            Introduce yourself in 60-90 seconds. WebM, MP4 format (Max 50MB)
+                        </p>
+                        <input type="file" id="introVideoFile" accept="video/webm,video/mp4" hidden />
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('introVideoFile').click()">
+                            <i class="fas fa-plus"></i> Choose Video File
                         </button>
+                        <p id="videoFileName" class="mt-2" style="font-size: 0.85rem; color: var(--text-light);"></p>
+                    </div>
+                    
+                    <!-- Upload Progress -->
+                    <div id="videoUploadProgress" style="display: none;">
+                        <div style="background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                            <div id="videoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                        <p id="videoProgressText" class="mt-1" style="font-size: 0.85rem; color: var(--text-light); text-align: center;">Uploading... 0%</p>
                     </div>
                 </div>
+            </div>
 
             <div class="profile-section">
                 <h3><i class="fas fa-briefcase"></i> Experience</h3>
@@ -291,28 +288,6 @@
                 <div id="inlineVideoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
             </div>
             <p id="inlineVideoProgressText" style="font-size: 0.85rem; color: #666; text-align: center;">Uploading... 0%</p>
-        </div>
-    </div>
-</div>
-
-<!-- Video Player Modal -->
-<div class="custom-modal-backdrop" id="videoPlayerModal" style="display: none;">
-    <div class="custom-modal-card" style="max-width: 800px; width: 95%; padding: 1.5rem; background: #ffffff;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
-            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;">
-                <i class="fas fa-video text-primary" style="margin-right: 10px;"></i> 
-                Introduction Video
-            </h3>
-            <button id="closeVideoPlayerBtn" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 1.2rem; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                &times;
-            </button>
-        </div>
-        
-        <div style="position: relative; background: #1a1a1a; border-radius: 12px; overflow: hidden;">
-            <video id="modalVideoPlayer" controls style="width: 100%; max-height: 450px; display: block;">
-                <source src="" type="video/webm">
-                Your browser does not support the video tag.
-            </video>
         </div>
     </div>
 </div>

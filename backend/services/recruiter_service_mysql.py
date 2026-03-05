@@ -258,26 +258,114 @@ class RecruiterService:
             existing = self.mysql.get_single_record("recruiter_profiles", {"user_id": payload["user_id"]})
             
             if existing:
-                # Update existing
-                success = self.mysql.update_record(
-                    "recruiter_profiles", 
-                    payload, 
-                    {"user_id": payload["user_id"]}
-                )
-                return {"data": payload, "updated": True}
+                # Update existing profile - only include valid recruiter profile fields
+                profile_update_data = {
+                    "contact_name": payload.get("contact_name"),
+                    "contact_email": payload.get("contact_email"),
+                    "location": payload.get("location"),
+                    "company_description": payload.get("company_description")
+                }
+                
+                # Remove None values
+                profile_update_data = {k: v for k, v in profile_update_data.items() if v is not None}
+                
+                # Also update company if exists
+                if existing.get("company_id"):
+                    company_update_data = {
+                        "name": payload.get("company_name"),
+                        "website": payload.get("company_website"),
+                        "description": payload.get("company_description")
+                    }
+                    # Remove None values
+                    company_update_data = {k: v for k, v in company_update_data.items() if v is not None}
+                    
+                    if company_update_data:  # Only update if there are fields to update
+                        self.mysql.update_record("companies", 
+                            company_update_data, 
+                            {"id": existing["company_id"]}
+                        )
+                
+                if profile_update_data:  # Only update if there are fields to update
+                    success = self.mysql.update_record(
+                        "recruiter_profiles", 
+                        profile_update_data, 
+                        {"user_id": payload["user_id"]}
+                    )
+                
+                # Get updated profile with company info
+                updated_profile = self.get_profile(payload["user_id"])
+                return {"data": updated_profile, "updated": True}
             else:
-                # Insert new
-                payload["id"] = str(uuid4())
-                profile_id = self.mysql.insert_record("recruiter_profiles", payload)
-                return {"data": payload, "id": profile_id, "updated": False}
+                # Create new profile - need to create company first
+                company_data = {
+                    "name": payload.get("company_name", "Unknown Company"),
+                    "description": payload.get("company_description"),
+                    "website": payload.get("company_website"),
+                    "created_by": payload["user_id"]
+                }
+                
+                # Create company
+                company_data["id"] = str(uuid4())
+                company_id = self.mysql.insert_record("companies", company_data)
+                
+                # Generate company display ID (e.g., "SKR-001", "SKR-002", etc.)
+                company_display_id = self._generate_company_display_id()
+                
+                # Update company with display ID
+                self.mysql.update_record("companies", 
+                    {"company_display_id": company_display_id}, 
+                    {"id": company_data["id"]}
+                )
+                
+                # Create recruiter profile - only include valid fields
+                profile_data = {
+                    "id": str(uuid4()),
+                    "user_id": payload["user_id"],
+                    "company_id": company_data["id"],
+                    "contact_name": payload.get("contact_name"),
+                    "contact_email": payload.get("contact_email"),
+                    "location": payload.get("location"),
+                    "company_description": payload.get("company_description")
+                }
+                
+                profile_id = self.mysql.insert_record("recruiter_profiles", profile_data)
+                
+                # Get complete profile with company info
+                complete_profile = self.get_profile(payload["user_id"])
+                
+                return {"data": complete_profile, "id": profile_id, "updated": False}
                 
         except Exception as e:
             logger.error(f"Upsert recruiter profile failed: {str(e)}")
             raise RuntimeError("Failed to save recruiter profile")
 
+    def _generate_company_display_id(self) -> str:
+        """Generate a unique company display ID like 'SKR-001'."""
+        try:
+            # Count existing companies
+            count = self.mysql.count_records("companies", {})
+            # Generate display ID with padding (e.g., SKR-001, SKR-002)
+            display_id = f"SKR-{str(count + 1).zfill(3)}"
+            return display_id
+        except Exception:
+            # Fallback to random ID if counting fails
+            import random
+            return f"SKR-{random.randint(100, 999)}"
+
     def get_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
         try:
             profile = self.mysql.get_single_record("recruiter_profiles", {"user_id": user_id})
+            if not profile:
+                return None
+            
+            # Get company information if company_id exists
+            if profile.get("company_id"):
+                company = self.mysql.get_single_record("companies", {"id": profile["company_id"]})
+                if company:
+                    profile["company_name"] = company.get("name")
+                    profile["company_website"] = company.get("website")
+                    profile["company_display_id"] = company.get("company_display_id")
+            
             return profile
         except Exception as e:
             logger.error(f"Get recruiter profile failed: {str(e)}")
@@ -300,14 +388,14 @@ class RecruiterService:
             resume_url = self._get_resume_signed_url(profile)
             
             # Get video data
-            general_video = self._fetch_general_video(candidate_id)
+            intro_video = self._fetch_intro_video(candidate_id)
             job_videos = self._fetch_job_video_responses(candidate_id, job_id) if job_id else []
             
             return {
                 "profile": profile,
                 "application": application,
                 "resume_url": resume_url,
-                "general_video": general_video,
+                "intro_video": intro_video,
                 "job_videos": job_videos
             }
             
@@ -354,9 +442,9 @@ class RecruiterService:
         except Exception:
             return None
 
-    def _fetch_general_video(self, candidate_id: str) -> Optional[Dict[str, Any]]:
+    def _fetch_intro_video(self, candidate_id: str) -> Optional[Dict[str, Any]]:
         try:
-            video = self.mysql.get_single_record("general_video_interviews", {"candidate_id": candidate_id})
+            video = self.mysql.get_single_record("intro_videos", {"candidate_id": candidate_id})
             return video
         except Exception:
             return None

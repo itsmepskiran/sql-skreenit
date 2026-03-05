@@ -122,20 +122,20 @@ class VideoService:
             }
 
             # Check if exists and update, or insert new
-            existing = self.mysql.get_single_record("general_video_interviews", {"candidate_id": candidate_id})
+            existing = self.mysql.get_single_record("intro_videos", {"candidate_id": candidate_id})
             
             if existing:
                 success = self.mysql.update_record(
-                    "general_video_interviews", 
+                    "intro_videos", 
                     payload, 
                     {"candidate_id": candidate_id}
                 )
                 action = "updated"
             else:
-                response_id = self.mysql.insert_record("general_video_interviews", payload)
+                response_id = self.mysql.insert_record("intro_videos", payload)
                 action = "created"
 
-            logger.info(f"General video interview {action} for candidate {candidate_id}")
+            logger.info(f"Intro video {action} for candidate {candidate_id}")
             return {"data": payload, "action": action}
 
         except Exception as e:
@@ -177,12 +177,12 @@ class VideoService:
             logger.error(f"Get candidate videos failed: {str(e)}")
             return []
 
-    def get_general_video_interview(self, candidate_id: str) -> Optional[Dict[str, Any]]:
+    def get_intro_video(self, candidate_id: str) -> Optional[Dict[str, Any]]:
         """
-        Get the general video interview for a candidate.
+        Get the introduction video for a candidate.
         """
         try:
-            video = self.mysql.get_single_record("general_video_interviews", {"candidate_id": candidate_id})
+            video = self.mysql.get_single_record("intro_videos", {"candidate_id": candidate_id})
             return video
 
         except Exception as e:

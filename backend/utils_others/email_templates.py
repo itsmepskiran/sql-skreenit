@@ -18,11 +18,11 @@ PAGES = {
 class EmailTemplates:
     """
     Loads and renders HTML email templates using Jinja2.
-    Templates live in backend/utils_others/templates/.
+    Templates live in assets/templates directory.
     """
 
     def __init__(self):
-        # Fix path - go up one level to assets directory
+        # Templates are in assets/templates directory
         self.template_dir = Path(__file__).resolve().parent.parent.parent / "assets" / "templates"
         self.template_dir.mkdir(exist_ok=True)
 
@@ -82,7 +82,7 @@ class EmailTemplates:
             "html": self._render(
                 "recruiter_welcome.html",
                 {
-                    "name": user_data.get("full_name"),
+                    "full_name": user_data.get("full_name"),
                     "email": user_data.get("email"),
                     "company_id": user_data.get("company_id"),
                     "login_url": self.frontend_url,
@@ -97,7 +97,7 @@ class EmailTemplates:
             "html": self._render(
                 "password_reset.html",
                 {
-                    "name": user_data.get("full_name"),
+                    "full_name": user_data.get("full_name"),
                     "reset_url": user_data.get("reset_url"),
                 },
             ),
@@ -110,7 +110,7 @@ class EmailTemplates:
             "html": self._render(
                 "password_updated.html",
                 {
-                    "name": user_data.get("full_name"),
+                    "full_name": user_data.get("full_name"),
                     "login_url": self.frontend_url,
                 },
             ),
@@ -126,8 +126,8 @@ def write_default_templates() -> None:
     Creates default HTML templates only if they do not exist.
     Safe to run multiple times.
     """
-    # Use same path as __init__ method
-    template_dir = Path(__file__).resolve().parent.parent.parent / "templates"
+    # Templates must be in assets/templates directory
+    template_dir = Path(__file__).resolve().parent.parent.parent / "assets" / "templates"
     template_dir.mkdir(exist_ok=True)
 
     templates = {

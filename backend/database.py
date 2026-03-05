@@ -84,6 +84,7 @@ class Company(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     website: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     logo_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
+    company_display_id: Mapped[Optional[str]] = mapped_column(VARCHAR(20), nullable=True, index=True)
     created_by: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -283,18 +284,14 @@ class InterviewResponse(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class GeneralVideoInterview(Base):
-    """General video interview for candidates."""
-    __tablename__ = "general_video_interviews"
+class IntroVideo(Base):
+    """Introduction video for candidates."""
+    __tablename__ = "intro_videos"
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
     candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
     video_url: Mapped[str] = mapped_column(VARCHAR(500), nullable=False)
-    status: Mapped[str] = mapped_column(Enum("not_started", "in_progress", "completed", "failed", name="general_video_status"), default="completed")
-    ai_analysis: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
-    is_general: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class Notification(Base):

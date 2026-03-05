@@ -9,11 +9,15 @@ import os
 from datetime import datetime
 
 # Import MySQL services
-from services.mysql_service import recruiter_service, user_service, candidate_service
+from services.mysql_service import user_service, candidate_service
+from services.recruiter_service_mysql import RecruiterService
 from services.auth_service import get_current_user
 from middleware.role_required import ensure_permission
 from models.recruiter_models import CompanyCreate, RecruiterProfileCreate, JobCreateRequest, JobUpdateRequest
 from utils_others.logger import logger
+
+# Create recruiter service instance
+recruiter_service = RecruiterService()
 
 router = APIRouter(prefix="/recruiter", tags=["Recruiter"])
 
@@ -23,7 +27,15 @@ router = APIRouter(prefix="/recruiter", tags=["Recruiter"])
 
 def get_user_from_request(request: Request):
     """Get user from request state."""
-    return getattr(request.state, "user", None)
+    user = getattr(request.state, "user", None)
+    if not user:
+        return None
+    
+    # Handle JWT token structure where user ID is in 'sub' field
+    if "sub" in user and "id" not in user:
+        user["id"] = user["sub"]
+    
+    return user
 
 def handle_file_upload(file: UploadFile, upload_path: str, public_url_base: str) -> str:
     """Handle file upload to Hostinger file system."""
@@ -107,7 +119,7 @@ async def get_profile(request: Request):
         logger.error(f"Get recruiter profile failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/profile")
+@router.put("/profile")
 async def update_profile(request: Request, profile_data: dict):
     """Update recruiter profile."""
     ensure_permission(request, "profile:update")
@@ -121,6 +133,11 @@ async def update_profile(request: Request, profile_data: dict):
     except Exception as e:
         logger.error(f"Update recruiter profile failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/profile")
+async def update_profile_post(request: Request, profile_data: dict):
+    """Update recruiter profile (POST endpoint for compatibility)."""
+    return await update_profile(request, profile_data)
 
 @router.post("/profile/avatar")
 async def upload_avatar(request: Request, file: UploadFile = File(...)):

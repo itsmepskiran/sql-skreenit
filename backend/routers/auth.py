@@ -276,16 +276,85 @@ async def confirm_email(request: Request):
 # ---------------------------------------------------------
 @router.post("/forgot-password")
 async def forgot_password(request: Request, email: str = Form(...)):
-    """Handle forgot password request."""
+    """Handle forgot password request - send reset email if user exists."""
     try:
-        # For now, just return success to avoid email enumeration
-        # In a real implementation, you would send a password reset email
-        logger.info(f"Password reset requested for email: {email}")
-        return {"ok": True, "message": "If an account exists, a reset link has been sent"}
+        user_service = get_user_service()
+        auth_service = get_auth_service()
+        
+        # Check if user exists (don't reveal if email exists for security)
+        user = user_service.get_user_by_email(email.strip().lower())
+        
+        if user:
+            # Generate reset token and send email
+            reset_token = auth_service.generate_password_reset_token(email)
+            await auth_service.send_password_reset_email(email, reset_token)
+            logger.info(f"Password reset email sent to: {email}")
+        else:
+            # Log for debugging but don't expose to user
+            logger.info(f"Password reset requested for non-existent email: {email}")
+        
+        # Always return success to prevent email enumeration
+        return {"ok": True, "message": "If an account exists, a reset link has been sent to your email"}
 
-    except Exception:
-        # Always return success to avoid email enumeration
-        return {"ok": True, "message": "If an account exists, a reset link has been sent"}
+    except Exception as e:
+        logger.error(f"Forgot password error: {str(e)}")
+        # Still return success to prevent email enumeration
+        return {"ok": True, "message": "If an account exists, a reset link has been sent to your email"}
+
+# ---------------------------------------------------------
+# VERIFY RESET TOKEN
+# ---------------------------------------------------------
+@router.post("/verify-reset-token")
+async def verify_reset_token(request: Request):
+    """Verify if a password reset token is valid."""
+    try:
+        body = await request.json()
+        token = body.get("token", "").strip()
+        
+        if not token:
+            create_error_response("Token is required")
+        
+        auth_service = get_auth_service()
+        email = auth_service.verify_password_reset_token(token)
+        
+        return {"ok": True, "email": email, "message": "Token is valid"}
+        
+    except ValueError as e:
+        logger.error(f"Token verification failed: {str(e)}")
+        create_error_response(str(e), 400)
+    except Exception as e:
+        logger.error(f"Token verification error: {str(e)}")
+        create_error_response("Invalid token", 400)
+
+# ---------------------------------------------------------
+# RESET PASSWORD
+# ---------------------------------------------------------
+@router.post("/reset-password")
+async def reset_password(request: Request):
+    """Reset password using reset token."""
+    try:
+        body = await request.json()
+        token = body.get("token", "").strip()
+        new_password = body.get("password", "").strip()
+        
+        if not token or not new_password:
+            create_error_response("Token and password are required")
+        
+        if len(new_password) < 8:
+            create_error_response("Password must be at least 8 characters", 400)
+        
+        auth_service = get_auth_service()
+        result = auth_service.reset_password(token, new_password)
+        
+        logger.info("Password reset successfully")
+        return result
+        
+    except ValueError as e:
+        logger.error(f"Password reset failed: {str(e)}")
+        create_error_response(str(e), 400)
+    except Exception as e:
+        logger.error(f"Password reset error: {str(e)}")
+        create_error_response("Failed to reset password", 500)
 
 # ---------------------------------------------------------
 # REFRESH TOKEN

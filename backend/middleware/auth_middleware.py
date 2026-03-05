@@ -22,7 +22,10 @@ EXCLUDED_PATHS = {
     "/api/v1/login",
     "/api/v1/register",
     "/api/v1/confirm-email",
+    "/api/v1/update-password",
+    "/api/v1/forgot-password",
     "/api/v1/reset-password",
+    "/api/v1/verify-reset-token",
     "/api/v1/refresh-token",
     "/api/v1/system/info",
 }
@@ -44,8 +47,13 @@ class CustomAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
         
+        # DEBUG: Log path checking
+        print(f"[AUTH_MIDDLEWARE] Request path: {path}, Method: {request.method}", flush=True)
+        print(f"[AUTH_MIDDLEWARE] Excluded paths: {self.excluded_paths}", flush=True)
+        
         # 1. Allow CORS preflight
         if request.method == "OPTIONS":
+            print(f"[AUTH_MIDDLEWARE] OPTIONS request, allowing through", flush=True)
             return await call_next(request)
 
         # 2. Allow Static Files & Logos
@@ -54,13 +62,18 @@ class CustomAuthMiddleware(BaseHTTPMiddleware):
 
         # 3. Check Excluded Paths (Handling trailing slashes)
         clean_path = path.rstrip("/")
-        if clean_path in self.excluded_paths or path in self.excluded_paths:
+        is_excluded = clean_path in self.excluded_paths or path in self.excluded_paths
+        print(f"[AUTH_MIDDLEWARE] clean_path: {clean_path}, is_excluded: {is_excluded}", flush=True)
+        
+        if is_excluded:
+            print(f"[AUTH_MIDDLEWARE] Path {path} is EXCLUDED, allowing through", flush=True)
             return await call_next(request)
 
         # 4. Require Authorization header
+        print(f"[AUTH_MIDDLEWARE] Path {path} is NOT excluded, checking auth", flush=True)
         auth_header = request.headers.get("Authorization")
         if not auth_header:
-            logger.warning(f"Missing Authorization for protected path: {path}")
+            print(f"[AUTH_MIDDLEWARE] Missing Authorization for protected path: {path}", flush=True)
             return JSONResponse(
                 status_code=401, 
                 content={"detail": "Missing Authorization header"}

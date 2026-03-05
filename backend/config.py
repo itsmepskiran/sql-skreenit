@@ -1,7 +1,14 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load environment-specific .env file first, then fall back to .env
+# .env.local for local development, .env for production defaults
+env_file = ".env.local" if os.path.exists(".env.local") else ".env"
+load_dotenv(env_file)
+
+# Also load .env to get any missing defaults (optional, .env.local takes precedence)
+if env_file == ".env.local":
+    load_dotenv(".env", override=False)
 
 # ============================================================
 # CUSTOM AUTHENTICATION CONFIGURATION

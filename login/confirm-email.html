@@ -34,6 +34,7 @@
         loadSharedCSS('core.css');       // Tokens, Colors, Utility classes
         loadSharedCSS('components.css'); // Form inputs, Buttons
         loadSharedCSS('auth.css');       // Auth Card layout, Floating circles
+        loadSharedCSS('warning-ribbon.css'); // Warning ribbon styles
         loadSharedCSS('mobile.css');
     </script>
     
@@ -59,7 +60,20 @@
       <p id="subtitle">Please wait while we confirm your email address...</p>
     </div>
 
-    <div id="errorBox" class="alert alert-error d-none"></div>
+    <div id="errorBox" class="warning-ribbon d-none">
+        <div class="warning-content">
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="warning-message">
+                <strong>Email Confirmation Issue</strong>
+                <p class="warning-details">Please check the link and try again</p>
+            </div>
+            <button type="button" class="warning-close" onclick="hideWarning('errorBox')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
 
     <!-- Status Icons -->
     <div class="text-center mb-4">

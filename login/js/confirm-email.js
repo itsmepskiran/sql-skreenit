@@ -1,5 +1,6 @@
 // login/js/confirm-email.js
 import { CONFIG } from '@shared/js/config.js';
+import { showError, showSuccess, hideWarning } from '@shared/js/warning-ribbon.js';
 import '@shared/js/mobile.js';
 
 // Setup Assets
@@ -93,6 +94,7 @@ function showConfirmationState(state, message, title = '') {
             errorFooterEl.style.display = 'block';
             loginBtnEl.style.display = 'inline-block';
             redirectTimerEl.style.display = 'block';
+            showError("errorBox", message, title || 'Confirmation Failed');
             startRedirectTimer();
             break;
     }

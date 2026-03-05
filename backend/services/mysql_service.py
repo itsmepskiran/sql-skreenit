@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, desc, asc, func
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from database import get_db_session, User, Company, RecruiterProfile, CandidateProfile, CandidateEducation, CandidateExperience, Job, JobSkill, InterviewQuestion, JobApplication, VideoResponse, InterviewResponse, GeneralVideoInterview, Notification, generate_uuid
+from database import get_db_session, User, Company, RecruiterProfile, CandidateProfile, CandidateEducation, CandidateExperience, Job, JobSkill, InterviewQuestion, JobApplication, VideoResponse, InterviewResponse, IntroVideo, Notification, generate_uuid
 from utils_others.logger import logger
 
 
@@ -39,6 +39,238 @@ class MySQLService:
     
     def __init__(self):
         self.session_factory = get_db_session
+
+    def insert_record(self, table: str, data: Dict[str, Any]) -> str:
+        """Insert a record into the specified table."""
+        with self.session_factory() as db:
+            # Get the model class based on table name
+            model_map = {
+                'users': User,
+                'companies': Company,
+                'recruiter_profiles': RecruiterProfile,
+                'candidate_profiles': CandidateProfile,
+                'jobs': Job,
+                'job_skills': JobSkill,
+                'interview_questions': InterviewQuestion,
+                'job_applications': JobApplication,
+                'video_responses': VideoResponse,
+                'intro_videos': IntroVideo,
+                'notifications': Notification
+            }
+            
+            model_class = model_map.get(table)
+            if not model_class:
+                raise ValueError(f"Unknown table: {table}")
+            
+            # Only include fields that actually exist in the model
+            model_columns = {column.name for column in model_class.__table__.columns}
+            filtered_data = {k: v for k, v in data.items() if k in model_columns}
+            
+            # Create instance
+            instance = model_class(**filtered_data)
+            db.add(instance)
+            db.commit()
+            db.refresh(instance)
+            return str(instance.id)
+
+    def get_single_record(self, table: str, conditions: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Get a single record from the specified table."""
+        with self.session_factory() as db:
+            model_map = {
+                'users': User,
+                'companies': Company,
+                'recruiter_profiles': RecruiterProfile,
+                'candidate_profiles': CandidateProfile,
+                'jobs': Job,
+                'job_skills': JobSkill,
+                'interview_questions': InterviewQuestion,
+                'job_applications': JobApplication,
+                'video_responses': VideoResponse,
+                'intro_videos': IntroVideo,
+                'notifications': Notification
+            }
+            
+            model_class = model_map.get(table)
+            if not model_class:
+                raise ValueError(f"Unknown table: {table}")
+            
+            query = db.query(model_class)
+            
+            # Apply conditions
+            for key, value in conditions.items():
+                if isinstance(value, list):
+                    query = query.filter(getattr(model_class, key).in_(value))
+                else:
+                    query = query.filter(getattr(model_class, key) == value)
+            
+            result = query.first()
+            if not result:
+                return None
+            
+            # Convert to dict - only include actual table columns
+            return {
+                column.name: getattr(result, column.name) 
+                for column in result.__table__.columns
+            }
+
+    def get_records(self, table: str, conditions: Optional[Dict[str, Any]] = None, order_by: Optional[str] = None, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Get multiple records from the specified table."""
+        with self.session_factory() as db:
+            model_map = {
+                'users': User,
+                'companies': Company,
+                'recruiter_profiles': RecruiterProfile,
+                'candidate_profiles': CandidateProfile,
+                'jobs': Job,
+                'job_skills': JobSkill,
+                'interview_questions': InterviewQuestion,
+                'job_applications': JobApplication,
+                'video_responses': VideoResponse,
+                'intro_videos': IntroVideo,
+                'notifications': Notification
+            }
+            
+            model_class = model_map.get(table)
+            if not model_class:
+                raise ValueError(f"Unknown table: {table}")
+            
+            query = db.query(model_class)
+            
+            # Apply conditions
+            if conditions:
+                for key, value in conditions.items():
+                    if isinstance(value, list):
+                        query = query.filter(getattr(model_class, key).in_(value))
+                    else:
+                        query = query.filter(getattr(model_class, key) == value)
+            
+            # Apply ordering
+            if order_by:
+                if order_by.endswith(' DESC'):
+                    column = order_by.replace(' DESC', '')
+                    query = query.order_by(desc(getattr(model_class, column)))
+                else:
+                    column = order_by.replace(' ASC', '')
+                    query = query.order_by(asc(getattr(model_class, column)))
+            
+            # Apply limit
+            if limit:
+                query = query.limit(limit)
+            
+            results = query.all()
+            
+            # Convert to dict
+            return [
+                {column.name: getattr(result, column.name) for column in result.__table__.columns}
+                for result in results
+            ]
+
+    def get_records_with_pagination(self, table: str, conditions: Dict[str, Any], order_by: str, limit: int, offset: int) -> List[Dict[str, Any]]:
+        """Get records with pagination."""
+        return self.get_records(table, conditions, order_by, limit)
+
+    def count_records(self, table: str, conditions: Optional[Dict[str, Any]] = None) -> int:
+        """Count records in the specified table."""
+        with self.session_factory() as db:
+            model_map = {
+                'users': User,
+                'companies': Company,
+                'recruiter_profiles': RecruiterProfile,
+                'candidate_profiles': CandidateProfile,
+                'jobs': Job,
+                'job_skills': JobSkill,
+                'interview_questions': InterviewQuestion,
+                'job_applications': JobApplication,
+                'video_responses': VideoResponse,
+                'intro_videos': IntroVideo,
+                'notifications': Notification
+            }
+            
+            model_class = model_map.get(table)
+            if not model_class:
+                raise ValueError(f"Unknown table: {table}")
+            
+            query = db.query(model_class)
+            
+            # Apply conditions
+            if conditions:
+                for key, value in conditions.items():
+                    if isinstance(value, list):
+                        query = query.filter(getattr(model_class, key).in_(value))
+                    else:
+                        query = query.filter(getattr(model_class, key) == value)
+            
+            return query.count()
+
+    def update_record(self, table: str, update_data: Dict[str, Any], conditions: Dict[str, Any]) -> bool:
+        """Update records in the specified table."""
+        with self.session_factory() as db:
+            model_map = {
+                'users': User,
+                'companies': Company,
+                'recruiter_profiles': RecruiterProfile,
+                'candidate_profiles': CandidateProfile,
+                'jobs': Job,
+                'job_skills': JobSkill,
+                'interview_questions': InterviewQuestion,
+                'job_applications': JobApplication,
+                'video_responses': VideoResponse,
+                'intro_videos': IntroVideo,
+                'notifications': Notification
+            }
+            
+            model_class = model_map.get(table)
+            if not model_class:
+                raise ValueError(f"Unknown table: {table}")
+            
+            # Only include fields that actually exist in the model
+            model_columns = {column.name for column in model_class.__table__.columns}
+            filtered_data = {k: v for k, v in update_data.items() if k in model_columns}
+            
+            query = db.query(model_class)
+            
+            # Apply conditions
+            for key, value in conditions.items():
+                query = query.filter(getattr(model_class, key) == value)
+            
+            # Update
+            updated = query.update(filtered_data)
+            db.commit()
+            
+            return updated > 0
+
+    def delete_record(self, table: str, conditions: Dict[str, Any]) -> bool:
+        """Delete records from the specified table."""
+        with self.session_factory() as db:
+            model_map = {
+                'users': User,
+                'companies': Company,
+                'recruiter_profiles': RecruiterProfile,
+                'candidate_profiles': CandidateProfile,
+                'jobs': Job,
+                'job_skills': JobSkill,
+                'interview_questions': InterviewQuestion,
+                'job_applications': JobApplication,
+                'video_responses': VideoResponse,
+                'intro_videos': IntroVideo,
+                'notifications': Notification
+            }
+            
+            model_class = model_map.get(table)
+            if not model_class:
+                raise ValueError(f"Unknown table: {table}")
+            
+            query = db.query(model_class)
+            
+            # Apply conditions
+            for key, value in conditions.items():
+                query = query.filter(getattr(model_class, key) == value)
+            
+            # Delete
+            deleted = query.delete()
+            db.commit()
+            
+            return deleted > 0
 
 
 # ============================================================
@@ -325,14 +557,29 @@ class RecruiterService(MySQLService):
         if not user_id:
             raise ValueError("user_id is required")
         
+        # Separate user data from profile data - only include valid RecruiterProfile fields
+        user_fields = ["avatar_url"]
+        profile_fields = ["company_id", "contact_name", "contact_email", "location", "company_description"]
+        
+        user_data = {k: v for k, v in payload.items() if k in user_fields}
+        profile_data = {k: v for k, v in payload.items() if k in profile_fields}
+        
         with self.session_factory() as db:
-            # Check if profile exists
+            # Update user table if needed (for avatar_url)
+            if user_data:
+                user = db.query(User).filter(User.id == user_id).first()
+                if user:
+                    for key, value in user_data.items():
+                        if hasattr(user, key):
+                            setattr(user, key, value)
+            
+            # Check if recruiter profile exists
             existing_profile = db.query(RecruiterProfile).filter(RecruiterProfile.user_id == user_id).first()
             
             if existing_profile:
                 # Update existing profile
-                for key, value in payload.items():
-                    if key != "user_id" and hasattr(existing_profile, key):
+                for key, value in profile_data.items():
+                    if hasattr(existing_profile, key):
                         setattr(existing_profile, key, value)
                 db.commit()
                 db.refresh(existing_profile)
@@ -342,14 +589,7 @@ class RecruiterService(MySQLService):
                 profile = RecruiterProfile(
                     id=generate_uuid(),
                     user_id=user_id,
-                    company_id=payload.get("company_id"),
-                    company_name=payload.get("company_name"),
-                    company_website=payload.get("company_website"),
-                    contact_name=payload.get("contact_name"),
-                    contact_email=payload.get("contact_email"),
-                    location=payload.get("location"),
-                    about=payload.get("about"),
-                    avatar_url=payload.get("avatar_url")
+                    **profile_data
                 )
                 db.add(profile)
                 db.commit()
@@ -359,8 +599,10 @@ class RecruiterService(MySQLService):
     def get_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Get recruiter profile."""
         with self.session_factory() as db:
+            # Get profile and user data
             profile = db.query(RecruiterProfile).filter(RecruiterProfile.user_id == user_id).first()
-            if not profile:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not profile or not user:
                 return None
             
             return {
@@ -373,7 +615,7 @@ class RecruiterService(MySQLService):
                 "contact_email": profile.contact_email,
                 "location": profile.location,
                 "about": profile.about,
-                "avatar_url": profile.avatar_url
+                "avatar_url": user.avatar_url
             }
     
     def post_job(self, job_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -574,9 +816,9 @@ class CandidateService(MySQLService):
     def upsert_profile(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create or update candidate profile."""
         # Separate data for different tables
-        user_fields = ["full_name", "phone", "location"]
+        user_fields = ["full_name", "phone", "location", "avatar_url"]
         profile_fields = [
-            "summary", "avatar_url", "resume_url", "intro_video_url",
+            "summary", "resume_url", "intro_video_url",
             "linkedin_url", "portfolio_url", "skills", "experience_years",
             "preferred_job_type", "expected_salary", "languages", 
             "willing_to_relocate", "availability"
@@ -603,22 +845,29 @@ class CandidateService(MySQLService):
             
             if not existing_profile:
                 # Create new profile if doesn't exist
+                print(f"DEBUG: Creating new candidate profile for user_id: {user_id}")
                 existing_profile = CandidateProfile(
                     id=generate_uuid(),
                     user_id=user_id
                 )
                 db.add(existing_profile)
                 db.flush()  # Get the ID without committing
+                print(f"DEBUG: Created profile with id: {existing_profile.id}")
+            else:
+                print(f"DEBUG: Found existing profile with id: {existing_profile.id}")
             
             profile_id = existing_profile.id  # This is the FK for experience/education
             
             # Handle experience
             if experience_data:
-                db.query(CandidateExperience).filter(CandidateExperience.candidate_id == profile_id).delete()
+                print(f"DEBUG: Adding {len(experience_data)} experience records with user_id: {user_id}")
+                # Database constraint incorrectly points to candidate_profiles.user_id, so use user_id as FK
+                db.query(CandidateExperience).filter(CandidateExperience.candidate_id == user_id).delete()
                 for exp in experience_data:
+                    print(f"DEBUG: Adding experience: {exp}")
                     experience = CandidateExperience(
                         id=generate_uuid(),
-                        candidate_id=profile_id,
+                        candidate_id=user_id,  # Using user_id as FK due to database constraint issue
                         job_title=exp.get("job_title"),
                         company=exp.get("company"),
                         start_date=exp.get("start_date"),
@@ -629,11 +878,14 @@ class CandidateService(MySQLService):
             
             # Handle education
             if education_data:
-                db.query(CandidateEducation).filter(CandidateEducation.candidate_id == profile_id).delete()
+                print(f"DEBUG: Adding {len(education_data)} education records with user_id: {user_id}")
+                # Database constraint incorrectly points to candidate_profiles.user_id, so use user_id as FK
+                db.query(CandidateEducation).filter(CandidateEducation.candidate_id == user_id).delete()
                 for edu in education_data:
+                    print(f"DEBUG: Adding education: {edu}")
                     education = CandidateEducation(
                         id=generate_uuid(),
-                        candidate_id=profile_id,
+                        candidate_id=user_id,  # Using user_id as FK due to database constraint issue
                         degree=edu.get("degree"),
                         institution=edu.get("institution"),
                         completion_year=edu.get("completion_year")
@@ -663,9 +915,8 @@ class CandidateService(MySQLService):
             # Get profile data (extended fields from candidate_profiles)
             profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == user_id).first()
             
-            # Get experience data - use profile.id if profile exists
-            profile_id = profile.id if profile else None
-            experience_records = db.query(CandidateExperience).filter(CandidateExperience.candidate_id == profile_id).all() if profile_id else []
+            # Get experience data - use user_id due to database constraint issue
+            experience_records = db.query(CandidateExperience).filter(CandidateExperience.candidate_id == user_id).all()
             experience = [
                 {
                     "job_title": exp.job_title,
@@ -677,8 +928,8 @@ class CandidateService(MySQLService):
                 for exp in experience_records
             ]
             
-            # Get education data - use profile.id if profile exists
-            education_records = db.query(CandidateEducation).filter(CandidateEducation.candidate_id == profile_id).all() if profile_id else []
+            # Get education data - use user_id due to database constraint issue
+            education_records = db.query(CandidateEducation).filter(CandidateEducation.candidate_id == user_id).all()
             education = [
                 {
                     "degree": edu.degree,
@@ -1158,27 +1409,17 @@ class VideoService(MySQLService):
                 "recorded_at": response.recorded_at.isoformat()
             }
     
-    def save_general_video(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Save general video interview."""
+    def save_intro_video(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Save introduction video."""
         with self.session_factory() as db:
-            video = GeneralVideoInterview(
+            video = IntroVideo(
                 id=generate_uuid(),
                 candidate_id=data.get("candidate_id"),
                 video_url=data.get("video_url"),
-                status=data.get("status", "completed"),
-                ai_analysis=data.get("ai_analysis", {})
             )
             db.add(video)
             db.commit()
-            db.refresh(video)
-            
-            return {
-                "id": video.id,
-                "candidate_id": video.candidate_id,
-                "video_url": video.video_url,
-                "status": video.status,
-                "created_at": video.created_at.isoformat()
-            }
+            return {"id": video.id, "candidate_id": video.candidate_id, "video_url": video.video_url}
     
     def get_candidate_videos(self, candidate_id: str) -> List[Dict[str, Any]]:
         """Get all videos for candidate."""

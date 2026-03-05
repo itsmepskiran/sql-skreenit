@@ -1,8 +1,19 @@
-import { customAuth } from '@shared/js/auth-config.js';;
-import { backendGet, backendPut, handleResponse } from '@shared/js/backend-client.js';
+import { customAuth } from '@shared/js/auth-config.js';
+import { backendGet, backendPut, backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { notify } from '@shared/js/auth-pages.js';
 import { CONFIG } from '@shared/js/config.js';
+import { showError, showSuccess, hideWarning } from '@shared/js/warning-ribbon.js';
 import '@shared/js/mobile.js';
+
+// Global variables for video recording
+let introVideoStream = null;
+let introVideoRecorder = null;
+let introVideoChunks = [];
+let introVideoBlob = null;
+let hasIntroVideoRecorded = false;
+let introRecordingSeconds = 0;
+let introTimerInterval = null;
+
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
@@ -20,16 +31,6 @@ let form, nextBtn, prevBtn, submitBtn, steps, sections, successModal, logoutBtn,
 let resumeInput, skillInput, addSkillBtn, skillsContainer;
 let addExpBtn, addEduBtn;
 let profileImageInput, introVideoInput, removeVideoBtn;
-
-// Video Recording State
-let introVideoRecorder = null;
-let introVideoChunks = [];
-let introVideoStream = null;
-let introVideoBlob = null;
-let isRecordingIntro = false;
-let introTimerInterval = null;
-let introRecordingSeconds = 0;
-let hasIntroVideoRecorded = false;
 
 /* -------------------------------------------------------
    MAIN INITIALIZATION
@@ -82,36 +83,78 @@ async function checkAuth() {
     updateSidebarProfile(user);
 
     if(form) {
-        const userMeta = user.user_metadata || {};
         console.log("📝 Setting form values:", { 
-            full_name: user.full_name || userMeta.full_name,
-            email: user.email || userMeta.email,
-            phone: user.phone || userMeta.phone
+            full_name: user.full_name,
+            email: user.email,
+            phone: user.phone
         });
-        setVal('full_name', user.full_name || userMeta.full_name || '');
-        setVal('email', user.email || userMeta.email || '');
-        setVal('phone', user.phone || userMeta.phone || '');
+        setVal('full_name', user.full_name || '');
+        setVal('email', user.email || '');
+        setVal('phone', user.phone || '');
     }
     return true;
 }
 
 function updateSidebarProfile(user) {
     const nameEl = document.getElementById("userName");
+    const designationEl = document.getElementById("userDesignation");
     const avatarEl = document.getElementById("userAvatar"); 
-    const userMeta = user.user_metadata || {};
 
-    if(nameEl) nameEl.textContent = userMeta.full_name || user.full_name || (user.email ? user.email.split('@')[0] : 'User');
+    // Set name - use full_name from user object or fallback to email
+    if(nameEl) nameEl.textContent = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
     
+    // Set default designation
+    const defaultTitle = "Candidate";
+    if(designationEl) designationEl.textContent = defaultTitle;
+    
+    // Load profile to get experience for designation
+    loadAndUpdateDesignation(designationEl, defaultTitle);
+    
+    // Handle avatar - get from profile since user object doesn't have avatar_url
     if(avatarEl) {
-        if (userMeta.avatar_url || user.avatar_url) {
-            const avatarUrl = userMeta.avatar_url || user.avatar_url;
-            avatarEl.innerHTML = `<img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
-        } else {
-            const nameForInitials = userMeta.full_name || user.full_name || user.email || '?';
-            const initials = nameForInitials.match(/\b\w/g) || [];
-            const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-            avatarEl.innerHTML = text; 
+        // Get avatar from profile API
+        const updateAvatarFromProfile = async () => {
+            try {
+                const res = await backendGet('/applicant/profile');
+                const json = await handleResponse(res);
+                const profile = json.data || {};
+                
+                if (profile.avatar_url) {
+                    avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+                } else {
+                    const nameForInitials = user.full_name || user.email || 'User';
+                    const initials = nameForInitials.match(/\b\w/g) || [];
+                    const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+                    avatarEl.innerHTML = text; 
+                }
+            } catch (err) {
+                // Fallback to initials
+                const nameForInitials = user.full_name || user.email || 'User';
+                const initials = nameForInitials.match(/\b\w/g) || [];
+                const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+                avatarEl.innerHTML = text;
+            }
+        };
+        
+        updateAvatarFromProfile();
+    }
+}
+
+async function loadAndUpdateDesignation(designationEl, defaultTitle) {
+    if (!designationEl) return;
+    
+    try {
+        const res = await backendGet('/applicant/profile');
+        const json = await handleResponse(res);
+        const profile = json.data || {};
+
+        if (profile.experience && profile.experience.length > 0) {
+            const expTitle = profile.experience[0].job_title || defaultTitle;
+            designationEl.textContent = expTitle;
         }
+    } catch (err) {
+        console.warn("Failed to load profile for designation:", err);
+        // Keep default title
     }
 }
 
@@ -275,6 +318,13 @@ function updateUI() {
         if(nextBtn) nextBtn.style.display = 'block';
         if(submitBtn) submitBtn.style.display = 'none';
     }
+    
+    // Initialize video recording when reaching video step (step 6)
+    if (currentStep === 6 && !window.videoSetupInitialized) {
+        setupIntroVideoRecording();
+        window.videoSetupInitialized = true;
+    }
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -324,17 +374,6 @@ function setupEventListeners() {
                 };
                 reader.readAsDataURL(file);
             }
-        });
-    }
-    
-    // Introduction Video Recording Setup
-    setupIntroVideoRecording();
-    
-    // Remove Video Button (legacy - kept for compatibility)
-    if(removeVideoBtn) {
-        removeVideoBtn.addEventListener('click', () => {
-            introVideoInput.value = '';
-            resetIntroVideoRecording();
         });
     }
     
@@ -452,6 +491,139 @@ function renderSkills() {
 }
 window.removeSkill = (s) => { skills = skills.filter(k => k !== s); renderSkills(); };
 
+/* -------------------------------------------------------
+   VIDEO RECORDING SETUP
+------------------------------------------------------- */
+function setupIntroVideoRecording() {
+    const startBtn = document.getElementById('startIntroRecordingBtn');
+    const stopBtn = document.getElementById('stopIntroRecordingBtn');
+    const acceptBtn = document.getElementById('acceptIntroVideoBtn');
+    const retakeBtn = document.getElementById('retakeIntroVideoBtn');
+    
+    if(startBtn) startBtn.addEventListener('click', startIntroRecording);
+    if(stopBtn) stopBtn.addEventListener('click', stopIntroRecording);
+    if(acceptBtn) acceptBtn.addEventListener('click', acceptIntroVideo);
+    if(retakeBtn) retakeBtn.addEventListener('click', retakeIntroVideo);
+    
+    // Re-record button (in accepted state)
+    const reRecordBtn = document.getElementById('reRecordIntroVideoBtn');
+    if(reRecordBtn) {
+        reRecordBtn.addEventListener('click', () => {
+            resetIntroVideoRecording();
+        });
+    }
+    
+    // Initialize camera on page load
+    initIntroCamera();
+}
+
+async function initIntroCamera() {
+    const video = document.getElementById('introCameraFeed');
+    if(!video) return;
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }, 
+            audio: true 
+        });
+        video.srcObject = stream;
+        introVideoStream = stream;
+    } catch (err) {
+        console.error('Camera access error:', err);
+        showWarning("warningBox", "Camera access denied. Please allow camera access to record video.", "Camera Access Required");
+    }
+}
+
+function startIntroRecording() {
+    const video = document.getElementById('introCameraFeed');
+    if(!video || !introVideoStream) {
+        showError("errorBox", "Camera not ready. Please wait...", "Camera Not Ready");
+        return;
+    }
+    
+    introVideoChunks = [];
+    const mediaRecorder = new MediaRecorder(introVideoStream);
+    
+    mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+            introVideoChunks.push(event.data);
+        }
+    };
+    
+    mediaRecorder.onstop = () => {
+        introVideoBlob = new Blob(introVideoChunks, { type: 'video/webm' });
+        const videoURL = URL.createObjectURL(introVideoBlob);
+        
+        // Show playback
+        const playback = document.getElementById('introPlaybackFeed');
+        const camera = document.getElementById('introCameraFeed');
+        
+        if(playback) {
+            playback.src = videoURL;
+            playback.style.display = 'block';
+        }
+        if(camera) camera.style.display = 'none';
+        
+        // Show review controls
+        document.getElementById('introRecordingControls').style.display = 'none';
+        document.getElementById('introStopControls').style.display = 'none';
+        document.getElementById('introReviewControls').style.display = 'flex';
+        
+        hasIntroVideoRecorded = true;
+    };
+    
+    mediaRecorder.start();
+    introVideoRecorder = mediaRecorder;
+    
+    // Update UI
+    document.getElementById('introRecordingControls').style.display = 'none';
+    document.getElementById('introStopControls').style.display = 'flex';
+    document.getElementById('recordingIndicator').style.display = 'block';
+    
+    startIntroTimer();
+}
+
+function stopIntroRecording() {
+    if(introVideoRecorder && introVideoRecorder.state !== 'inactive') {
+        introVideoRecorder.stop();
+        stopIntroTimer();
+    }
+}
+
+function acceptIntroVideo() {
+    // Hide review controls, show accepted state
+    document.getElementById('introReviewControls').style.display = 'none';
+    document.getElementById('introVideoAccepted').style.display = 'block';
+    
+    // Store blob in hidden input for form submission
+    const blobInput = document.getElementById('introVideoRecordedBlob');
+    if(blobInput && introVideoBlob) {
+        // Convert blob to base64 for form submission
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            blobInput.value = reader.result;
+        };
+        reader.readAsDataURL(introVideoBlob);
+    }
+    
+    // Update accepted state with duration
+    const acceptedVideoDuration = document.getElementById('acceptedVideoDuration');
+    if(acceptedVideoDuration) {
+        const mins = Math.floor(introRecordingSeconds / 60).toString().padStart(2, '0');
+        const secs = (introRecordingSeconds % 60).toString().padStart(2, '0');
+        acceptedVideoDuration.textContent = `Duration: ${mins}:${secs}`;
+    }
+    
+    showSuccess("errorBox", "Video recorded successfully!", "Recording Complete");
+}
+
+function retakeIntroVideo() {
+    resetIntroVideoRecording();
+}
+
 function resetIntroVideoRecording() {
     introVideoBlob = null;
     introVideoChunks = [];
@@ -515,7 +687,7 @@ async function handleFormSubmit(e) {
     const hasExistingResume = resumeTextElement && resumeTextElement.innerText.includes('Existing Resume');
     
     if (resumeInput && !resumeInput.files[0] && !hasExistingResume) { 
-        notify("Please upload your resume.", "error"); 
+        showError("errorBox", "Please upload your resume.", "Resume Required");
         return; 
     }
 
@@ -573,21 +745,58 @@ async function handleFormSubmit(e) {
         if(profileImageInput && profileImageInput.files[0]) {
             payload.append('profile_image', profileImageInput.files[0]);
         }
-        
-        // Append introduction video if selected
-        if(introVideoInput && introVideoInput.files[0]) {
-            payload.append('intro_video', introVideoInput.files[0]);
-        }
 
         const response = await backendPut('/applicant/profile', payload);
         await handleResponse(response);
         
-        await customAuth.updateUser({ data: { onboarded: true } });
+        // Upload introduction video separately if selected
+        let videoUploaded = false;
+        
+        // Case 1: File upload
+        if(introVideoInput && introVideoInput.files[0]) {
+            try {
+                const videoPayload = new FormData();
+                videoPayload.append('file', introVideoInput.files[0]);
+                
+                const videoResponse = await backendPost('/applicant/upload-intro-video', videoPayload);
+                await handleResponse(videoResponse);
+                
+                console.log('Intro video file uploaded successfully');
+                videoUploaded = true;
+            } catch (videoError) {
+                console.warn('Video file upload failed, but profile was saved:', videoError);
+                // Don't fail the entire submission if video upload fails
+            }
+        }
+        // Case 2: Recorded video
+        else if(hasIntroVideoRecorded && introVideoBlob) {
+            try {
+                const videoPayload = new FormData();
+                videoPayload.append('file', introVideoBlob, 'intro-video.webm');
+                
+                const videoResponse = await backendPost('/applicant/upload-intro-video', videoPayload);
+                await handleResponse(videoResponse);
+                
+                console.log('Intro video recording uploaded successfully');
+                videoUploaded = true;
+            } catch (videoError) {
+                console.warn('Video recording upload failed, but profile was saved:', videoError);
+                // Don't fail the entire submission if video upload fails
+            }
+        }
+        
+        // Try to mark user as onboarded (optional - don't fail if this fails)
+        try {
+            await customAuth.updateUser({ data: { onboarded: true } });
+        } catch (updateError) {
+            console.warn('User update failed, but profile was saved:', updateError);
+            // Don't throw error - profile was saved successfully
+        }
 
         if(successModal) successModal.classList.add('active');
 
     } catch (err) {
-        notify("Submission failed: " + (err.message || "Unknown error"), "error");
+        showError("errorBox", "Submission failed: " + (err.message || "Unknown error"), "Application Failed");
         submitBtn.disabled = false; submitBtn.textContent = "Submit Application";
     }
 }

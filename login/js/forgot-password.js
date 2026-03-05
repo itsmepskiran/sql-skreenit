@@ -9,15 +9,17 @@ const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 
 // Update Logo
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+if(logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
 
 // Update Brand Logo (if you have an ID for it)
-const brandImg = document.getElementById('brandImg');
+const brandImg = document.getElementById('logoBrand');
 if(brandImg) brandImg.src = `${assetsBase}/assets/images/logobrand.png`;
-document.getElementById('homeLink').href = CONFIG.PAGES.INDEX;
 document.getElementById('loginLink').href = CONFIG.PAGES.LOGIN;
 document.getElementById('termsLink').href = CONFIG.PAGES.TERMS;
 document.getElementById('privacyLink').href = CONFIG.PAGES.PRIVACY;
+// homeLink doesn't exist on this page - logo links to index
+const logoLink = document.querySelector('.logo-link');
+if(logoLink) logoLink.href = CONFIG.PAGES.INDEX;
 
 const form = document.getElementById("forgotPasswordForm");
 const messageBox = document.getElementById("message");
@@ -48,16 +50,23 @@ form.addEventListener("submit", async (e) => {
         btnText.classList.add("d-none");
         btnLoader.classList.remove("d-none");
 
-        // ✅ DYNAMIC REDIRECT LINK
-        const redirectUrl = window.location.origin + CONFIG.PAGES.UPDATE_PASSWORD + CONFIG.PAGES.UPDATE_PASSWORD;
-
-        const { error } = await customAuth.resetPasswordForEmail(email, {
-            redirectTo: redirectUrl
+        // Send request to backend
+        const formData = new FormData();
+        formData.append('email', email);
+        
+        const response = await fetch(`${CONFIG.API_BASE}/forgot-password`, {
+            method: 'POST',
+            body: formData
         });
-
-        if (error) throw error;
+        
+        const result = await response.json();
+        
+        if (!response.ok || !result.ok) {
+            throw new Error(result.detail || result.message || 'Failed to send reset link');
+        }
 
         showMessage("Reset link sent! Please check your inbox.", "success");
+        form.reset();
 
     } catch (err) {
         showMessage("Error: " + err.message, "error");

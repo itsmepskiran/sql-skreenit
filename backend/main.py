@@ -162,7 +162,16 @@ logger.info("Backend Startup", extra={
 # ---------------------------------------------------------
 @app.get("/health")
 async def health_root():
+    print(f"[HEALTH_ENDPOINT] Request received!", flush=True)
     return {"status": "healthy", "version": "1.0.0", "environment": ENV}
+
+# ---------------------------------------------------------
+# Test Endpoint
+# ---------------------------------------------------------
+@app.get("/test")
+async def test_root():
+    print(f"[TEST_ENDPOINT] Request received!", flush=True)
+    return {"status": "ok", "message": "Test endpoint reached"}
 
 # ---------------------------------------------------------
 # Exception Handlers
@@ -187,6 +196,9 @@ async def versioned_health():
 
 app.include_router(api)
 
+# DEBUG: Print excluded paths at startup
+print(f"[STARTUP] EXCLUDED_PATHS: {EXCLUDED_PATHS}", flush=True)
+
 # ---------------------------------------------------------
 # MIDDLEWARE SETUP (CRITICAL ORDER)
 # ---------------------------------------------------------
@@ -197,10 +209,16 @@ app.include_router(api)
 # 3. Auth Middleware (Added First, Executed Last - Inner Layer)
 class PatchedCustomAuthMiddleware(CustomAuthMiddleware): 
     async def dispatch(self, request, call_next):
+        print(f"[PATCHED_MIDDLEWARE] =====> Request: {request.url.path}, Method: {request.method}", flush=True)
+        print(f"[PATCHED_MIDDLEWARE] excluded_paths type: {type(self.excluded_paths)}", flush=True)
+        print(f"[PATCHED_MIDDLEWARE] excluded_paths: {self.excluded_paths}", flush=True)
         if request.method == "OPTIONS":
+            print(f"[PATCHED_MIDDLEWARE] OPTIONS - calling next", flush=True)
             return await call_next(request)
+        print(f"[PATCHED_MIDDLEWARE] Calling parent dispatch", flush=True)
         return await super().dispatch(request, call_next)
 
+print(f"[STARTUP] Adding PatchedCustomAuthMiddleware with excluded_paths", flush=True)
 app.add_middleware(PatchedCustomAuthMiddleware, excluded_paths=EXCLUDED_PATHS)
 
 # 2. Security Headers (Added Second, Executed Middle)

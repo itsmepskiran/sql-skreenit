@@ -2,6 +2,7 @@
 import { customAuth } from '@shared/js/auth-config.js';
 import { redirectByRole } from '@shared/js/auth-pages.js';
 import { CONFIG } from '@shared/js/config.js';
+import { showError, hideWarning } from '@shared/js/warning-ribbon.js';
 import '@shared/js/mobile.js';
 
 const isLocal = CONFIG.IS_LOCAL;
@@ -81,11 +82,6 @@ document.querySelectorAll('.toggle-password').forEach(icon => {
 const form = document.getElementById("loginForm");
 const errorBox = document.getElementById("errorBox");
 
-function showError(msg) {
-  errorBox.textContent = msg;
-  errorBox.classList.remove("d-none"); 
-}
-
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   errorBox.classList.add("d-none");
@@ -144,7 +140,7 @@ form.addEventListener("submit", async (e) => {
 
   } catch (err) {
     console.error("Login error:", err);
-    showError(err.message || "Login failed. Please try again.");
+    showError("errorBox", err.message || "Login failed. Please try again.", "Authentication Failed");
   } finally {
     btnText.classList.remove("d-none");
     btnLoader.classList.add("d-none");

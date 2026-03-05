@@ -2,6 +2,7 @@
 import { customAuth } from '@shared/js/auth-config.js';
 import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
+import { showError, showSuccess, hideWarning } from '@shared/js/warning-ribbon.js';
 import '@shared/js/mobile.js';
 
 const isLocal = CONFIG.IS_LOCAL;
@@ -9,7 +10,9 @@ const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
 
 // Update logo
 const logoImg = document.getElementById('logoImg');
+const logoLink = document.querySelector('.logo-link');
 if (logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if (logoLink) logoLink.href = CONFIG.PAGES.INDEX;
 
 // ===============================
 // GLOBAL ELEMENTS
@@ -97,14 +100,11 @@ function updateHeaderForAuth() {
     } else {
         // User is not logged in - show login/register/know more buttons
         headerActions.innerHTML = `
-            <a href="${CONFIG.PAGES.LOGIN}" class="btn btn-outline">
+            <a href="${LOGIN_PAGE}" class="btn btn-outline">
                 <i class="fas fa-sign-in-alt"></i> Login
             </a>
-            <a href="${CONFIG.PAGES.REGISTER}" class="btn btn-primary">
+            <a href="${REGISTER_PAGE}" class="btn btn-primary">
                 <i class="fas fa-user-plus"></i> Register
-            </a>
-            <a href="${CONFIG.PAGES.INDEX}" class="btn btn-outline" target="_blank">
-                <i class="fas fa-info-circle"></i> Know More
             </a>
         `;
     }
@@ -136,7 +136,7 @@ async function fetchJobs() {
         
         if (data.error) {
             console.error("Error fetching jobs:", data.error);
-            showError("Failed to load jobs. Please try again.");
+            showError("errorBox", "Failed to load jobs. Please try again.", "Loading Failed");
             return [];
         }
 
@@ -144,7 +144,7 @@ async function fetchJobs() {
         return allJobs;
     } catch (err) {
         console.error("Unexpected error:", err);
-        showError("An unexpected error occurred.");
+        showError("errorBox", "An unexpected error occurred.", "Error");
         return [];
     }
 }
@@ -201,10 +201,9 @@ function createJobCard(job) {
         ? `<button class="btn btn-apply" data-job-id="${job.id}">
              <i class="fas fa-paper-plane"></i> Apply Now
            </button>`
-        : `<button class="btn btn-login-prompt" data-job-id="${job.id}">
+        : `<a href="${LOGIN_PAGE}" class="btn btn-login-prompt">
              <i class="fas fa-lock"></i> Sign in to Apply
-           </button>`;
-
+           </a>`;
     return `
         <div class="job-card">
             <div class="job-card-header">
@@ -257,7 +256,14 @@ function createJobCard(job) {
         </div>
     `;
 }
-
+function initAdSlider() {
+    const wrapper = document.getElementById('adWrapper');
+    let index = 0;
+    setInterval(() => {
+        index = (index + 1) % 4; // Cycles through 4 ads
+        wrapper.style.transform = `translateY(-${index * 40}px)`;
+    }, 3000);
+}
 /**
  * Attach click listeners to apply buttons
  */
@@ -347,10 +353,10 @@ function showAuthModal(jobId) {
     currentUrl.searchParams.set('job_id', jobId);
     const returnUrl = encodeURIComponent(currentUrl.toString());
 
-    const loginUrl = new URL(CONFIG.PAGES.LOGIN, window.location.origin);
+    const loginUrl = new URL(CONFIG.PAGES.LOGIN);
     loginUrl.searchParams.set('redirect', returnUrl);
 
-    const registerUrl = new URL(CONFIG.PAGES.REGISTER, window.location.origin);
+    const registerUrl = new URL(CONFIG.PAGES.REGISTER);
     registerUrl.searchParams.set('redirect', returnUrl);
 
     loginRedirectBtn.href = loginUrl.toString();
@@ -601,21 +607,6 @@ function showLoading() {
     }
 }
 
-function showError(message) {
-    if (jobsContainer) {
-        jobsContainer.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-exclamation-circle" style="color: var(--danger-color);"></i>
-                <h3>Oops!</h3>
-                <p>${message}</p>
-                <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 1rem;">
-                    <i class="fas fa-redo"></i> Try Again
-                </button>
-            </div>
-        `;
-    }
-}
-
 /**
  * Show toast notification
  */
@@ -729,7 +720,7 @@ async function init() {
     // Fetch jobs
     await fetchJobs();
     renderJobs(allJobs);
-
+    initAdSlider();
     // Check for post-login redirect
     await checkPostLoginRedirect();
 

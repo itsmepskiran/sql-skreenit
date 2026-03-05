@@ -32,6 +32,7 @@
   <script>
     loadSharedCSS('core.css'); loadSharedCSS('layout.css'); 
     loadSharedCSS('components.css'); loadSharedCSS('special.css'); 
+    loadSharedCSS('warning-ribbon.css');
     loadSharedCSS('mobile.css');
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -70,6 +71,22 @@
       <header class="dashboard-header">
         <h1>Complete Your Profile</h1>
       </header>
+
+      <!-- Error/Warning Messages -->
+      <div id="errorBox" class="warning-ribbon d-none">
+          <div class="warning-content">
+              <div class="warning-icon">
+                  <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="warning-message">
+                  <strong>Profile Update Issue</strong>
+                  <p class="warning-details">Please check the form and try again</p>
+              </div>
+              <button type="button" class="warning-close" onclick="hideWarning('errorBox')">
+                  <i class="fas fa-times"></i>
+              </button>
+          </div>
+      </div>
 
       <div class="dashboard-content">
         <div class="form-card">
