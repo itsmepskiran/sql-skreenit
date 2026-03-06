@@ -151,6 +151,12 @@
     </div>
 </div>
 
-  <script type="module" src="js/recruiter-dashboard.js"></script>
+  <script>
+    // Cache-busting loader for recruiter dashboard JS
+    const recruiterDashboardScript = document.createElement('script');
+    recruiterDashboardScript.type = 'module';
+    recruiterDashboardScript.src = `js/recruiter-dashboard.js?v=${Date.now()}`;
+    document.body.appendChild(recruiterDashboardScript);
+  </script>
 </body>
 </html>

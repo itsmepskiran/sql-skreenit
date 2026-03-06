@@ -21,19 +21,33 @@ async function checkAuth() {
     }
     
     // Load fast initial data from custom auth
-    updateSidebarProfile(user.user_metadata || {}, user.email);
+    updateSidebarProfile(user.user_metadata || {}, user.email, user.avatar_url);
     
     // Load deep data from your Backend Database
     updateUserInfo(); 
     loadDashboardData(user.id);
 }
 
-function updateSidebarProfile(meta, email) {
+function updateSidebarProfile(meta, email, avatarUrl) {
     // 1. Update Name
     const nameEl = document.getElementById('recruiterName');
-    if(nameEl) nameEl.textContent = meta.full_name || email.split('@')[0];
+    const displayName = meta.full_name || email?.split('@')[0] || 'Recruiter';
+    if(nameEl) nameEl.textContent = displayName;
 
-    // 2. Set default loading state (Just "Loading..." without prefixes)
+    // 2. Update avatar (company or user)
+    const avatarEl = document.getElementById('userAvatar');
+    if (avatarEl) {
+        const displayAvatar = avatarUrl || meta.avatar_url;
+        if (displayAvatar) {
+            avatarEl.innerHTML = `<img src="${displayAvatar}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+        } else {
+            const initials = (displayName || 'R').match(/\b\w/g) || [];
+            const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+            avatarEl.innerHTML = text;
+        }
+    }
+
+    // 3. Set default loading state (Just "Loading..." without prefixes)
     const companyIdEl = document.getElementById('companyId');
     if(companyIdEl) {
         companyIdEl.textContent = 'Loading...';
@@ -42,23 +56,27 @@ function updateSidebarProfile(meta, email) {
 
 async function updateUserInfo() {
   try {
+    const user = await customAuth.getUserData();
+
     const res = await backendGet('/recruiter/profile');
     const data = await handleResponse(res);
     const profile = data.data || data; 
     
     if (profile) {
+        // Update sidebar with the best available avatar (company logo > user avatar)
+        updateSidebarProfile(user?.user_metadata || {}, user?.email, profile.company_logo_url || user?.avatar_url);
+
         // Update Name if contact_name exists
         if (profile.contact_name) {
             const el = document.getElementById('recruiterName');
             if (el) el.textContent = profile.contact_name;
         }
 
-        // Target the 'companyId' element and inject ONLY the raw value
-        if (profile.company_id || profile.company_name) {
-            const companyIdEl = document.getElementById('companyId');
-            if (companyIdEl) {
-                companyIdEl.textContent = profile.company_id || profile.company_name;
-            }
+        // Target the 'companyId' element and inject the display ID (fallbacks to company name/UUID)
+        const companyIdEl = document.getElementById('companyId');
+        if (companyIdEl) {
+            const companyIdValue = profile.company_display_id || profile.company_id || profile.company_name || '---';
+            companyIdEl.textContent = companyIdValue;
         }
     }
   } catch (error) { 

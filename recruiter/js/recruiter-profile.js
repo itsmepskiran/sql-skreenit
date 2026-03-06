@@ -1,5 +1,5 @@
 import { customAuth } from '@shared/js/auth-config.js';;
-import { backendPut, backendGet, handleResponse } from '@shared/js/backend-client.js'; 
+import { backendPost, backendPut, backendGet, handleResponse } from '@shared/js/backend-client.js'; 
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 
@@ -15,9 +15,32 @@ let originalProfileData = {};
 document.addEventListener("DOMContentLoaded", async () => {
     await ensureRecruiter();
     setupNavigation();
+    setupAvatarUpload();
+    setupCompanyLogoUpload();
 });
 
-// --- AUTH & DATA LOADING ---
+// --- SIDEBAR / USER METADATA ---
+function updateSidebarProfile(user) {
+    const nameEl = document.getElementById("recruiterName"); 
+    const avatarEl = document.getElementById("userAvatar"); 
+
+    const logoUrl = user?.company_logo_url || user?.avatar_url;
+
+    if(nameEl) {
+        nameEl.textContent = user?.full_name || user?.name || (user?.email ? user.email.split('@')[0] : 'Recruiter');
+    }
+    
+    if(avatarEl) {
+        if (logoUrl) {
+            avatarEl.innerHTML = `<img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+        } else {
+            const initials = (nameEl?.textContent || 'R').match(/\b\w/g) || [];
+            const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+            avatarEl.innerHTML = text; 
+        }
+    }
+}
+
 async function ensureRecruiter() {
   const user = await customAuth.getUserData();
   
@@ -26,70 +49,76 @@ async function ensureRecruiter() {
     return null;
   }
 
-  // Fast UI update
-  updateSidebarProfile(user.user_metadata || {}, user.email);
+  // Fast UI update from cached user data
+  updateSidebarProfile(user);
 
   // Fetch Full Profile Data from Backend
   await fetchProfileData(user);
-}
-
-function updateSidebarProfile(meta, email) {
-    // ✅ FIX: Changed 'userName' to 'recruiterName' to match HTML
-    const nameEl = document.getElementById("recruiterName"); 
-    const avatarEl = document.getElementById("userAvatar"); 
-    
-    if(nameEl) {
-        // Fallback: Custom metadata -> Email prefix -> 'Recruiter'
-        nameEl.textContent = meta.full_name || meta.contact_name || email.split('@')[0] || 'Recruiter';
-    }
-    
-    if(avatarEl) {
-        if (meta.avatar_url) {
-            avatarEl.innerHTML = `<img src="${meta.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
-        } else {
-            const initials = (meta.full_name || email).match(/\b\w/g) || [];
-            const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-            avatarEl.innerHTML = text; 
-        }
-    }
 }
 
 async function fetchProfileData(user) {
   try {
     const res = await backendGet('/recruiter/profile');
     const result = await handleResponse(res);
-    
-    // Safely extract the data depending on backend wrapping
-    const profile = result.data || result; 
+    console.log('🔍 Recruiter profile fetch result:', result);
+
+    const profile = result?.data?.data || result?.data || result;
+    console.log('📌 Extracted recruiter profile:', profile);
 
     if (profile && Object.keys(profile).length > 0) {
+        // Ensure we default missing contact details to the signed-in user values
+        const currentUser = await customAuth.getUserData();
+        if (currentUser) {
+            profile.contact_name = profile.contact_name || currentUser.full_name || currentUser.email;
+            profile.contact_email = profile.contact_email || currentUser.email;
+        }
+
         originalProfileData = profile; // Cache for cancel
         populateForm(originalProfileData);
 
-        // Update Sidebar Company ID dynamically
+        // Update Sidebar Company ID dynamically (use display ID if available)
         const companyIdEl = document.getElementById('companyId');
-        if (companyIdEl && (profile.company_id || profile.company_name)) {
-            companyIdEl.textContent = profile.company_id || profile.company_name;
+        if (companyIdEl) {
+            const companyIdValue = profile.company_display_id || profile.company_id || profile.company_name || '---';
+            console.log('🏷️ Setting companyId element to:', companyIdValue);
+            companyIdEl.textContent = companyIdValue;
+        }
+
+        // Sync user_data so other pages can access company_name / logo
+        if (currentUser) {
+            if (profile.company_logo_url) {
+                currentUser.company_logo_url = profile.company_logo_url;
+                currentUser.avatar_url = profile.company_logo_url;
+            }
+
+            if (profile.company_display_id) {
+                currentUser.company_display_id = profile.company_display_id;
+            }
+
+            // Keep sidebar name in sync with contact name
+            if (profile.contact_name) {
+                currentUser.full_name = profile.contact_name;
+            }
+
+            // Store company info for other pages
+            if (profile.company_name) {
+                currentUser.company_name = profile.company_name;
+            }
+
+            await customAuth.storage.setItem('user_data', JSON.stringify(currentUser));
+            updateSidebarProfile(currentUser);
         }
 
     } else {
         // Fallback for brand new users
         if (user) {
-            document.getElementById("contact_name").value = user.user_metadata?.full_name || "";
+            document.getElementById("contact_name").value = user.full_name || "";
             document.getElementById("contact_email").value = user.email || "";
         }
     }
   } catch (err) {
     console.warn("Profile fetch error:", err);
   }
-}
-// Call this after fetching the recruiter profile data
-function updateSidebar(meta, profileData) {
-    const nameEl = document.getElementById('recruiterName');
-    const compEl = document.getElementById('companyId');
-    
-    if(nameEl) nameEl.textContent = meta.full_name || meta.contact_name || 'Recruiter';
-    if(compEl) compEl.textContent = profileData.company_name || 'No Company Linked';
 }
 
 function populateForm(data) {
@@ -103,11 +132,110 @@ function populateForm(data) {
     
     const idEl = document.getElementById("company_id");
     if(idEl) idEl.value = data.company_display_id || "Pending (Save Profile First)";
+
+    const logoImgEl = document.getElementById('companyLogoImg');
+    const logoPlaceholder = document.getElementById('companyLogoPlaceholder');
+    if (data.company_logo_url) {
+        if (logoImgEl) {
+            logoImgEl.src = data.company_logo_url;
+            logoImgEl.style.display = 'block';
+        }
+        if (logoPlaceholder) logoPlaceholder.style.display = 'none';
+    } else {
+        if (logoImgEl) logoImgEl.style.display = 'none';
+        if (logoPlaceholder) logoPlaceholder.style.display = 'block';
+    }
 }
 
 function setValue(id, val) {
     const el = document.getElementById(id);
     if(el) el.value = val || "";
+}
+
+// --- AVATAR + LOGO UPLOAD ---
+async function setupAvatarUpload() {
+    const uploadBtn = document.getElementById('uploadAvatarBtn');
+    const fileInput = document.getElementById('avatarUploadInput');
+
+    if (!uploadBtn || !fileInput) return;
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Please upload an image smaller than 5MB.');
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await backendPost('/recruiter/profile/avatar', formData);
+            const result = await handleResponse(res);
+            console.log('✅ Avatar upload response:', result);
+
+            const user = await customAuth.getUserData();
+            if (result.data?.avatar_url && user) {
+                user.avatar_url = result.data.avatar_url;
+                await customAuth.storage.setItem('user_data', JSON.stringify(user));
+                updateSidebarProfile(user);
+            }
+
+            await fetchProfileData(user);
+            alert('Avatar uploaded successfully.');
+        } catch (err) {
+            console.error('Avatar upload failed:', err);
+            alert('Failed to upload avatar. Please try again.');
+        } finally {
+            fileInput.value = '';
+        }
+    });
+}
+
+async function setupCompanyLogoUpload() {
+    const uploadBtn = document.getElementById('uploadCompanyLogoBtn');
+    const fileInput = document.getElementById('companyLogoUpload');
+
+    if (!uploadBtn || !fileInput) return;
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Please upload a valid image file.');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Please upload an image smaller than 5MB.');
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await backendPost('/recruiter/profile/company-logo', formData);
+            const result = await handleResponse(res);
+            console.log('✅ Company logo upload response:', result);
+
+            const user = await customAuth.getUserData();
+            await fetchProfileData(user);
+            alert('Company logo uploaded successfully.');
+        } catch (err) {
+            console.error('Company logo upload failed:', err);
+            alert('Failed to upload company logo. Please try again.');
+        } finally {
+            fileInput.value = '';
+        }
+    });
 }
 
 // --- EDIT MODE LOGIC ---
@@ -173,24 +301,30 @@ async function handleProfileSubmit(event) {
     console.log('[RecruiterProfile] Saving profile with payload:', payload);
     const res = await backendPut("/recruiter/profile", payload);
     console.log('[RecruiterProfile] Response status:', res.status);
-    await handleResponse(res);
-    
-    // Mark recruiter as onboarded after successful profile submission
-    await customAuth.updateUser({ data: { onboarded: true } });
-    
-    await customAuth.refreshSession();
-    
+    const result = await handleResponse(res);
+    console.log('[RecruiterProfile] Save result:', result);
+
+    // Optionally mark recruiter as onboarded via backend
+    try {
+        await backendPost('/mark-onboarded', {});
+    } catch (e) {
+        console.warn('Could not mark as onboarded:', e);
+    }
+
+    // Refresh stored session data (if available)
+    try {
+        await customAuth.refreshSession();
+    } catch (e) {
+        console.warn('Failed to refresh session after profile update:', e);
+    }
+
     originalProfileData = { ...originalProfileData, ...payload, about_company: payload.company_description }; 
     
     btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
     btn.style.backgroundColor = '#10b981';
 
-    // FIX: Also update 'recruiterName' in the sidebar on save success
-    const sidebarNameEl = document.getElementById('recruiterName');
-    if (sidebarNameEl) sidebarNameEl.textContent = payload.contact_name;
-
-    const companyIdEl = document.getElementById('companyId');
-    if (companyIdEl) companyIdEl.textContent = payload.company_name;
+    // Refresh profile (including generated company display ID) and sidebar UI
+    await fetchProfileData(user);
 
     setTimeout(() => {
         toggleEditMode(false);
@@ -208,6 +342,7 @@ async function handleProfileSubmit(event) {
     btn.disabled = false;
   }
 }
+
 // --- ABSOLUTE NAVIGATION LOGIC ---
 function setupNavigation() {
     const origin = window.location.origin;

@@ -266,24 +266,31 @@ class RecruiterService:
                     "company_description": payload.get("company_description")
                 }
                 
-                # Remove None values
-                profile_update_data = {k: v for k, v in profile_update_data.items() if v is not None}
+                # Remove None/empty values (don’t overwrite existing values with blanks)
+                profile_update_data = {k: v for k, v in profile_update_data.items() if v not in (None, "")}
                 
                 # Also update company if exists
                 if existing.get("company_id"):
                     company_update_data = {
                         "name": payload.get("company_name"),
                         "website": payload.get("company_website"),
-                        "description": payload.get("company_description")
+                        "description": payload.get("company_description"),
+                        "logo_url": payload.get("company_logo_url")
                     }
-                    # Remove None values
-                    company_update_data = {k: v for k, v in company_update_data.items() if v is not None}
+                    # Remove None/empty values
+                    company_update_data = {k: v for k, v in company_update_data.items() if v not in (None, "")}
                     
                     if company_update_data:  # Only update if there are fields to update
                         self.mysql.update_record("companies", 
                             company_update_data, 
                             {"id": existing["company_id"]}
                         )
+
+                    # Ensure company_display_id exists (generate if missing)
+                    company = self.mysql.get_single_record("companies", {"id": existing["company_id"]})
+                    if company and not company.get("company_display_id"):
+                        display_id = self._generate_company_display_id(company.get("name"))
+                        self.mysql.update_record("companies", {"company_display_id": display_id}, {"id": existing["company_id"]})
                 
                 if profile_update_data:  # Only update if there are fields to update
                     success = self.mysql.update_record(
@@ -298,9 +305,10 @@ class RecruiterService:
             else:
                 # Create new profile - need to create company first
                 company_data = {
-                    "name": payload.get("company_name", "Unknown Company"),
+                    "name": payload.get("company_name") or "Unknown Company",
                     "description": payload.get("company_description"),
                     "website": payload.get("company_website"),
+                    "logo_url": payload.get("company_logo_url"),
                     "created_by": payload["user_id"]
                 }
                 
@@ -308,9 +316,9 @@ class RecruiterService:
                 company_data["id"] = str(uuid4())
                 company_id = self.mysql.insert_record("companies", company_data)
                 
-                # Generate company display ID (e.g., "SKR-001", "SKR-002", etc.)
-                company_display_id = self._generate_company_display_id()
-                
+                # Generate company display ID (8-char alphanumeric based on company name + uuid)
+                company_display_id = self._generate_company_display_id(company_data.get("name"))
+
                 # Update company with display ID
                 self.mysql.update_record("companies", 
                     {"company_display_id": company_display_id}, 
@@ -339,25 +347,45 @@ class RecruiterService:
             logger.error(f"Upsert recruiter profile failed: {str(e)}")
             raise RuntimeError("Failed to save recruiter profile")
 
-    def _generate_company_display_id(self) -> str:
-        """Generate a unique company display ID like 'SKR-001'."""
+    def _generate_company_display_id(self, company_name: Optional[str] = None) -> str:
+        """Generate a short, human-friendly company ID using company name + UUID.
+
+        Format: <PREFIX><SUFFIX>
+        - PREFIX: First 3 alphanumeric characters from the company name (uppercased).
+        - SUFFIX: 5 characters from a UUID4 hex string.
+
+        Example: "ACMEB1F2" for "Acme".
+        """
         try:
-            # Count existing companies
-            count = self.mysql.count_records("companies", {})
-            # Generate display ID with padding (e.g., SKR-001, SKR-002)
-            display_id = f"SKR-{str(count + 1).zfill(3)}"
-            return display_id
+            # Normalize company name to alphanumeric uppercase
+            prefix = "".join([c for c in (company_name or "") if c.isalnum()]).upper()[:3]
+            if not prefix:
+                prefix = "CMP"
+
+            # Use uuid4 to generate a random suffix
+            suffix = uuid4().hex.upper()[:5]
+            return f"{prefix}{suffix}"
         except Exception:
-            # Fallback to random ID if counting fails
             import random
-            return f"SKR-{random.randint(100, 999)}"
+            prefix = (company_name or "CMP").upper()[:3]
+            suffix = str(random.randint(0, 99999)).zfill(5)
+            return f"{prefix}{suffix}"
 
     def get_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
         try:
+            # Fetch recruiter profile record
             profile = self.mysql.get_single_record("recruiter_profiles", {"user_id": user_id})
             if not profile:
                 return None
-            
+
+            # Fetch basic user info for the recruiter (name / email / avatar)
+            user = self.mysql.get_single_record("users", {"id": user_id})
+            if user:
+                # Use existing profile values if set, otherwise fallback to user table
+                profile["contact_name"] = profile.get("contact_name") or user.get("full_name")
+                profile["contact_email"] = profile.get("contact_email") or user.get("email")
+                profile["avatar_url"] = profile.get("avatar_url") or user.get("avatar_url")
+
             # Get company information if company_id exists
             if profile.get("company_id"):
                 company = self.mysql.get_single_record("companies", {"id": profile["company_id"]})
@@ -365,7 +393,8 @@ class RecruiterService:
                     profile["company_name"] = company.get("name")
                     profile["company_website"] = company.get("website")
                     profile["company_display_id"] = company.get("company_display_id")
-            
+                    profile["company_logo_url"] = company.get("logo_url")
+
             return profile
         except Exception as e:
             logger.error(f"Get recruiter profile failed: {str(e)}")

@@ -914,14 +914,13 @@ class CandidateService(MySQLService):
             
             # Handle experience
             if experience_data:
-                print(f"DEBUG: Adding {len(experience_data)} experience records with user_id: {user_id}")
-                # Database constraint incorrectly points to candidate_profiles.user_id, so use user_id as FK
-                db.query(CandidateExperience).filter(CandidateExperience.candidate_id == user_id).delete()
+                print(f"DEBUG: Adding {len(experience_data)} experience records for profile_id: {profile_id}")
+                db.query(CandidateExperience).filter(CandidateExperience.candidate_id == profile_id).delete()
                 for exp in experience_data:
                     print(f"DEBUG: Adding experience: {exp}")
                     experience = CandidateExperience(
                         id=generate_uuid(),
-                        candidate_id=user_id,  # Using user_id as FK due to database constraint issue
+                        candidate_id=profile_id,
                         job_title=exp.get("job_title"),
                         company=exp.get("company"),
                         start_date=exp.get("start_date"),
@@ -932,14 +931,13 @@ class CandidateService(MySQLService):
             
             # Handle education
             if education_data:
-                print(f"DEBUG: Adding {len(education_data)} education records with user_id: {user_id}")
-                # Database constraint incorrectly points to candidate_profiles.user_id, so use user_id as FK
-                db.query(CandidateEducation).filter(CandidateEducation.candidate_id == user_id).delete()
+                print(f"DEBUG: Adding {len(education_data)} education records for profile_id: {profile_id}")
+                db.query(CandidateEducation).filter(CandidateEducation.candidate_id == profile_id).delete()
                 for edu in education_data:
                     print(f"DEBUG: Adding education: {edu}")
                     education = CandidateEducation(
                         id=generate_uuid(),
-                        candidate_id=user_id,  # Using user_id as FK due to database constraint issue
+                        candidate_id=profile_id,
                         degree=edu.get("degree"),
                         institution=edu.get("institution"),
                         completion_year=edu.get("completion_year")
@@ -950,7 +948,28 @@ class CandidateService(MySQLService):
             for key, value in profile_data.items():
                 if hasattr(existing_profile, key):
                     setattr(existing_profile, key, value)
-            
+
+            # Ensure intro_videos table stays in sync when intro_video_url is updated
+            if "intro_video_url" in profile_data:
+                intro_url = profile_data.get("intro_video_url")
+                existing_intro = db.query(IntroVideo).filter(IntroVideo.candidate_id == user_id).first()
+                if intro_url:
+                    if existing_intro:
+                        existing_intro.video_url = intro_url
+                        existing_intro.created_at = datetime.utcnow()
+                    else:
+                        intro_record = IntroVideo(
+                            id=generate_uuid(),
+                            candidate_id=user_id,
+                            video_url=intro_url,
+                            created_at=datetime.utcnow()
+                        )
+                        db.add(intro_record)
+                else:
+                    # Remove intro video record if URL is cleared
+                    if existing_intro:
+                        db.delete(existing_intro)
+
             db.commit()
             db.refresh(existing_profile)
             return {"id": existing_profile.id, "action": "updated" if existing_profile else "created"}
@@ -969,29 +988,31 @@ class CandidateService(MySQLService):
             # Get profile data (extended fields from candidate_profiles)
             profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == user_id).first()
             
-            # Get experience data - use user_id due to database constraint issue
-            experience_records = db.query(CandidateExperience).filter(CandidateExperience.candidate_id == user_id).all()
-            experience = [
-                {
-                    "job_title": exp.job_title,
-                    "company": exp.company,
-                    "start_date": exp.start_date,
-                    "end_date": exp.end_date,
-                    "description": exp.description
-                }
-                for exp in experience_records
-            ]
-            
-            # Get education data - use user_id due to database constraint issue
-            education_records = db.query(CandidateEducation).filter(CandidateEducation.candidate_id == user_id).all()
-            education = [
-                {
-                    "degree": edu.degree,
-                    "institution": edu.institution,
-                    "completion_year": edu.completion_year
-                }
-                for edu in education_records
-            ]
+            # Get experience + education data (linked by candidate_profile.id)
+            experience = []
+            education = []
+            if profile:
+                experience_records = db.query(CandidateExperience).filter(CandidateExperience.candidate_id == profile.id).all()
+                experience = [
+                    {
+                        "job_title": exp.job_title,
+                        "company": exp.company,
+                        "start_date": exp.start_date,
+                        "end_date": exp.end_date,
+                        "description": exp.description
+                    }
+                    for exp in experience_records
+                ]
+                
+                education_records = db.query(CandidateEducation).filter(CandidateEducation.candidate_id == profile.id).all()
+                education = [
+                    {
+                        "degree": edu.degree,
+                        "institution": edu.institution,
+                        "completion_year": edu.completion_year
+                    }
+                    for edu in education_records
+                ]
             
             # Combine user + profile data
             result = {
@@ -1020,14 +1041,22 @@ class CandidateService(MySQLService):
     def save_education(self, candidate_id: str, education_list: List[Dict[str, Any]]) -> bool:
         """Save candidate education."""
         with self.session_factory() as db:
-            # Delete existing education
-            db.query(CandidateEducation).filter(CandidateEducation.candidate_id == candidate_id).delete()
+            # Find the candidate profile tied to this user
+            profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == candidate_id).first()
+            if not profile:
+                # If no profile exists, create one so we can store education
+                profile = CandidateProfile(id=generate_uuid(), user_id=candidate_id)
+                db.add(profile)
+                db.flush()
+
+            # Delete existing education for this profile
+            db.query(CandidateEducation).filter(CandidateEducation.candidate_id == profile.id).delete()
             
             # Add new education
             for edu in education_list:
                 education = CandidateEducation(
                     id=generate_uuid(),
-                    candidate_id=candidate_id,
+                    candidate_id=profile.id,
                     degree=edu.get("degree"),
                     institution=edu.get("institution"),
                     completion_year=edu.get("completion_year")
@@ -1040,14 +1069,22 @@ class CandidateService(MySQLService):
     def save_experience(self, candidate_id: str, experience_list: List[Dict[str, Any]]) -> bool:
         """Save candidate experience."""
         with self.session_factory() as db:
-            # Delete existing experience
-            db.query(CandidateExperience).filter(CandidateExperience.candidate_id == candidate_id).delete()
+            # Find the candidate profile tied to this user
+            profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == candidate_id).first()
+            if not profile:
+                # If no profile exists, create one so we can store experience
+                profile = CandidateProfile(id=generate_uuid(), user_id=candidate_id)
+                db.add(profile)
+                db.flush()
+
+            # Delete existing experience for this profile
+            db.query(CandidateExperience).filter(CandidateExperience.candidate_id == profile.id).delete()
             
             # Add new experience
             for exp in experience_list:
                 experience = CandidateExperience(
                     id=generate_uuid(),
-                    candidate_id=candidate_id,
+                    candidate_id=profile.id,
                     job_title=exp.get("job_title"),
                     company=exp.get("company"),
                     start_date=exp.get("start_date"),
