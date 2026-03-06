@@ -12,7 +12,40 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, desc, asc, func
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from ..database import get_db_session, User, Company, RecruiterProfile, CandidateProfile, CandidateEducation, CandidateExperience, Job, JobSkill, InterviewQuestion, JobApplication, VideoResponse, InterviewResponse, IntroVideo, Notification, generate_uuid
+# Import database models in a way that works whether the app is run as a package (uvicorn backend.main:app)
+# or from the backend folder (uvicorn main:app --app-dir backend).
+# This also helps static analysis tools (like Pylance) resolve the module correctly.
+import os
+import sys
+
+try:
+    import backend.database as _database
+except ModuleNotFoundError:
+    # If running with --app-dir backend, the 'backend' package is not on sys.path.
+    # Add the project root to sys.path so we can import it as a package.
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    import backend.database as _database
+
+# Export names used by the service layer
+get_db_session = _database.get_db_session
+User = _database.User
+Company = _database.Company
+RecruiterProfile = _database.RecruiterProfile
+CandidateProfile = _database.CandidateProfile
+CandidateEducation = _database.CandidateEducation
+CandidateExperience = _database.CandidateExperience
+Job = _database.Job
+JobSkill = _database.JobSkill
+InterviewQuestion = _database.InterviewQuestion
+JobApplication = _database.JobApplication
+VideoResponse = _database.VideoResponse
+InterviewResponse = _database.InterviewResponse
+IntroVideo = _database.IntroVideo
+Notification = _database.Notification
+generate_uuid = _database.generate_uuid
+
 from utils_others.logger import logger
 
 
