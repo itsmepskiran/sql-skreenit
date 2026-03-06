@@ -8,6 +8,10 @@ import '@shared/js/mobile.js';
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
 
+// Auth page links (fix: ensure variables exist)
+const LOGIN_PAGE = CONFIG.PAGES.LOGIN;
+const REGISTER_PAGE = CONFIG.PAGES.REGISTER;
+
 // Update logo
 const logoImg = document.getElementById('logoImg');
 const logoLink = document.querySelector('.logo-link');

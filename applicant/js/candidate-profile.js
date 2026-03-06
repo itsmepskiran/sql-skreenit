@@ -8,6 +8,8 @@ const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
 if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
+let candidateUserId = null; // Stored for upload callbacks
+
 async function checkAuth() {
     const user = await customAuth.getUserData();
     if (!user) { 
@@ -19,11 +21,14 @@ async function checkAuth() {
     if ((user.role || '').toLowerCase() !== 'candidate') {
         window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER; return;
     }
-    
+
+    candidateUserId = user.id;
     await updateSidebarProfile(user);
     await loadProfile(user.id);
     setupEditProfileButton();
     setupNavigation();
+    setupAvatarUpload();
+    setupResumeUpload();
 }
 
 async function updateSidebarProfile(user) {
@@ -282,20 +287,38 @@ function setupAddVideoButton(userId) {
     }
 }
 
+function getVideoMimeType(url) {
+    const ext = url?.split('.').pop()?.toLowerCase();
+    if (!ext) return '';
+    if (ext === 'mp4') return 'video/mp4';
+    if (ext === 'webm') return 'video/webm';
+    if (ext === 'ogv' || ext === 'ogg') return 'video/ogg';
+    return '';
+}
+
 function openVideoModal(videoUrl) {
     const modal = document.getElementById('videoPlayerModal');
     const videoPlayer = document.getElementById('modalVideoPlayer');
     const closeBtn = document.getElementById('closeVideoPlayerBtn');
-    
+
     if (videoPlayer) {
-        videoPlayer.src = videoUrl;
+        const sourceEl = videoPlayer.querySelector('source');
+        const mime = getVideoMimeType(videoUrl);
+
+        if (sourceEl) {
+            sourceEl.src = videoUrl;
+            if (mime) sourceEl.type = mime;
+        } else {
+            videoPlayer.src = videoUrl;
+        }
+        videoPlayer.load();
     }
-    
+
     if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
     }
-    
+
     if (closeBtn) {
         closeBtn.onclick = () => {
             if (modal) {
@@ -308,18 +331,20 @@ function openVideoModal(videoUrl) {
             }
         };
     }
-    
+
     // Close modal when clicking outside
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
-            modal.classList.remove('active');
-            if (videoPlayer) {
-                videoPlayer.pause();
-                videoPlayer.src = '';
+    if (modal) {
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                if (videoPlayer) {
+                    videoPlayer.pause();
+                    videoPlayer.src = '';
+                }
             }
-        }
-    };
+        };
+    }
 }
 
 function setupVideoUpload(userId) {
@@ -680,6 +705,89 @@ function setupNavigation() {
             }
         });
     }
+}
+
+function setupAvatarUpload() {
+    const uploadBtn = document.getElementById('uploadAvatarBtn');
+    const fileInput = document.getElementById('avatarUpload');
+
+    if (!uploadBtn || !fileInput) return;
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            notify('Please upload a valid image file.', 'error');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            notify('Please upload an image smaller than 5MB.', 'error');
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await backendPost('/applicant/profile/avatar', formData);
+            const result = await handleResponse(response);
+            console.log('✅ Candidate avatar upload response:', result);
+
+            if (result.data?.avatar_url) {
+                notify('Avatar uploaded successfully!', 'success');
+                await loadProfile(candidateUserId);
+            } else {
+                notify('Avatar uploaded but response did not include URL.', 'warning');
+            }
+        } catch (err) {
+            console.error('Avatar upload failed:', err);
+            notify('Failed to upload avatar. Please try again.', 'error');
+        } finally {
+            fileInput.value = '';
+        }
+    });
+}
+
+function setupResumeUpload() {
+    const resumeInput = document.getElementById('resumeUpload');
+    if (!resumeInput) return;
+
+    resumeInput.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Only accept common resume formats
+        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!allowedTypes.includes(file.type)) {
+            notify('Please upload a PDF or Word document.', 'error');
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await backendPost('/applicant/profile/resume', formData);
+            const result = await handleResponse(response);
+            console.log('✅ Candidate resume upload response:', result);
+
+            if (result.data?.resume_url) {
+                notify('Resume uploaded successfully!', 'success');
+                await loadProfile(candidateUserId);
+            } else {
+                notify('Resume uploaded but response did not include URL.', 'warning');
+            }
+        } catch (err) {
+            console.error('Resume upload failed:', err);
+            notify('Failed to upload resume. Please try again.', 'error');
+        } finally {
+            resumeInput.value = '';
+        }
+    });
 }
 
 // Setup Edit Profile button

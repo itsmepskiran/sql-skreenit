@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, desc, asc, func
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from database import get_db_session, User, Company, RecruiterProfile, CandidateProfile, CandidateEducation, CandidateExperience, Job, JobSkill, InterviewQuestion, JobApplication, VideoResponse, InterviewResponse, IntroVideo, Notification, generate_uuid
+from ..database import get_db_session, User, Company, RecruiterProfile, CandidateProfile, CandidateEducation, CandidateExperience, Job, JobSkill, InterviewQuestion, JobApplication, VideoResponse, InterviewResponse, IntroVideo, Notification, generate_uuid
 from utils_others.logger import logger
 
 
@@ -72,6 +72,43 @@ class MySQLService:
             db.commit()
             db.refresh(instance)
             return str(instance.id)
+
+    def insert_records(self, table: str, records: List[Dict[str, Any]]) -> List[str]:
+        """Bulk insert multiple records into the specified table."""
+        if not records:
+            return []
+
+        with self.session_factory() as db:
+            model_map = {
+                'users': User,
+                'companies': Company,
+                'recruiter_profiles': RecruiterProfile,
+                'candidate_profiles': CandidateProfile,
+                'jobs': Job,
+                'job_skills': JobSkill,
+                'interview_questions': InterviewQuestion,
+                'job_applications': JobApplication,
+                'video_responses': VideoResponse,
+                'intro_videos': IntroVideo,
+                'notifications': Notification
+            }
+
+            model_class = model_map.get(table)
+            if not model_class:
+                raise ValueError(f"Unknown table: {table}")
+
+            model_columns = {column.name for column in model_class.__table__.columns}
+            instances = []
+
+            for record in records:
+                filtered_data = {k: v for k, v in record.items() if k in model_columns}
+                instances.append(model_class(**filtered_data))
+
+            db.add_all(instances)
+            db.commit()
+
+            # Return ids for inserted records if available
+            return [str(getattr(instance, 'id', '')) for instance in instances]
 
     def get_single_record(self, table: str, conditions: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Get a single record from the specified table."""
@@ -234,7 +271,8 @@ class MySQLService:
                 query = query.filter(getattr(model_class, key) == value)
             
             # Update
-            updated = query.update(filtered_data)
+            # NOTE: SQLAlchemy typings can be strict; ignore arg type mismatch in type checkers.
+            updated = query.update(filtered_data)  # type: ignore[arg-type]
             db.commit()
             
             return updated > 0
@@ -1015,6 +1053,14 @@ class CandidateService(MySQLService):
                 ]
             
             # Combine user + profile data
+            # If the candidate profile does not have an intro_video_url (legacy data),
+            # fallback to the latest entry from the intro_videos table.
+            intro_video_url = profile.intro_video_url if profile else None
+            if not intro_video_url:
+                latest_intro = db.query(IntroVideo).filter(IntroVideo.candidate_id == user_id).order_by(desc(IntroVideo.created_at)).first()
+                if latest_intro:
+                    intro_video_url = latest_intro.video_url
+
             result = {
                 "id": user.id,
                 "user_id": user.id,
@@ -1025,7 +1071,7 @@ class CandidateService(MySQLService):
                 "summary": profile.summary if profile else None,
                 "avatar_url": user.avatar_url,  # From users table only
                 "resume_url": profile.resume_url if profile else None,
-                "intro_video_url": profile.intro_video_url if profile else None,
+                "intro_video_url": intro_video_url,
                 "linkedin_url": profile.linkedin_url if profile else None,
                 "portfolio_url": profile.portfolio_url if profile else None,
                 "skills": profile.skills if profile else [],

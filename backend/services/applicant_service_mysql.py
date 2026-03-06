@@ -1,6 +1,6 @@
 import os
 import time
-import uuid
+from uuid import uuid4
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from services.mysql_service import MySQLService
@@ -58,9 +58,10 @@ class ApplicantService:
             profile_updates["user_id"] = candidate_id
 
             # 4b. Maintain intro_videos table for quick retrieval and analytics
-            if "intro_video_url" in profile_data:
+            intro_video_url = profile_data.get("intro_video_url")
+            if intro_video_url:
                 try:
-                    self._upsert_intro_video(candidate_id, profile_data.get("intro_video_url"))
+                    self._upsert_intro_video(candidate_id, intro_video_url)
                 except Exception as e:
                     logger.error(f"Failed to upsert intro_videos record: {e}")
 
@@ -78,7 +79,7 @@ class ApplicantService:
                     if existing:
                         self.mysql.update_record("candidate_profiles", profile_updates, {"user_id": candidate_id})
                     else:
-                        profile_updates["id"] = str(uuid.uuid4())
+                        profile_updates["id"] = str(uuid4())
                         self.mysql.insert_record("candidate_profiles", profile_updates)
                 except Exception as e:
                     logger.error(f"Failed to update candidate_profiles table: {e}")
@@ -122,8 +123,11 @@ class ApplicantService:
             logger.error(f"Resume upload failed: {str(e)}")
             raise RuntimeError("Failed to upload resume")
 
-    def _upsert_intro_video(self, candidate_id: str, video_url: str) -> None:
+    def _upsert_intro_video(self, candidate_id: str, video_url: Optional[str]) -> None:
         """Ensure the intro_videos table reflects the current intro video URL."""
+        if not video_url:
+            return
+
         try:
             existing = self.mysql.get_single_record("intro_videos", {"candidate_id": candidate_id})
             payload = {
@@ -134,7 +138,7 @@ class ApplicantService:
             if existing:
                 self.mysql.update_record("intro_videos", payload, {"candidate_id": candidate_id})
             else:
-                payload["id"] = str(uuid.uuid4())
+                payload["id"] = str(uuid4())
                 self.mysql.insert_record("intro_videos", payload)
         except Exception as e:
             logger.error(f"Failed to upsert intro_videos: {e}")

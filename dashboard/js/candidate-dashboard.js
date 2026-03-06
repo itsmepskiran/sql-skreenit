@@ -339,17 +339,33 @@ function setupEventListeners() {
     }
 
     // 2. Dashboard Cards Navigation (FIXED ID mismatch)
+    // Applications card - scroll to the applications list section
     const appsSentCard = document.getElementById('btnAppSent') || document.getElementById('totalApplied')?.closest('.stat-card');
     if (appsSentCard) {
         appsSentCard.style.cursor = 'pointer';
-        appsSentCard.addEventListener('click', () => {window.location.href = CONFIG.PAGES.MY_APPLICATIONS;});
+
+        appsSentCard.addEventListener('click', () => {
+            const appsSection = document.getElementById('myApplicationsList');
+            if (appsSection) {
+                appsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
+            }
+        });
     }
 
-    // Active Jobs card - redirect to public jobs page
+    // Active Jobs card - scroll to the recommended jobs section in the dashboard
     const activeJobsCard = document.getElementById('btnActiveJobs');
     if (activeJobsCard) {
         activeJobsCard.style.cursor = 'pointer';
-        activeJobsCard.addEventListener('click', () => {window.location.href = CONFIG.PAGES.JOBS;});
+        activeJobsCard.addEventListener('click', () => {
+            const recommendedSection = document.getElementById('recommendedJobsList');
+            if (recommendedSection) {
+                recommendedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                window.location.href = CONFIG.PAGES.JOBS;
+            }
+        });
     }
 
     // 3. Search Functionality (FIXED ID mismatches)

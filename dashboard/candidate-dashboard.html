@@ -126,6 +126,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="js/candidate-dashboard.js"></script>
+  <!-- Cache-busting loader to ensure latest scripts are used -->
+  <script type="module" src="js/candidate-dashboard.js?v=${Date.now()}"></script>
 </body>
 </html>
