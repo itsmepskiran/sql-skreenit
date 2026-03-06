@@ -24,19 +24,24 @@ async function checkAuth() {
         window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; 
         return;
     }
-    updateSidebarProfile(user.user_metadata || {}, user.email);
+    updateSidebarProfile(user);
     updateUserInfo(); 
 }
 
-function updateSidebarProfile(meta, email) {
+function getUserFullName(user) {
+    if (!user) return 'Recruiter';
+    return user.full_name || user.name || (user.email ? user.email.split('@')[0] : 'Recruiter');
+}
+
+function updateSidebarProfile(user) {
     const nameEl = document.getElementById('recruiterName');
     const avatarEl = document.getElementById('userAvatar'); 
-    if(nameEl) nameEl.textContent = meta.full_name || meta.contact_name || email.split('@')[0];
+    if(nameEl) nameEl.textContent = getUserFullName(user);
     if(avatarEl) {
-        if (meta.avatar_url) {
-            avatarEl.innerHTML = `<img src="${meta.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+        if (user?.avatar_url) {
+            avatarEl.innerHTML = `<img src="${user.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
         } else {
-            const initials = (meta.full_name || email).match(/\b\w/g) || [];
+            const initials = (getUserFullName(user) || 'R').match(/\b\w/g) || [];
             const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
             avatarEl.innerHTML = text; 
         }
@@ -53,9 +58,9 @@ async function updateUserInfo() {
                 const el = document.getElementById('recruiterName');
                 if (el) el.textContent = profile.contact_name;
             }
-            if (profile.company_id || profile.company_name) {
+            if (profile.company_display_id || profile.company_name || profile.company_id) {
                 const companyIdEl = document.getElementById('companyId');
-                if (companyIdEl) companyIdEl.textContent = profile.company_id || profile.company_name;
+                if (companyIdEl) companyIdEl.textContent = profile.company_display_id || profile.company_name || profile.company_id;
             }
         }
     } catch (error) { /* silent fail */ }

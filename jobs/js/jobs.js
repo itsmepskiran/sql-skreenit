@@ -65,7 +65,8 @@ let existingVideoUrl = null;
  * Check if user is authenticated and update UI accordingly
  */
 async function checkAuth() {
-    const { data: { session } } = await customAuth.getSession();
+    const result = await customAuth.getSession();
+    const session = result?.data?.session;
     currentUser = session?.user || null;
     updateHeaderForAuth();
     return currentUser;
@@ -79,7 +80,7 @@ function updateHeaderForAuth() {
 
     if (currentUser) {
         // User is logged in - show user info
-        const userName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
+        const userName = currentUser.full_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
         const initial = userName.charAt(0).toUpperCase();
 
         headerActions.innerHTML = `
@@ -98,12 +99,12 @@ function updateHeaderForAuth() {
         // Add logout handler
         document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
     } else {
-        // User is not logged in - show login/register/know more buttons
+        // User is not logged in - show login/register buttons
         headerActions.innerHTML = `
-            <a href="${LOGIN_PAGE}" class="btn btn-outline">
+            <a href="${CONFIG.PAGES.LOGIN}" class="btn btn-outline">
                 <i class="fas fa-sign-in-alt"></i> Login
             </a>
-            <a href="${REGISTER_PAGE}" class="btn btn-primary">
+            <a href="${CONFIG.PAGES.REGISTER}" class="btn btn-primary">
                 <i class="fas fa-user-plus"></i> Register
             </a>
         `;
@@ -134,13 +135,15 @@ async function fetchJobs() {
         const response = await backendGet('/jobs');
         const data = await handleResponse(response);
         
-        if (data.error) {
+        if (data?.error) {
             console.error("Error fetching jobs:", data.error);
             showError("errorBox", "Failed to load jobs. Please try again.", "Loading Failed");
             return [];
         }
 
-        allJobs = data.data || [];
+        // Some endpoints may return { data: [...] } while others return an array directly
+        const jobsList = Array.isArray(data) ? data : (data?.data || []);
+        allJobs = jobsList;
         return allJobs;
     } catch (err) {
         console.error("Unexpected error:", err);
@@ -184,6 +187,7 @@ function renderJobs(jobs) {
  * Create HTML for a single job card
  */
 function createJobCard(job) {
+    const jobId = job.id || job.job_id || job._id;
     const skills = job.skills || [];
     const displaySkills = skills.slice(0, 4);
     const remainingSkills = skills.length > 4 ? skills.length - 4 : 0;
@@ -198,12 +202,12 @@ function createJobCard(job) {
 
     const isAuthenticated = !!currentUser;
     const applyButton = isAuthenticated
-        ? `<button class="btn btn-apply" data-job-id="${job.id}">
+        ? `<button class="btn btn-apply" data-job-id="${jobId}">
              <i class="fas fa-paper-plane"></i> Apply Now
            </button>`
-        : `<a href="${LOGIN_PAGE}" class="btn btn-login-prompt">
+        : `<button type="button" class="btn btn-login-prompt" data-job-id="${jobId}">
              <i class="fas fa-lock"></i> Sign in to Apply
-           </a>`;
+           </button>`;
     return `
         <div class="job-card">
             <div class="job-card-header">
@@ -258,9 +262,13 @@ function createJobCard(job) {
 }
 function initAdSlider() {
     const wrapper = document.getElementById('adWrapper');
+    const items = wrapper?.querySelectorAll('.ad-item') || [];
+
+    if (!wrapper || items.length <= 1) return;
+
     let index = 0;
     setInterval(() => {
-        index = (index + 1) % 4; // Cycles through 4 ads
+        index = (index + 1) % items.length;
         wrapper.style.transform = `translateY(-${index * 40}px)`;
     }, 3000);
 }
@@ -279,6 +287,7 @@ function attachApplyListeners() {
     // Login prompt buttons for unauthenticated users
     document.querySelectorAll('.btn-login-prompt').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            e.preventDefault();
             const jobId = e.currentTarget.dataset.jobId;
             showAuthModal(jobId);
         });
@@ -288,35 +297,6 @@ function attachApplyListeners() {
 // ===============================
 // APPLY LOGIC
 // ===============================
-
-/**
- * Handle job application
- */
-async function handleApply(jobId) {
-    if (!currentUser) {
-        showAuthModal(jobId);
-        return;
-    }
-
-    // Check if user is a candidate
-    const role = currentUser.user_metadata?.role?.toLowerCase();
-    if (role !== 'candidate') {
-        showToast('Only candidates can apply for jobs. Please login as a candidate.', 'error');
-        return;
-    }
-
-    // Check if already applied
-    const hasApplied = await checkExistingApplication(jobId, currentUser.id);
-    if (hasApplied) {
-        showToast('You have already applied for this job!', 'info');
-        return;
-    }
-
-    // Redirect to application form with job_id
-    const applyUrl = new URL(CONFIG.PAGES.APPLY_FORM, window.location.origin);
-    applyUrl.searchParams.set('job_id', jobId);
-    window.location.href = applyUrl.toString();
-}
 
 /**
  * Check if user already applied for this job
@@ -375,7 +355,7 @@ async function handleApply(jobId) {
     }
 
     // Check if user is a candidate
-    const role = currentUser.user_metadata?.role?.toLowerCase();
+    const role = (currentUser.role || '').toLowerCase();
     if (role !== 'candidate') {
         showToast('Only candidates can apply for jobs. Please login as a candidate.', 'error');
         return;
@@ -700,27 +680,25 @@ async function checkPostLoginRedirect() {
 // ===============================
 
 async function init() {
-    // Check authentication status
-    await checkAuth();
+    // Ensure header is populated even if auth check fails
+    updateHeaderForAuth();
 
-    // Listen for auth state changes
-    customAuth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN') {
-            currentUser = session.user;
-            updateHeaderForAuth();
-            // Refresh jobs to update apply buttons
-            renderJobs(allJobs);
-        } else if (event === 'SIGNED_OUT') {
-            currentUser = null;
-            updateHeaderForAuth();
-            renderJobs(allJobs);
-        }
-    });
+    // Check authentication status (best-effort)
+    try {
+        await checkAuth();
+    } catch (err) {
+        console.warn('Auth initialization failed:', err);
+        currentUser = null;
+        updateHeaderForAuth();
+    }
 
     // Fetch jobs
     await fetchJobs();
     renderJobs(allJobs);
+
+    // Start ad slider
     initAdSlider();
+
     // Check for post-login redirect
     await checkPostLoginRedirect();
 

@@ -26,15 +26,20 @@ async function checkAuth() {
         return;
     }
 
-    updateSidebarProfile(user.user_metadata || {}, user.email);
+    updateSidebarProfile(user);
     updateUserInfo(); 
     setupNavigation();
     initCandidateDetails();
 }
 
-function updateSidebarProfile(meta, email) {
+function getUserFullName(user) {
+    if (!user) return 'Recruiter';
+    return user.full_name || user.name || (user.email ? user.email.split('@')[0] : 'Recruiter');
+}
+
+function updateSidebarProfile(user) {
     const nameEl = document.getElementById('recruiterName');
-    if(nameEl) nameEl.textContent = meta.full_name || email.split('@')[0];
+    if(nameEl) nameEl.textContent = getUserFullName(user);
 
     const companyIdEl = document.getElementById('companyId');
     if(companyIdEl) companyIdEl.textContent = 'Loading...';
@@ -51,9 +56,9 @@ async function updateUserInfo() {
                 const el = document.getElementById('recruiterName');
                 if (el) el.textContent = profile.contact_name;
             }
-            if (profile.company_id || profile.company_name) {
+            if (profile.company_display_id || profile.company_name || profile.company_id) {
                 const companyIdEl = document.getElementById('companyId');
-                if (companyIdEl) companyIdEl.textContent = profile.company_id || profile.company_name;
+                if (companyIdEl) companyIdEl.textContent = profile.company_display_id || profile.company_name || profile.company_id;
             }
         }
     } catch (error) { 

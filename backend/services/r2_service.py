@@ -22,10 +22,11 @@ class R2Service:
         self.account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID")
         self.access_key = os.getenv("CLOUDFLARE_R2_ACCESS_KEY")
         self.secret_key = os.getenv("CLOUDFLARE_R2_SECRET_KEY")
-        self.bucket_name = os.getenv("R2_BUCKET_NAME")
+        self.bucket_name = os.getenv("R2_BUCKET_NAME", "datastorage")
         self.endpoint = os.getenv("R2_ENDPOINT", "https://storage.skreenit.com")
         
         # Validate credentials
+        self.disabled = False
         if not all([self.account_id, self.access_key, self.secret_key, self.bucket_name]):
             missing = []
             if not self.account_id:
@@ -36,16 +37,24 @@ class R2Service:
                 missing.append("CLOUDFLARE_R2_SECRET_KEY")
             if not self.bucket_name:
                 missing.append("R2_BUCKET_NAME")
-            raise ValueError(f"Missing R2 credentials: {', '.join(missing)}")
+            logger.warning(f"R2 disabled: missing credentials: {', '.join(missing)}")
+            self.disabled = True
+            self.client = None
+            return
         
         # Initialize R2 client
-        self.client = boto3.client(
-            's3',
-            endpoint_url=f'https://{self.account_id}.r2.cloudflarestorage.com',
-            aws_access_key_id=self.access_key,
-            aws_secret_access_key=self.secret_key,
-            region_name='auto'
-        )
+        try:
+            self.client = boto3.client(
+                's3',
+                endpoint_url=f'https://{self.account_id}.r2.cloudflarestorage.com',
+                aws_access_key_id=self.access_key,
+                aws_secret_access_key=self.secret_key,
+                region_name='auto'
+            )
+        except Exception as e:
+            logger.warning(f"Failed to initialize R2 client: {str(e)}")
+            self.disabled = True
+            self.client = None
     
     def upload_file(self, file_content: bytes, filename: str, folder: str) -> str:
         """
@@ -67,7 +76,10 @@ class R2Service:
             
             # R2 key (path)
             key = f"datastorage/{folder}/{unique_filename}"
-            
+
+            if self.disabled or not self.client:
+                raise Exception("R2 service is not available")
+
             # Upload to R2
             self.client.put_object(
                 Bucket=self.bucket_name,
@@ -81,7 +93,7 @@ class R2Service:
             
             logger.info(f"File uploaded successfully: {public_url}")
             return public_url
-            
+        
         except Exception as e:
             logger.error(f"R2 upload failed: {str(e)}")
             raise Exception(f"File upload failed: {str(e)}")

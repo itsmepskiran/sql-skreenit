@@ -266,18 +266,19 @@ class RecruiterService:
                     "company_description": payload.get("company_description")
                 }
                 
-                # Remove None values
-                profile_update_data = {k: v for k, v in profile_update_data.items() if v is not None}
+                # Remove None/empty values (don’t overwrite existing values with blanks)
+                profile_update_data = {k: v for k, v in profile_update_data.items() if v not in (None, "")}
                 
                 # Also update company if exists
                 if existing.get("company_id"):
                     company_update_data = {
                         "name": payload.get("company_name"),
                         "website": payload.get("company_website"),
-                        "description": payload.get("company_description")
+                        "description": payload.get("company_description"),
+                        "logo_url": payload.get("company_logo_url")
                     }
-                    # Remove None values
-                    company_update_data = {k: v for k, v in company_update_data.items() if v is not None}
+                    # Remove None/empty values
+                    company_update_data = {k: v for k, v in company_update_data.items() if v not in (None, "")}
                     
                     if company_update_data:  # Only update if there are fields to update
                         self.mysql.update_record("companies", 
@@ -298,9 +299,10 @@ class RecruiterService:
             else:
                 # Create new profile - need to create company first
                 company_data = {
-                    "name": payload.get("company_name", "Unknown Company"),
+                    "name": payload.get("company_name") or "Unknown Company",
                     "description": payload.get("company_description"),
                     "website": payload.get("company_website"),
+                    "logo_url": payload.get("company_logo_url"),
                     "created_by": payload["user_id"]
                 }
                 
@@ -365,6 +367,7 @@ class RecruiterService:
                     profile["company_name"] = company.get("name")
                     profile["company_website"] = company.get("website")
                     profile["company_display_id"] = company.get("company_display_id")
+                    profile["company_logo_url"] = company.get("logo_url")
             
             return profile
         except Exception as e:

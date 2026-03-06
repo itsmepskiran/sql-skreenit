@@ -43,7 +43,8 @@
     <header class="header">
         <div class="header-content">
             <a href="https://skreenit.com" class="logo-link">
-                <img src="" id="logoImg" alt="Skreenit" style="max-width: 120px;"/>
+                <!-- Default src set so logo shows even if JS fails -->
+                <img src="../assets/assets/images/logo.png" id="logoImg" alt="Skreenit" style="max-width: 50px; border-radius: 50%;"/>
             </a>
 
             <div class="ad-slider-container">
@@ -56,7 +57,14 @@
             </div>
 
             <div class="header-actions" id="headerActions">
-                </div>
+                <!-- Default buttons so the page still works if JS fails -->
+                <a href="https://login.skreenit.com/login.html" class="btn btn-outline">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+                <a href="https://login.skreenit.com/registration.html" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Register
+                </a>
+            </div>
         </div>
     </header>
     <!-- Main Content -->

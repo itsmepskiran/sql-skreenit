@@ -90,8 +90,8 @@ async function fetchRecruiterProfile() {
             if (recName && profile.contact_name) recName.textContent = profile.contact_name;
 
             const companyIdEl = document.getElementById('companyId');
-            if (companyIdEl && (profile.company_id || profile.company_name)) {
-                companyIdEl.textContent = profile.company_id || profile.company_name;
+            if (companyIdEl) {
+                companyIdEl.textContent = profile.company_display_id || profile.company_id || profile.company_name || '---';
             }
         }
     } catch (err) {
@@ -283,9 +283,27 @@ function renderJob(job) {
     if(req) req.innerHTML = (job.requirements || "No requirements listed.").replace(/\n/g, "<br>");
 }
 
+function getUserFullName(user) {
+    if (!user) return 'User';
+    return user.full_name || user.name || user.user_metadata?.full_name || user.user_metadata?.name || (user.email ? user.email.split('@')[0] : 'User');
+}
+
+function getUserAvatarHtml(user) {
+    const avatarUrl = user?.avatar_url || user?.user_metadata?.avatar_url;
+    const name = getUserFullName(user);
+
+    if (avatarUrl) {
+        return `<img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+    }
+
+    const initials = (name.match(/\b\w/g) || []);
+    const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+    return text;
+}
+
 function updateSidebarProfile(user, role) {
-    const isRecruiter = role === 'recruiter';
-    
+    const isRecruiter = (role || '').toLowerCase() === 'recruiter';
+
     // Sidebar Elements
     const recName = document.getElementById('recruiterName');
     const candName = document.getElementById('userName');
@@ -295,35 +313,33 @@ function updateSidebarProfile(user, role) {
 
     if (isRecruiter) {
         // Toggle Recruiter blocks ON, Candidate blocks OFF
-        if(recName) {
-            recName.style.display = 'block'; 
-            recName.textContent = user.user_metadata.full_name || user.user_metadata.contact_name || user.email.split('@')[0];
+        if (recName) {
+            recName.style.display = 'block';
+            recName.textContent = getUserFullName(user);
         }
-        if(candName) candName.style.display = 'none';
-        if(companyIdEl) companyIdEl.style.display = 'block';
-        if(userDesig) userDesig.style.display = 'none';
-        if(navJobs) navJobs.style.display = 'block';
+        if (candName) candName.style.display = 'none';
+        if (companyIdEl) {
+            companyIdEl.style.display = 'block';
+            companyIdEl.textContent = 'Loading...';
+        }
+        if (userDesig) userDesig.style.display = 'none';
+        if (navJobs) navJobs.style.display = 'block';
     } else {
         // Toggle Candidate blocks ON, Recruiter blocks OFF
-        if(candName) {
-            candName.style.display = 'block'; 
-            candName.textContent = user.user_metadata.full_name || user.email.split('@')[0];
+        if (candName) {
+            candName.style.display = 'block';
+            candName.textContent = getUserFullName(user);
         }
-        if(recName) recName.style.display = 'none';
-        if(companyIdEl) companyIdEl.style.display = 'none';
-        if(userDesig) userDesig.style.display = 'block';
-        if(navJobs) navJobs.style.display = 'none';
+        if (recName) recName.style.display = 'none';
+        if (companyIdEl) companyIdEl.style.display = 'none';
+        if (userDesig) userDesig.style.display = 'block';
+        if (navJobs) navJobs.style.display = 'none';
     }
 
     // Avatar Logic
-    const avatarEl = document.getElementById("userAvatar");
+    const avatarEl = document.getElementById('userAvatar');
     if (avatarEl) {
-        if (user.user_metadata.avatar_url) {
-            avatarEl.innerHTML = `<img src="${user.user_metadata.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
-        } else {
-            const initials = (user.user_metadata.full_name || user.user_metadata.contact_name || user.email).match(/\b\w/g) || [];
-            avatarEl.innerHTML = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-        }
+        avatarEl.innerHTML = getUserAvatarHtml(user);
     }
 }
 

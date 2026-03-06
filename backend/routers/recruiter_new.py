@@ -12,6 +12,7 @@ from datetime import datetime
 from services.mysql_service import user_service, candidate_service
 from services.recruiter_service_mysql import RecruiterService
 from services.auth_service import get_current_user
+from services.r2_service import r2_service
 from middleware.role_required import ensure_permission
 from models.recruiter_models import CompanyCreate, RecruiterProfileCreate, JobCreateRequest, JobUpdateRequest
 from utils_others.logger import logger
@@ -25,16 +26,14 @@ router = APIRouter(prefix="/recruiter", tags=["Recruiter"])
 # HELPER FUNCTIONS
 # ============================================================
 
-def get_user_from_request(request: Request):
+def get_user_from_request(request: Request) -> dict:
     """Get user from request state."""
-    user = getattr(request.state, "user", None)
-    if not user:
-        return None
-    
+    user = getattr(request.state, "user", None) or {}
+
     # Handle JWT token structure where user ID is in 'sub' field
-    if "sub" in user and "id" not in user:
+    if isinstance(user, dict) and "sub" in user and "id" not in user:
         user["id"] = user["sub"]
-    
+
     return user
 
 def handle_file_upload(file: UploadFile, upload_path: str, public_url_base: str) -> str:
@@ -62,6 +61,30 @@ def handle_file_upload(file: UploadFile, upload_path: str, public_url_base: str)
     except Exception as e:
         logger.error(f"File upload failed: {str(e)}")
         raise HTTPException(status_code=500, detail="File upload failed")
+
+
+def upload_to_r2_or_local(file: UploadFile, folder: str, local_upload_path: str, local_public_url: str) -> str:
+    """Upload file to R2 if possible, falling back to local storage."""
+    if not file:
+        return None
+
+    try:
+        # Read file content for R2 upload
+        content = file.file.read()
+        # Reset file pointer in case fallback triggers
+        file.file.seek(0)
+
+        # Pyright/typing: UploadFile.filename can be None, so ensure a fallback
+        filename = file.filename or "upload"
+        return r2_service.upload_file(content, filename, folder)
+    except Exception as r2_err:
+        logger.warning(f"R2 upload failed (falling back to local storage): {str(r2_err)}")
+        # Seek back to start for the local upload path
+        try:
+            file.file.seek(0)
+        except Exception:
+            pass
+        return handle_file_upload(file, local_upload_path, local_public_url)
 
 # ============================================================
 # COMPANY ENDPOINTS
@@ -106,12 +129,15 @@ async def get_profile(request: Request):
     """Get recruiter profile."""
     ensure_permission(request, "profile:read")
     user = get_user_from_request(request)
-    
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
     try:
-        profile = recruiter_service.get_profile(user["id"])
+        profile = recruiter_service.get_profile(user_id)
         if not profile:
             # Create empty profile if doesn't exist
-            profile = recruiter_service.upsert_profile({"user_id": user["id"]})
+            profile = recruiter_service.upsert_profile({"user_id": user_id})
         
         return {"ok": True, "data": profile}
     
@@ -124,9 +150,12 @@ async def update_profile(request: Request, profile_data: dict):
     """Update recruiter profile."""
     ensure_permission(request, "profile:update")
     user = get_user_from_request(request)
-    
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
     try:
-        profile_data["user_id"] = user["id"]
+        profile_data["user_id"] = user_id
         result = recruiter_service.upsert_profile(profile_data)
         return {"ok": True, "data": result}
     
@@ -144,18 +173,23 @@ async def upload_avatar(request: Request, file: UploadFile = File(...)):
     """Upload recruiter avatar."""
     ensure_permission(request, "profile:update")
     user = get_user_from_request(request)
-    
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
     try:
-        # Upload file
-        avatar_url = handle_file_upload(
+        # Upload file to R2 (fallback to local storage)
+        avatar_url = upload_to_r2_or_local(
             file,
-            os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/uploads/profile-images"),
-            os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://yourdomain.com/uploads/profile-images")
+            folder="profilepics",
+            local_upload_path=os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/uploads/profilepics"),
+            local_public_url=os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://storage.skreenit.com/uploads/profilepics")
         )
         
-        # Update profile
-        recruiter_service.upsert_profile({"user_id": user["id"], "avatar_url": avatar_url})
-        
+        # Update users table so avatar_url is persisted
+        from services.mysql_service import user_service
+        user_service.update_record("users", {"avatar_url": avatar_url}, {"id": user_id})
+
         return {"ok": True, "data": {"avatar_url": avatar_url}}
     
     except Exception as e:
@@ -167,17 +201,21 @@ async def upload_company_logo(request: Request, file: UploadFile = File(...)):
     """Upload company logo."""
     ensure_permission(request, "profile:update")
     user = get_user_from_request(request)
-    
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
     try:
-        # Upload file
-        logo_url = handle_file_upload(
+        # Upload file to R2 (fallback to local storage)
+        logo_url = upload_to_r2_or_local(
             file,
-            os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/uploads/profile-images"),
-            os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://yourdomain.com/uploads/profile-images")
+            folder="profilepics",
+            local_upload_path=os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/uploads/profilepics"),
+            local_public_url=os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://storage.skreenit.com/uploads/profilepics")
         )
         
-        # Update profile
-        recruiter_service.upsert_profile({"user_id": user["id"], "avatar_url": logo_url})
+        # Update company record with logo URL via recruiter profile service
+        recruiter_service.upsert_profile({"user_id": user_id, "company_logo_url": logo_url})
         
         return {"ok": True, "data": {"logo_url": logo_url}}
     

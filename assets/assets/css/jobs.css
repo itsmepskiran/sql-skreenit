@@ -695,6 +695,9 @@
     .ad-wrapper {
         transition: transform 0.5s ease-in-out;
         width: 100%;
+        display: flex;
+        flex-direction: column;
+        animation: adSlide 12s infinite;
     }
     .ad-item {
         height: 40px;
@@ -704,4 +707,12 @@
         font-size: 0.85rem;
         font-weight: 500;
         color: #4a5568;
+    }
+
+    @keyframes adSlide {
+        0% { transform: translateY(0); }
+        25% { transform: translateY(-40px); }
+        50% { transform: translateY(-80px); }
+        75% { transform: translateY(-120px); }
+        100% { transform: translateY(0); }
     }

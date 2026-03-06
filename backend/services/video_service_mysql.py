@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 from services.mysql_service import MySQLService
+from services.r2_service import R2Service
 from utils_others.logger import logger
 
 
@@ -29,22 +30,38 @@ class VideoService:
         Upload a video file to storage and return a public URL.
         """
         try:
+            # Use Cloudflare R2 for storage (fallback to local storage if R2 fails)
+            r2 = R2Service()
+            # Place videos under a per-candidate folder for easier management
+            folder = f"videos/{candidate_id}"
+            public_url = r2.upload_file(file_content, filename, folder)
+
+            logger.info(f"Video uploaded to R2: {public_url}")
+            return public_url
+
+        except Exception as e:
+            logger.error(f"R2 upload failed, falling back to local storage: {str(e)}")
+
+        # Fallback: Save file locally and return a local URL for API delivery
+        try:
             file_extension = filename.split(".")[-1] if "." in filename else "mp4"
             unique_filename = f"{candidate_id}/{uuid.uuid4()}.{file_extension}"
-            
+
             # Create directory if it doesn't exist
             full_path = os.path.join(self.storage_path, unique_filename)
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
-            
-            # Save file locally (TODO: Implement Cloudflare R2)
+
             with open(full_path, "wb") as f:
                 f.write(file_content)
-            
-            # Return public URL (TODO: Implement Cloudflare R2 URL)
+
+            # Return local API path for streaming
             public_url = f"/api/videos/{unique_filename}"
-            
-            logger.info(f"Video uploaded: {unique_filename}")
+            logger.info(f"Video uploaded locally: {unique_filename}")
             return public_url
+
+        except Exception as e:
+            logger.error(f"Video upload failed: {str(e)}")
+            raise RuntimeError("Failed to upload video")
 
         except Exception as e:
             logger.error(f"Video upload failed: {str(e)}")

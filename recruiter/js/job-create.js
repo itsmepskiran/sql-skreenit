@@ -6,7 +6,9 @@ import '@shared/js/mobile.js';
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+
+let recruiterProfile = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     await checkAuth();
@@ -28,37 +30,45 @@ async function checkAuth() {
         return;
     }
 
-    updateSidebarProfile(user.user_metadata || {}, user.email);
-    updateUserInfo(); 
+    updateSidebarProfile(user);
+    await loadRecruiterProfile();
 }
 
-function updateSidebarProfile(meta, email) {
+function getUserFullName(user) {
+    if (!user) return 'Recruiter';
+    return user.full_name || user.name || (user.email ? user.email.split('@')[0] : 'Recruiter');
+}
+
+function updateSidebarProfile(user) {
     const nameEl = document.getElementById('recruiterName');
     const avatarEl = document.getElementById('userAvatar'); 
-    if(nameEl) nameEl.textContent = meta.full_name || meta.contact_name || email.split('@')[0];
+    if(nameEl) nameEl.textContent = getUserFullName(user);
     
     if(avatarEl) {
-        if (meta.avatar_url) {
-            avatarEl.innerHTML = `<img src="${meta.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+        if (user?.avatar_url) {
+            avatarEl.innerHTML = `<img src="${user.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
         } else {
-            const initials = (meta.full_name || email).match(/\b\w/g) || [];
+            const initials = (getUserFullName(user) || 'R').match(/\b\w/g) || [];
             const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
             avatarEl.innerHTML = text; 
         }
     }
 }
 
-async function updateUserInfo() {
+async function loadRecruiterProfile() {
     try {
         const res = await backendGet('/recruiter/profile');
         const data = await handleResponse(res);
-        const profile = data.data || data; 
+        const profile = data.data || data;
+        recruiterProfile = profile || null;
+
         if (profile) {
             const el = document.getElementById('recruiterName');
             if (el && profile.contact_name) el.textContent = profile.contact_name;
+
             const companyIdEl = document.getElementById('companyId');
-            if (companyIdEl && (profile.company_id || profile.company_name)) {
-                companyIdEl.textContent = profile.company_id || profile.company_name;
+            if (companyIdEl && (profile.company_display_id || profile.company_name || profile.company_id)) {
+                companyIdEl.textContent = profile.company_display_id || profile.company_name || profile.company_id;
             }
         }
     } catch (error) { /* Silent fail */ }
@@ -82,9 +92,14 @@ async function handleJobCreate(event) {
     const description = document.getElementById("job_description").value.trim();
     const requirements = document.getElementById("requirements").value.trim();
 
+    if (!recruiterProfile?.company_id) {
+        throw new Error("Company information missing. Complete your recruiter profile first.");
+    }
+
     const payload = {
       title, location, job_type, description, requirements,
-      currency: "INR", status: "active" 
+      currency: "INR", status: "active",
+      company_id: recruiterProfile.company_id
     };
 
     if (salary_range) {

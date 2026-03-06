@@ -21,21 +21,44 @@ async function checkAuth() {
     }
     
     // Load fast initial data from custom auth
-    updateSidebarProfile(user.user_metadata || {}, user.email);
+    updateSidebarProfile(user);
     
     // Load deep data from your Backend Database
     updateUserInfo(); 
     loadDashboardData(user.id);
 }
 
-function updateSidebarProfile(meta, email) {
+function getUserFullName(user) {
+    if (!user) return 'User';
+    return user.full_name || user.name || user.user_metadata?.full_name || user.user_metadata?.name || (user.email ? user.email.split('@')[0] : 'User');
+}
+
+function getUserAvatarHtml(user) {
+    // Prefer company logo (if uploaded) over the user avatar
+    const avatarUrl = user?.company_logo_url || user?.avatar_url || user?.user_metadata?.avatar_url;
+    const name = getUserFullName(user);
+
+    if (avatarUrl) {
+        return `<img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+    }
+
+    const initials = (name.match(/\b\w/g) || []);
+    const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+    return text;
+}
+
+function updateSidebarProfile(user) {
     // 1. Update Name
     const nameEl = document.getElementById('recruiterName');
-    if(nameEl) nameEl.textContent = meta.full_name || email.split('@')[0];
+    if (nameEl) nameEl.textContent = getUserFullName(user);
 
-    // 2. Set default loading state (Just "Loading..." without prefixes)
+    // 2. Avatar
+    const avatarEl = document.getElementById('userAvatar');
+    if (avatarEl) avatarEl.innerHTML = getUserAvatarHtml(user);
+
+    // 3. Set default loading state for company ID (will update once backend responds)
     const companyIdEl = document.getElementById('companyId');
-    if(companyIdEl) {
+    if (companyIdEl) {
         companyIdEl.textContent = 'Loading...';
     }
 }
@@ -53,12 +76,24 @@ async function updateUserInfo() {
             if (el) el.textContent = profile.contact_name;
         }
 
-        // Target the 'companyId' element and inject ONLY the raw value
-        if (profile.company_id || profile.company_name) {
-            const companyIdEl = document.getElementById('companyId');
-            if (companyIdEl) {
-                companyIdEl.textContent = profile.company_id || profile.company_name;
+        // Target the 'companyId' element and inject a friendly display ID
+        const companyIdEl = document.getElementById('companyId');
+        if (companyIdEl) {
+            companyIdEl.textContent = profile.company_display_id || profile.company_id || profile.company_name || '---';
+        }
+
+        // Keep the sidebar in sync with logo/avatar and company display ID
+        const user = await customAuth.getUserData();
+        if (user) {
+            if (profile.company_logo_url) {
+                user.company_logo_url = profile.company_logo_url;
+                user.avatar_url = profile.company_logo_url; // prefer logo
             }
+            if (profile.company_display_id) {
+                user.company_display_id = profile.company_display_id;
+            }
+            customAuth.storage.setItem('user_data', JSON.stringify(user));
+            updateSidebarProfile(user);
         }
     }
   } catch (error) { 
