@@ -50,13 +50,6 @@ VIDEO_PUBLIC_URL = os.getenv("VIDEO_PUBLIC_URL", f"{PUBLIC_BASE_URL}/uploads/vid
 PROFILE_IMAGE_PUBLIC_URL = os.getenv("PROFILE_IMAGE_PUBLIC_URL", f"{PUBLIC_BASE_URL}/uploads/profile-images")
 
 # ============================================================
-# EMAIL CONFIGURATION (RESEND)
-# ============================================================
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@skreenit.com")
-FROM_NAME = os.getenv("FROM_NAME", "Skreenit")
-
-# ============================================================
 # JWT CONFIGURATION
 # ============================================================
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
@@ -73,6 +66,18 @@ ALLOWED_ORIGINS = [
     "http://localhost:8081",
     "http://127.0.0.1:8080",
     "http://127.0.0.1:8081",
+    "http://localhost:8000",
+    "http://localhost:8001",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:8001",
+    "http://localhost:8082",
+    "http://localhost:8083",
+    "http://127.0.0.1:8082",
+    "http://127.0.0.1:8083",
+    "http://localhost:8084",
+    "http://localhost:8085",
+    "http://127.0.0.1:8084",
+    "http://127.0.0.1:8085",
     # Production domains
     "https://www.skreenit.com",
     "https://skreenit.com", 
@@ -84,7 +89,7 @@ ALLOWED_ORIGINS = [
     "https://backend.skreenit.com",
     "https://storage.skreenit.com",
     "https://assets.skreenit.com",
-    "https://aiskreenit.onrender.com",
+    "https://skreenit.onrender.com",
     "https://hrms.skreenit.com",
     "https://app.skreenit.com",
     "https://in.skreenit.com",
@@ -95,7 +100,6 @@ ALLOWED_ORIGINS = [
 # ============================================================
 # VALIDATION
 # ============================================================
-# backend/config.py
 
 def validate_config():
     """Validate required environment variables."""

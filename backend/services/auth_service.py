@@ -268,6 +268,35 @@ class AuthService:
             logger.error(f"Failed to send password reset email: {str(e)}")
             raise ValueError(str(e))
 
+    def refresh_access_token(self, refresh_token: str) -> Dict[str, str]:
+        """Generate new access and refresh tokens using a valid refresh token."""
+        try:
+            # Verify the refresh token
+            payload = jwt.decode(refresh_token, self.jwt_secret, algorithms=[self.jwt_algorithm])
+            
+            if payload.get("type") != "refresh":
+                raise ValueError("Invalid token type")
+            
+            user_id = payload.get("sub")
+            if not user_id:
+                raise ValueError("Invalid token payload")
+            
+            # Get user data
+            user = self.user_service.get_user_by_id(user_id)
+            if not user:
+                raise ValueError("User not found")
+            
+            # Generate new tokens
+            tokens = self._generate_tokens(user)
+            
+            logger.info(f"Token refreshed for user {user_id}")
+            return tokens
+            
+        except jwt.ExpiredSignatureError:
+            raise ValueError("Refresh token has expired")
+        except jwt.InvalidTokenError:
+            raise ValueError("Invalid refresh token")
+
 # FastAPI Dependency Setup
 security = HTTPBearer()
 

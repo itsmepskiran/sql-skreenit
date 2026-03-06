@@ -371,6 +371,26 @@ class UserService(MySQLService):
                 "user_metadata": user.user_metadata
             }
     
+    def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get user by ID."""
+        with self.session_factory() as db:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return None
+            
+            return {
+                "id": user.id,
+                "email": user.email,
+                "full_name": user.full_name,
+                "phone": user.phone,
+                "role": user.role,
+                "location": user.location,
+                "avatar_url": user.avatar_url,
+                "onboarded": user.onboarded,
+                "email_verified": user.email_confirmed_at is not None,
+                "user_metadata": user.user_metadata
+            }
+    
     def get_user_for_auth(self, email: str) -> Optional[Dict[str, Any]]:
         """Get user by email with password hash for authentication only."""
         with self.session_factory() as db:
@@ -560,9 +580,11 @@ class RecruiterService(MySQLService):
         # Separate user data from profile data - only include valid RecruiterProfile fields
         user_fields = ["avatar_url"]
         profile_fields = ["company_id", "contact_name", "contact_email", "location", "company_description"]
+        company_fields = ["company_name", "company_website", "company_description"]
         
         user_data = {k: v for k, v in payload.items() if k in user_fields}
         profile_data = {k: v for k, v in payload.items() if k in profile_fields}
+        company_data = {k: v for k, v in payload.items() if k in company_fields and v is not None}
         
         with self.session_factory() as db:
             # Update user table if needed (for avatar_url)
@@ -576,11 +598,42 @@ class RecruiterService(MySQLService):
             # Check if recruiter profile exists
             existing_profile = db.query(RecruiterProfile).filter(RecruiterProfile.user_id == user_id).first()
             
+            # Handle company creation/update
+            company_id = None
+            if company_data:
+                if existing_profile and existing_profile.company_id:
+                    # Update existing company
+                    company = db.query(Company).filter(Company.id == existing_profile.company_id).first()
+                    if company:
+                        if "company_name" in company_data:
+                            company.name = company_data["company_name"]
+                        if "company_website" in company_data:
+                            company.website = company_data["company_website"]
+                        if "company_description" in company_data:
+                            company.description = company_data["company_description"]
+                        company_id = company.id
+                else:
+                    # Create new company
+                    company_name = company_data.get("company_name", "Unknown Company")
+                    company = Company(
+                        id=generate_uuid(),
+                        name=company_name,
+                        website=company_data.get("company_website"),
+                        description=company_data.get("company_description"),
+                        created_by=user_id
+                    )
+                    db.add(company)
+                    db.flush()  # Get the ID
+                    company_id = company.id
+            
             if existing_profile:
                 # Update existing profile
                 for key, value in profile_data.items():
                     if hasattr(existing_profile, key):
                         setattr(existing_profile, key, value)
+                # Update company_id if we created/updated a company
+                if company_id:
+                    existing_profile.company_id = company_id
                 db.commit()
                 db.refresh(existing_profile)
                 return {"id": existing_profile.id, "action": "updated"}
@@ -589,6 +642,7 @@ class RecruiterService(MySQLService):
                 profile = RecruiterProfile(
                     id=generate_uuid(),
                     user_id=user_id,
+                    company_id=company_id,
                     **profile_data
                 )
                 db.add(profile)

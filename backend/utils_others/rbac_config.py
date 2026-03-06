@@ -3,8 +3,8 @@
 # The system expects a simple dictionary: "role": ["list", "of", "permissions"]
 ROLES_PERMISSIONS = {
     "recruiter": [
-        "jobs:view","jobs:create","jobs:edit","jobs:delete",
-        "profile:read","profile:edit","profile:update",
+        "jobs:view","jobs:create","jobs:edit","jobs:delete", "jobs:read",
+        "profile:read","profile:edit","profile:update", "profile:view",
         "applications:read","applications:edit","applications:delete","application:create",
         "dashboard:read","notifications:create","analytics:view"
     ],

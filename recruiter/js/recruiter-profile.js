@@ -146,7 +146,15 @@ async function handleProfileSubmit(event) {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...'; 
   btn.disabled = true;
 
-  const { data: { user } } = await customAuth.getUser();
+  // Get user with null check to prevent silent failures
+  const authResult = await customAuth.getUser();
+  const user = authResult?.data?.user;
+  
+  if (!user || !user.id) {
+    alert("Session expired. Please log in again.");
+    window.location.href = CONFIG.PAGES.LOGIN;
+    return;
+  }
 
   let website = document.getElementById("company_website").value.trim();
   if (website && !website.match(/^https?:\/\//)) website = `https://${website}`;
@@ -162,7 +170,9 @@ async function handleProfileSubmit(event) {
   };
 
   try {
+    console.log('[RecruiterProfile] Saving profile with payload:', payload);
     const res = await backendPut("/recruiter/profile", payload);
+    console.log('[RecruiterProfile] Response status:', res.status);
     await handleResponse(res);
     
     // Mark recruiter as onboarded after successful profile submission
@@ -190,7 +200,9 @@ async function handleProfileSubmit(event) {
     }, 1000);
 
   } catch (err) {
-    console.error("Save failed:", err);
+    console.error("[RecruiterProfile] Save failed:", err);
+    console.error("[RecruiterProfile] Error message:", err.message);
+    console.error("[RecruiterProfile] Server response:", err.response);
     alert(`Failed to save: ${err.message}`);
     btn.innerHTML = originalText; 
     btn.disabled = false;

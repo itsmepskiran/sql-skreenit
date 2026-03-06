@@ -9,7 +9,7 @@ applicant/.env
 dashboard/.env
 hrms/.env
 !.env.example
-
+!.env.local
 # ============================
 # PYTHON BACKEND
 # ============================
