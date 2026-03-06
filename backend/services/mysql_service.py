@@ -26,7 +26,7 @@ except ModuleNotFoundError:
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
     if project_root not in sys.path:
         sys.path.insert(0, project_root)
-    import backend.database as _database
+    import database as _database
 
 # Export names used by the service layer
 get_db_session = _database.get_db_session
