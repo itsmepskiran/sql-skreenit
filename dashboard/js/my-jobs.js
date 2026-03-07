@@ -28,38 +28,57 @@ async function checkAuth() {
     loadJobs(user.id);
 }
 
-function updateSidebarProfile(meta, email) {
+function updateSidebarProfile(meta, email, avatarUrl) {
     const nameEl = document.getElementById('recruiterName');
-    const avatarEl = document.getElementById('userAvatar'); 
+    const avatarEl = document.getElementById('userAvatar');
     
-    if(nameEl) nameEl.textContent = meta.full_name || meta.contact_name || email.split('@')[0];
-    
-    if(avatarEl) {
-        if (meta.avatar_url) {
-            avatarEl.innerHTML = `<img src="${meta.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+    // Fix #4: Hide the camera icon if it exists in the HTML
+    const cameraIcon = document.querySelector('.camera-icon');
+    if (cameraIcon) cameraIcon.style.display = 'none';
+
+    // Fix #1 & #5: Ensure name prioritizes contact_name over defaults
+    const displayName = meta.contact_name || meta.full_name || (email ? email.split('@')[0] : 'Recruiter');
+    if (nameEl) nameEl.textContent = displayName;
+
+    // Fix #3: Handle Broken Images fallback gracefully
+    if (avatarEl) {
+        const displayAvatar = avatarUrl || meta.avatar_url;
+        // Don't try to load dummy 'yourdomain.com' URLs from unconfigured backend
+        if (displayAvatar && !displayAvatar.includes('yourdomain.com')) {
+            const initials = getInitials(displayName);
+            avatarEl.innerHTML = `<img src="${displayAvatar}" onerror="this.style.display='none'; this.parentElement.innerHTML='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
         } else {
-            const initials = (meta.full_name || email).match(/\b\w/g) || [];
-            const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-            avatarEl.innerHTML = text; 
+            avatarEl.innerHTML = getInitials(displayName);
         }
     }
+}
+
+function getInitials(name) {
+    const initials = (name || 'R').match(/\b\w/g) || [];
+    return ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
 }
 
 async function updateUserInfo() {
-    try {
-        const res = await backendGet('/recruiter/profile');
-        const data = await handleResponse(res);
-        const profile = data.data || data; 
-        
-        if (profile && (profile.company_id || profile.company_name)) {
-            const companyIdEl = document.getElementById('companyId');
-            if (companyIdEl) companyIdEl.textContent = profile.company_id || profile.company_name;
-        }
-    } catch (error) { 
-        // Silent fail
-    }
-}
+  try {
+    const user = await customAuth.getUserData();
+    const res = await backendGet('/recruiter/profile');
+    const data = await handleResponse(res);
+    const profile = data.data || data; 
+    
+    if (profile) {
+        updateSidebarProfile(profile, user?.email, profile.company_logo_url || user?.avatar_url);
 
+        // Fix #1 & #5: Ensure correct Display ID is mapped
+        const companyIdEl = document.getElementById('companyId');
+        if (companyIdEl) {
+            companyIdEl.textContent = profile.company_display_id || profile.company_id || '---';
+        }
+    }
+  } catch (error) { 
+      const companyIdEl = document.getElementById('companyId');
+      if (companyIdEl) companyIdEl.textContent = '---';
+  }
+}
 function setupNavigation() {
     const origin = window.location.origin;
 

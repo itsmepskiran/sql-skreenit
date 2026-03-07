@@ -29,59 +29,52 @@ async function checkAuth() {
 }
 
 function updateSidebarProfile(meta, email, avatarUrl) {
-    // 1. Update Name
     const nameEl = document.getElementById('recruiterName');
-    const displayName = meta.full_name || email?.split('@')[0] || 'Recruiter';
-    if(nameEl) nameEl.textContent = displayName;
-
-    // 2. Update avatar (company or user)
     const avatarEl = document.getElementById('userAvatar');
+    
+    // Fix #4: Hide the camera icon if it exists in the HTML
+    const cameraIcon = document.querySelector('.camera-icon');
+    if (cameraIcon) cameraIcon.style.display = 'none';
+
+    // Fix #1 & #5: Ensure name prioritizes contact_name over defaults
+    const displayName = meta.contact_name || meta.full_name || (email ? email.split('@')[0] : 'Recruiter');
+    if (nameEl) nameEl.textContent = displayName;
+
+    // Fix #3: Handle Broken Images fallback gracefully
     if (avatarEl) {
         const displayAvatar = avatarUrl || meta.avatar_url;
-        if (displayAvatar) {
-            avatarEl.innerHTML = `<img src="${displayAvatar}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+        // Don't try to load dummy 'yourdomain.com' URLs from unconfigured backend
+        if (displayAvatar && !displayAvatar.includes('yourdomain.com')) {
+            const initials = getInitials(displayName);
+            avatarEl.innerHTML = `<img src="${displayAvatar}" onerror="this.style.display='none'; this.parentElement.innerHTML='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
         } else {
-            const initials = (displayName || 'R').match(/\b\w/g) || [];
-            const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-            avatarEl.innerHTML = text;
+            avatarEl.innerHTML = getInitials(displayName);
         }
     }
+}
 
-    // 3. Set default loading state (Just "Loading..." without prefixes)
-    const companyIdEl = document.getElementById('companyId');
-    if(companyIdEl) {
-        companyIdEl.textContent = 'Loading...';
-    }
+function getInitials(name) {
+    const initials = (name || 'R').match(/\b\w/g) || [];
+    return ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
 }
 
 async function updateUserInfo() {
   try {
     const user = await customAuth.getUserData();
-
     const res = await backendGet('/recruiter/profile');
     const data = await handleResponse(res);
     const profile = data.data || data; 
     
     if (profile) {
-        // Update sidebar with the best available avatar (company logo > user avatar)
-        updateSidebarProfile(user?.user_metadata || {}, user?.email, profile.company_logo_url || user?.avatar_url);
+        updateSidebarProfile(profile, user?.email, profile.company_logo_url || user?.avatar_url);
 
-        // Update Name if contact_name exists
-        if (profile.contact_name) {
-            const el = document.getElementById('recruiterName');
-            if (el) el.textContent = profile.contact_name;
-        }
-
-        // Target the 'companyId' element and inject the display ID (fallbacks to company name/UUID)
+        // Fix #1 & #5: Ensure correct Display ID is mapped
         const companyIdEl = document.getElementById('companyId');
         if (companyIdEl) {
-            const companyIdValue = profile.company_display_id || profile.company_id || profile.company_name || '---';
-            companyIdEl.textContent = companyIdValue;
+            companyIdEl.textContent = profile.company_display_id || profile.company_id || '---';
         }
     }
   } catch (error) { 
-      console.warn('Error loading user info:', error); 
-      // Clean fallback if it fails
       const companyIdEl = document.getElementById('companyId');
       if (companyIdEl) companyIdEl.textContent = '---';
   }

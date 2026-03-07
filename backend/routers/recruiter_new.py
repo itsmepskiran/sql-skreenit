@@ -38,27 +38,20 @@ def get_user_from_request(request: Request):
     return user
 
 def handle_file_upload(file: UploadFile, upload_path: str, public_url_base: str) -> str:
-    """Handle file upload to Hostinger file system."""
     if not file:
         return None
-    
     try:
-        # Create filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{timestamp}_{file.filename}"
-        file_path = os.path.join(upload_path, filename)
-        
-        # Ensure upload directory exists
-        os.makedirs(upload_path, exist_ok=True)
-        
-        # Save file
-        with open(file_path, "wb") as buffer:
-            content = file.file.read()
-            buffer.write(content)
-        
-        # Return public URL
-        return f"{public_url_base}/{filename}"
-    
+        from services.r2_service import R2Service
+        r2_service = R2Service()
+        if "profilepics" in upload_path or "profile-images" in upload_path:
+            folder = "profilepics"
+        elif "company" in upload_path or "logos" in upload_path:
+            folder = "profilepics"
+        else:
+            folder = "uploads"
+        file_content = file.file.read()
+        public_url = r2_service.upload_file(file_content, file.filename, folder)
+        return public_url
     except Exception as e:
         logger.error(f"File upload failed: {str(e)}")
         raise HTTPException(status_code=500, detail="File upload failed")
@@ -109,9 +102,12 @@ async def get_profile(request: Request):
     
     try:
         profile = recruiter_service.get_profile(user["id"])
+        
         if not profile:
             # Create empty profile if doesn't exist
-            profile = recruiter_service.upsert_profile({"user_id": user["id"]})
+            result = recruiter_service.upsert_profile({"user_id": user["id"]})
+            # FIX: Extract the actual profile dictionary from the result
+            profile = result.get("data", {}) 
         
         return {"ok": True, "data": profile}
     
@@ -177,7 +173,8 @@ async def upload_company_logo(request: Request, file: UploadFile = File(...)):
         )
         
         # Update profile
-        recruiter_service.upsert_profile({"user_id": user["id"], "avatar_url": logo_url})
+        # Update profile
+        recruiter_service.upsert_profile({"user_id": user["id"], "company_logo_url": logo_url})
         
         return {"ok": True, "data": {"logo_url": logo_url}}
     
@@ -196,8 +193,16 @@ async def create_job(request: Request, job_data: JobCreateRequest):
     user = get_user_from_request(request)
     
     try:
+        # Fetch profile to get the company_id
+        profile = recruiter_service.get_profile(user["id"])
+
+        if not profile or not profile.get("company_id"):
+            result = recruiter_service.upsert_profile({"user_id": user["id"]})
+            profile = result.get("data", {})
+            
         data = job_data.model_dump()
         data["created_by"] = user["id"]
+        data["company_id"] = profile.get("company_id")  # <--- CRITICAL FIX
         
         result = recruiter_service.post_job(data)
         return {"ok": True, "data": result}

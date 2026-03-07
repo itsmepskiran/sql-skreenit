@@ -12,12 +12,12 @@ if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 // Store original data to revert if user clicks Cancel
 let originalProfileData = {};
 
-document.addEventListener("DOMContentLoaded", async () => {
+
     await ensureRecruiter();
     setupNavigation();
     setupAvatarUpload();
     setupCompanyLogoUpload();
-});
+
 
 // --- SIDEBAR / USER METADATA ---
 function updateSidebarProfile(user) {
@@ -25,6 +25,11 @@ function updateSidebarProfile(user) {
     const avatarEl = document.getElementById("userAvatar"); 
 
     const logoUrl = user?.company_logo_url || user?.avatar_url;
+    const initials = (() => {
+        const src = user?.full_name || user?.name || (user?.email ? user.email.split('@')[0] : 'Recruiter');
+        const chars = (src || 'R').match(/\b\w/g) || [];
+        return ((chars.shift() || '') + (chars.pop() || '')).toUpperCase();
+    })();
 
     if(nameEl) {
         nameEl.textContent = user?.full_name || user?.name || (user?.email ? user.email.split('@')[0] : 'Recruiter');
@@ -32,11 +37,9 @@ function updateSidebarProfile(user) {
     
     if(avatarEl) {
         if (logoUrl) {
-            avatarEl.innerHTML = `<img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+            avatarEl.innerHTML = `<img src="${logoUrl}" onerror="this.style.display='none'; this.parentElement.textContent='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
         } else {
-            const initials = (nameEl?.textContent || 'R').match(/\b\w/g) || [];
-            const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-            avatarEl.innerHTML = text; 
+            avatarEl.textContent = initials; 
         }
     }
 }
@@ -135,10 +138,14 @@ function populateForm(data) {
 
     const logoImgEl = document.getElementById('companyLogoImg');
     const logoPlaceholder = document.getElementById('companyLogoPlaceholder');
-    if (data.company_logo_url) {
+    if (data.company_logo_url && !data.company_logo_url.includes('yourdomain.com')) {
         if (logoImgEl) {
             logoImgEl.src = data.company_logo_url;
             logoImgEl.style.display = 'block';
+            logoImg.onerror=()=>{
+                logoImgEl.style.display='none';
+                if(logoPlaceholder) logoPlaceholder.style.display='block';
+            };
         }
         if (logoPlaceholder) logoPlaceholder.style.display = 'none';
     } else {

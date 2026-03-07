@@ -5,38 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jobs | Skreenit - Find Your Dream Job</title>
     
-    <script>
-    (function() {
-        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
-        const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
-        const im = document.createElement('script');
-        im.type = 'importmap';
-        im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
-        document.head.appendChild(im);
-        
-        window.loadSharedCSS = function(file) {
-            const link = document.createElement('link'); 
-            link.rel = 'stylesheet'; 
-            link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
-            document.head.appendChild(link);
-        };
-        
-        const icon = document.createElement('link'); 
-        icon.rel = 'icon'; 
-        icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
-        document.head.appendChild(icon);
-    })();
-    </script>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fix Logo
+            const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+            const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+            const logoImg = document.getElementById('logoImg');
+            if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
-    <script>
-        loadSharedCSS('core.css');
-        loadSharedCSS('components.css');
-        loadSharedCSS('landing.css');
-        loadSharedCSS('jobs.css');
-        loadSharedCSS('warning-ribbon.css');
-        loadSharedCSS('mobile.css');
-    </script>
-    
+            // Fix Header Login/Register Buttons
+            const headerActions = document.getElementById('headerActions');
+            if(headerActions) {
+                // Check if any token exists in storage
+                const token = localStorage.getItem('sb-access-token') || localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+                
+                if(token) {
+                    headerActions.innerHTML = `<a href="../dashboard/index.html" class="btn btn-primary">Go to Dashboard</a>`;
+                } else {
+                    headerActions.innerHTML = `
+                        <a href="../login/index.html" class="btn" style="background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); margin-right: 10px;">Sign In</a>
+                        <a href="../login/registration.html" class="btn btn-primary">Post a Job</a>
+                    `;
+                }
+            }
+        });
+    </script>    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 </head>
 <body class="jobs-page">

@@ -82,11 +82,14 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
+                'candidate_education': CandidateEducation,     # ADDED
+                'candidate_experience': CandidateExperience,   # ADDED
                 'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
+                'interview_responses': InterviewResponse,      # ADDED
                 'intro_videos': IntroVideo,
                 'notifications': Notification
             }
@@ -117,11 +120,14 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
+                'candidate_education': CandidateEducation,     # ADDED
+                'candidate_experience': CandidateExperience,   # ADDED
                 'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
+                'interview_responses': InterviewResponse,      # ADDED
                 'intro_videos': IntroVideo,
                 'notifications': Notification
             }
@@ -151,11 +157,14 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
+                'candidate_education': CandidateEducation,     # ADDED
+                'candidate_experience': CandidateExperience,   # ADDED
                 'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
+                'interview_responses': InterviewResponse,      # ADDED
                 'intro_videos': IntroVideo,
                 'notifications': Notification
             }
@@ -191,11 +200,14 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
+                'candidate_education': CandidateEducation,     # ADDED
+                'candidate_experience': CandidateExperience,   # ADDED
                 'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
+                'interview_responses': InterviewResponse,      # ADDED
                 'intro_videos': IntroVideo,
                 'notifications': Notification
             }
@@ -247,11 +259,14 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
+                'candidate_education': CandidateEducation,     # ADDED
+                'candidate_experience': CandidateExperience,   # ADDED
                 'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
+                'interview_responses': InterviewResponse,      # ADDED
                 'intro_videos': IntroVideo,
                 'notifications': Notification
             }
@@ -280,11 +295,14 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
+                'candidate_education': CandidateEducation,     # ADDED
+                'candidate_experience': CandidateExperience,   # ADDED
                 'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
+                'interview_responses': InterviewResponse,      # ADDED
                 'intro_videos': IntroVideo,
                 'notifications': Notification
             }
@@ -318,11 +336,14 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
+                'candidate_education': CandidateEducation,     # ADDED
+                'candidate_experience': CandidateExperience,   # ADDED
                 'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
+                'interview_responses': InterviewResponse,      # ADDED
                 'intro_videos': IntroVideo,
                 'notifications': Notification
             }

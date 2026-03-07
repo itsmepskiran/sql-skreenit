@@ -40,9 +40,24 @@ async function checkAuth() {
     loadApplicationDetails(appId);
 }
 
-function updateSidebarProfile(meta, email) {
+function updateSidebarProfile(user) {
     const nameEl = document.getElementById('recruiterName');
-    if(nameEl) nameEl.textContent = meta.full_name || meta.contact_name || email.split('@')[0];
+    const companyEl = document.getElementById('companyId');
+    const avatarEl = document.getElementById('userAvatar');
+    if(nameEl) {nameEl.textContent = user?.full_name || user?.name || (user?.email ? user.email.split('@')[0] : 'Recruiter');}
+    if(companyEl) {const displayId = user?.company_display_id || user?.company_name || "Company Pending";
+        companyEl.textContent = displayId;}
+    if(avatarEl) {const logoUrl = user?.company_logo_url || user?.avatar_url;
+        if (logoUrl) {
+            avatarEl.innerHTML = `<img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+        }else {
+            // Fallback to Initials
+            const name = nameEl?.textContent || 'R';
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            avatarEl.innerHTML = `<div class="avatar-initials">${initials}</div>`;
+        }
+    }
+
 }
 
 async function updateUserInfo() {

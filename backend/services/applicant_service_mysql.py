@@ -53,7 +53,7 @@ class ApplicantService:
             user_updates = {k: v for k, v in profile_data.items() if k in user_fields}
             
             # Fields that belong to the 'candidate_profiles' table
-            profile_fields = ["resume_url", "intro_video_url", "linkedin_url", "github_url", "portfolio_url"]
+            profile_fields = ["resume_url", "intro_video_url", "linkedin_url", "github_url", "portfolio_url", "skills"]
             profile_updates = {k: v for k, v in profile_data.items() if k in profile_fields}
             profile_updates["user_id"] = candidate_id
 
@@ -89,8 +89,6 @@ class ApplicantService:
                 self._save_education(candidate_id, education)
             if experience is not None:
                 self._save_experience(candidate_id, experience)
-            if skills is not None:
-                self._save_skills(candidate_id, skills)
 
             # 8. Mark Onboarded in MySQL users table
             try:
@@ -220,7 +218,7 @@ class ApplicantService:
                     "id": str(uuid4()),
                     "candidate_id": candidate_id,
                     "company": item.get("company", ""),
-                    "position": item.get("position", ""),
+                    "job_title": item.get("position", item.get("job_title", "")),
                     "start_date": item.get("start_date"),
                     "end_date": item.get("end_date"),
                     "description": item.get("description", "")
@@ -231,19 +229,6 @@ class ApplicantService:
                 self.mysql.insert_records("candidate_experience", data)
         except Exception as e:
             logger.error(f"Save experience failed: {str(e)}")
-
-    def _save_skills(self, candidate_id: str, items: List[str]):
-        try:
-            # Delete existing skills
-            self.mysql.delete_record("candidate_skills", {"candidate_id": candidate_id})
-            
-            if not items:
-                return
-            
-            data = [{"id": str(uuid4()), "candidate_id": candidate_id, "skill_name": s} for s in items]
-            self.mysql.insert_records("candidate_skills", data)
-        except Exception as e:
-            logger.error(f"Save skills failed: {str(e)}")
 
     # ---------------------------------------------------------
     # READ OPERATIONS
