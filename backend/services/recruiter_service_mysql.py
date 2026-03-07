@@ -201,12 +201,11 @@ class RecruiterService:
                     "description": payload.get("company_description"),
                     "website": payload.get("company_website"),
                     "logo_url": payload.get("company_logo_url"),
+                    "company_display_id": self._generate_company_display_id(payload.get("company_name") or "Unknown Company"),
                     "created_by": payload["user_id"]
                 }
                 
                 company_id = self.mysql.insert_record("companies", company_data)
-                company_display_id = self._generate_company_display_id(company_data.get("name"))
-                self.mysql.update_record("companies", {"company_display_id": company_display_id}, {"id": company_data["id"]})
                 
                 profile_data = {
                     "id": str(uuid4()),

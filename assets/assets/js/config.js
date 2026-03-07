@@ -25,7 +25,7 @@ export const CONFIG = {
 
     // API Configuration
     // Backend runs on port 8080
-    API_BASE: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://backend.skreenit.com/api/v1',
+    API_BASE: isLocal ? 'http://127.0.0.1:8082/api/v1' : 'https://backend.skreenit.com/api/v1',
 
     // Centralized Page Paths
     PAGES: {
@@ -65,6 +65,6 @@ export const CONFIG = {
         HRMS: isLocal ? '/hrms/index.html' : 'https://hrms.skreenit.com/index.html',
         APP: isLocal ? '/app/index.html' : 'https://app.skreenit.com/index.html',
         IN: isLocal ? '/in/index.html' : 'https://in.skreenit.com/index.html',
-        JOBS: isLocal ? '/jobs/index.html' : 'https://jobs.skreenit.com/index.html'
+        JOBS: isLocal ? '/jobs/jobs.html' : 'https://jobs.skreenit.com/jobs.html'
     }
 };

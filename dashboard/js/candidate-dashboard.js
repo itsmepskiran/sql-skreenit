@@ -72,7 +72,7 @@ async function fetchJobs(query = '') {
     if (!container) return;
 
     try {
-        const url = query ? `/dashboard/jobs?q=${encodeURIComponent(query)}` : '/dashboard/jobs';
+        const url = query ? `/jobs/jobs?q=${encodeURIComponent(query)}` : '/jobs/jobs';
         const jobsRes = await backendGet(url);
         const jobsData = await handleResponse(jobsRes);
         
@@ -368,17 +368,13 @@ function setupEventListeners() {
         });
     }
 
-    // Active Jobs card - scroll to the recommended jobs section in the dashboard
+    // Active Jobs card - redirect to public jobs page
     const activeJobsCard = document.getElementById('btnActiveJobs');
     if (activeJobsCard) {
         activeJobsCard.style.cursor = 'pointer';
         activeJobsCard.addEventListener('click', () => {
-            const recommendedSection = document.getElementById('recommendedJobsList');
-            if (recommendedSection) {
-                recommendedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-                window.location.href = CONFIG.PAGES.JOBS;
-            }
+            // Redirect to public jobs page - auth status will be maintained via cookies
+            window.location.href = CONFIG.PAGES.JOBS;
         });
     }
 

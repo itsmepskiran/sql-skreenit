@@ -1434,6 +1434,20 @@ class DashboardService(MySQLService):
                     .filter(Company.id.in_(company_ids)).all()
                 companies = {c.id: c.name for c in company_list}
             
+            # Get skills for all jobs
+            job_ids = [j.id for j in jobs]
+            job_skills = {}
+            
+            if job_ids:
+                skills_list = db.query(JobSkill.job_id, JobSkill.skill_name)\
+                    .filter(JobSkill.job_id.in_(job_ids)).all()
+                
+                # Group skills by job_id
+                for skill in skills_list:
+                    if skill.job_id not in job_skills:
+                        job_skills[skill.job_id] = []
+                    job_skills[skill.job_id].append(skill.skill_name)
+            
             return [
                 {
                     "id": job.id,
@@ -1447,6 +1461,7 @@ class DashboardService(MySQLService):
                     "is_remote": job.is_remote,
                     "status": job.status,
                     "company_name": companies.get(job.company_id, "Unknown Company"),
+                    "skills": job_skills.get(job.id, []),
                     "created_at": job.created_at.isoformat()
                 }
                 for job in jobs

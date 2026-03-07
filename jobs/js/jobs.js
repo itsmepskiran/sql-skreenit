@@ -15,7 +15,7 @@ const REGISTER_PAGE = CONFIG.PAGES.REGISTER;
 // Update logo
 const logoImg = document.getElementById('logoImg');
 const logoLink = document.querySelector('.logo-link');
-if (logoImg) logoImg.src = `${assetsBase}/assets/images/logo.png`;
+if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 if (logoLink) logoLink.href = CONFIG.PAGES.INDEX;
 
 // ===============================
@@ -91,25 +91,21 @@ function updateHeaderForAuth() {
                 <div class="user-avatar">${initial}</div>
                 <span class="user-name">${userName}</span>
             </div>
-            <a href="${CONFIG.PAGES.DASHBOARD_CANDIDATE}" class="btn btn-primary">
-                <i class="fas fa-th-large"></i> Dashboard
-            </a>
-            <button class="btn btn-outline" id="logoutBtn">
+            <button id="logoutBtn" class="btn btn-outline">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         `;
-
-        // Add logout handler
-        document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
+        
+        // Attach logout listener
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', handleLogout);
+        }
     } else {
-        // User is not logged in - show login/register/know more buttons
+        // User is not logged in - show login/register buttons
         headerActions.innerHTML = `
-            <a href="${LOGIN_PAGE}" class="btn btn-outline">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </a>
-            <a href="${REGISTER_PAGE}" class="btn btn-primary">
-                <i class="fas fa-user-plus"></i> Register
-            </a>
+            <a href="${CONFIG.PAGES.LOGIN}" class="btn btn-outline">Sign In</a>
+            <a href="${CONFIG.PAGES.REGISTER}" class="btn btn-primary">Get Started</a>
         `;
     }
 }
@@ -135,7 +131,7 @@ async function fetchJobs() {
     showLoading();
 
     try {
-        const response = await backendGet('/jobs');
+        const response = await backendGet('/dashboard/jobs');
         const data = await handleResponse(response);
         
         if (data.error) {
@@ -144,7 +140,10 @@ async function fetchJobs() {
             return [];
         }
 
-        allJobs = data.data || [];
+        allJobs = data.data?.jobs || data.jobs || [];
+        console.log('[DEBUG] fetchJobs - data keys:', Object.keys(data));
+        console.log('[DEBUG] fetchJobs - data.data keys:', data.data ? Object.keys(data.data) : 'N/A');
+        console.log('[DEBUG] fetchJobs - jobs count:', allJobs.length);
         return allJobs;
     } catch (err) {
         console.error("Unexpected error:", err);
@@ -188,7 +187,7 @@ function renderJobs(jobs) {
  * Create HTML for a single job card
  */
 function createJobCard(job) {
-    const skills = job.skills || [];
+    const skills = job.skills || job.job_skills || [];
     const displaySkills = skills.slice(0, 4);
     const remainingSkills = skills.length > 4 ? skills.length - 4 : 0;
 
@@ -213,7 +212,7 @@ function createJobCard(job) {
             <div class="job-card-header">
                 <div class="job-card-title-section">
                     <h3 class="job-card-title">${escapeHtml(job.title)}</h3>
-                    <p class="job-card-company">${escapeHtml(job.company)}</p>
+                    <p class="job-card-company">${escapeHtml(job.company_name || 'Unknown Company')}</p>
                 </div>
                 ${job.job_type ? `<span class="job-card-badge">${formatJobType(job.job_type)}</span>` : ''}
             </div>
@@ -284,11 +283,14 @@ function attachApplyListeners() {
         });
     });
 
-    // Login prompt buttons for unauthenticated users
+    // Login prompt buttons for unauthenticated users - redirect to login page
     document.querySelectorAll('.btn-login-prompt').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const jobId = e.currentTarget.dataset.jobId;
-            showAuthModal(jobId);
+            e.preventDefault();
+            const returnUrl = encodeURIComponent(window.location.href);
+            const loginUrl = new URL(CONFIG.PAGES.LOGIN, window.location.origin);
+            loginUrl.searchParams.set('redirect', returnUrl);
+            window.location.href = loginUrl.toString();
         });
     });
 }
@@ -371,36 +373,6 @@ function showAuthModal(jobId) {
     registerRedirectBtn.href = registerUrl.toString();
 
     authModal.classList.add('active');
-}
-
-/**
- * Handle job application - Show intro video modal
- */
-async function handleApply(jobId) {
-    if (!currentUser) {
-        showAuthModal(jobId);
-        return;
-    }
-
-    // Check if user is a candidate
-    const role = currentUser.user_metadata?.role?.toLowerCase();
-    if (role !== 'candidate') {
-        showToast('Only candidates can apply for jobs. Please login as a candidate.', 'error');
-        return;
-    }
-
-    // Check if already applied
-    const hasApplied = await checkExistingApplication(jobId, currentUser.id);
-    if (hasApplied) {
-        showToast('You have already applied for this job!', 'info');
-        return;
-    }
-
-    // Store job ID for application
-    currentApplicationJobId = jobId;
-    
-    // Show intro video modal
-    showIntroVideoModal();
 }
 
 /**
@@ -708,25 +680,16 @@ async function checkPostLoginRedirect() {
 // ===============================
 
 async function init() {
+    console.log('[DEBUG] init() started');
     // Check authentication status
     await checkAuth();
-
-    // Listen for auth state changes
-    customAuth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN') {
-            currentUser = session.user;
-            updateHeaderForAuth();
-            // Refresh jobs to update apply buttons
-            renderJobs(allJobs);
-        } else if (event === 'SIGNED_OUT') {
-            currentUser = null;
-            updateHeaderForAuth();
-            renderJobs(allJobs);
-        }
-    });
+    console.log('[DEBUG] checkAuth completed');
 
     // Fetch jobs
+    console.log('[DEBUG] About to call fetchJobs');
     await fetchJobs();
+    console.log('[DEBUG] fetchJobs completed, allJobs count:', allJobs.length);
+    console.log('[DEBUG] About to call renderJobs');
     renderJobs(allJobs);
     initAdSlider();
     // Check for post-login redirect

@@ -40,7 +40,7 @@ async function init() {
 
     // 4. Fetch Job Data (Using public endpoint accessible to both roles)
     try {
-        const endpoint = isRecruiter ? `/recruiter/jobs/${jobId}` : `/dashboard/jobs/${jobId}`;
+        const endpoint = isRecruiter ? `/recruiter/jobs/${jobId}` : `/jobs/jobs/${jobId}`;
         const res = await backendGet(endpoint);
         const json = await handleResponse(res);
         const jobData = json.data || json;

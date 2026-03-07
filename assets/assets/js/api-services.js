@@ -107,13 +107,13 @@ export const ApiService = {
     Shared: {
         async getPublicJobs(filters = {}) {
             const query = new URLSearchParams(filters).toString();
-            const url = query ? `/dashboard/jobs?${query}` : '/dashboard/jobs';
+            const url = query ? `/jobs/jobs?${query}` : '/jobs/jobs';
             const res = await backendGet(url);
             return handleResponse(res);
         },
 
         async getJobDetails(jobId) {
-            const res = await backendGet(`/dashboard/jobs/${jobId}`);
+            const res = await backendGet(`/jobs/jobs/${jobId}`);
             return handleResponse(res);
         }
     }

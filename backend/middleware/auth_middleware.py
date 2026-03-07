@@ -28,6 +28,8 @@ EXCLUDED_PATHS = {
     "/api/v1/verify-reset-token",
     "/api/v1/refresh-token",
     "/api/v1/system/info",
+    "/api/v1/dashboard/jobs",
+    "/api/v1/applicant/jobs",
 }
 
 class CustomAuthMiddleware(BaseHTTPMiddleware):

@@ -9,7 +9,7 @@ import os
 from datetime import datetime
 
 # Import MySQL services
-from services.mysql_service import candidate_service, recruiter_service, video_service, user_service
+from services.mysql_service import candidate_service, recruiter_service, video_service, user_service, dashboard_service
 from services.auth_service import get_current_user
 from middleware.role_required import ensure_permission
 from models.applicant_models import ApplicationCreate
@@ -370,7 +370,7 @@ async def get_candidate_videos(request: Request):
 async def get_public_jobs(request: Request, search: Optional[str] = None):
     """Get public jobs list."""
     try:
-        jobs = recruiter_service.list_public_jobs(search)
+        jobs = dashboard_service.list_public_jobs(search)
         return {"ok": True, "data": jobs}
     
     except Exception as e:
@@ -381,7 +381,7 @@ async def get_public_jobs(request: Request, search: Optional[str] = None):
 async def get_public_job(request: Request, job_id: str):
     """Get public job details."""
     try:
-        job = recruiter_service.get_public_job(job_id)
+        job = dashboard_service.get_public_job(job_id)
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
         
