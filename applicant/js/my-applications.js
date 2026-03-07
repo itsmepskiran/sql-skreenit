@@ -35,7 +35,7 @@ async function updateSidebarProfile(user) {
 
     // Set default designation and load from profile
     if(designationEl) {
-        const defaultTitle = "Candidate";
+        const defaultTitle = "Fresher";
         designationEl.textContent = defaultTitle;
         
         try {
@@ -45,7 +45,13 @@ async function updateSidebarProfile(user) {
 
             // Use correct field name: job_title instead of title
             if (profile.experience && profile.experience.length > 0) {
-                designationEl.textContent = profile.experience[0].job_title || defaultTitle;
+                const sortedExperience = [...profile.experience].sort((a, b) => {
+                    return new Date(b.start_date || 0) - new Date(a.start_date || 0);
+                });
+                const latestJob = sortedExperience[0];
+                designationEl.textContent = latestJob.job_title || defaultTitle;
+            } else {
+                designationEl.textContent = defaultTitle;
             }
         } catch (err) {
             console.warn("Failed to load profile for designation:", err);
@@ -63,7 +69,10 @@ async function updateSidebarProfile(user) {
                 const profile = json.data || {};
                 
                 if (profile.avatar_url) {
-                    avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+                    const initialsSrc = user.full_name || user.email || 'User';
+                    const initialsSeq = (initialsSrc || 'U').match(/\b\w/g) || [];
+                    const initials = ((initialsSeq.shift() || '') + (initialsSeq.pop() || '')).toUpperCase();
+                    avatarEl.innerHTML = `<img src="${profile.avatar_url}" onerror="this.style.display='none'; this.parentElement.textContent='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
                 } else {
                     const nameForInitials = user.full_name || user.email || 'User';
                     const initials = nameForInitials.match(/\b\w/g) || [];
@@ -245,8 +254,13 @@ function setupNavigation() {
         });
     }
     if (navProfile) {
-        navProfile.addEventListener('click', () => {
-            window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
+        navProfile.addEventListener('click', async () => {
+            const u = await customAuth.getUserData();
+            if (u && u.onboarded) {
+                window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
+            } else {
+                window.location.href = CONFIG.PAGES.APPLY_FORM;
+            }
         });
     }
     if (navApplications) {

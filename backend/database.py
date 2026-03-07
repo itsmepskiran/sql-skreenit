@@ -122,8 +122,9 @@ class CandidateProfile(Base):
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
     user_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
-    # Removed: full_name, email, phone, location, avatar_url (these belong in users table)
+    # Removed: full_name, email, phone, location (these belong in users table)
     summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    avatar_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     resume_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     intro_video_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     linkedin_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)

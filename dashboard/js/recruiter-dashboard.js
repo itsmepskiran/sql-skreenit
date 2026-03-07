@@ -71,7 +71,8 @@ async function updateUserInfo() {
         // Fix #1 & #5: Ensure correct Display ID is mapped
         const companyIdEl = document.getElementById('companyId');
         if (companyIdEl) {
-            companyIdEl.textContent = profile.company_display_id || profile.company_id || '---';
+            const isOnboarded = !!user?.onboarded;
+            companyIdEl.textContent = isOnboarded ? (profile.company_display_id || profile.company_id || '---') : 'Pending';
         }
     }
   } catch (error) { 
@@ -81,6 +82,17 @@ async function updateUserInfo() {
 }
 
 function setupEventListeners() {
+    const navProfile = document.getElementById('navProfile');
+    if (navProfile) {
+        navProfile.addEventListener('click', async () => {
+            const u = await customAuth.getUserData();
+            if (u && u.onboarded) {
+                window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
+            } else {
+                window.location.href = CONFIG.PAGES.RECRUITER_PROFILE;
+            }
+        });
+    }
     // Logout
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {

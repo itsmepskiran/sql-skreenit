@@ -962,9 +962,11 @@ class CandidateService(MySQLService):
     def upsert_profile(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create or update candidate profile."""
         # Separate data for different tables
+        # Hybrid approach: keep avatar_url on users for backwards compatibility,
+        # but also persist it on candidate_profiles for candidate-centric media.
         user_fields = ["full_name", "phone", "location", "avatar_url"]
         profile_fields = [
-            "summary", "resume_url", "intro_video_url",
+            "summary", "avatar_url", "resume_url", "intro_video_url",
             "linkedin_url", "portfolio_url", "skills", "experience_years",
             "preferred_job_type", "expected_salary", "languages", 
             "willing_to_relocate", "availability"
@@ -1115,6 +1117,13 @@ class CandidateService(MySQLService):
                 if latest_intro:
                     intro_video_url = latest_intro.video_url
 
+            # Prefer avatar_url stored on candidate_profiles (candidate-centric),
+            # but fall back to the user-level avatar_url for compatibility.
+            profile_avatar_url = None
+            if profile is not None and hasattr(profile, "avatar_url"):
+                profile_avatar_url = profile.avatar_url
+            resolved_avatar_url = profile_avatar_url or user.avatar_url
+
             result = {
                 "id": user.id,
                 "user_id": user.id,
@@ -1123,7 +1132,7 @@ class CandidateService(MySQLService):
                 "phone": user.phone,  # From users table only
                 "location": user.location,  # From users table only
                 "summary": profile.summary if profile else None,
-                "avatar_url": user.avatar_url,  # From users table only
+                "avatar_url": resolved_avatar_url,
                 "resume_url": profile.resume_url if profile else None,
                 "intro_video_url": intro_video_url,
                 "linkedin_url": profile.linkedin_url if profile else None,

@@ -262,10 +262,14 @@ function createJobCard(job) {
 }
 function initAdSlider() {
     const wrapper = document.getElementById('adWrapper');
+    if (!wrapper) return;
+    const items = wrapper.querySelectorAll('.ad-item');
+    if (!items || items.length === 0) return;
+    const itemHeight = items[0].offsetHeight || 40;
     let index = 0;
     setInterval(() => {
-        index = (index + 1) % 4; // Cycles through 4 ads
-        wrapper.style.transform = `translateY(-${index * 40}px)`;
+        index = (index + 1) % items.length;
+        wrapper.style.transform = `translateY(-${index * itemHeight}px)`;
     }, 3000);
 }
 /**

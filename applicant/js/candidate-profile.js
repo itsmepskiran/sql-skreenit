@@ -23,6 +23,9 @@ async function checkAuth() {
     }
 
     candidateUserId = user.id;
+    // #region agent log
+    fetch('http://127.0.0.1:7930/ingest/23d9b789-88e9-420a-a1ba-7cd27faf16d3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9e6624'},body:JSON.stringify({sessionId:'9e6624',runId:'pre-fix',hypothesisId:'D',location:'candidate-profile.js:checkAuth',message:'checkAuth user loaded',data:{userId:user.id,role:user.role},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     await updateSidebarProfile(user);
     await loadProfile(user.id);
     setupEditProfileButton();
@@ -66,14 +69,17 @@ async function updateSidebarProfile(user) {
         } else if (profileData?.education && profileData.education.length > 0) {
             designationEl.textContent = 'Student';
         } else {
-            designationEl.textContent = 'Candidate';
+            designationEl.textContent = 'Fresher';
         }
     }
 
     // Update avatar with profile image if available
     if(avatarEl) {
         if (profileData?.avatar_url && profileData.avatar_url !== null && profileData.avatar_url !== '' && profileData.avatar_url !== 'null') {
-            avatarEl.innerHTML = `<img src="${profileData.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" alt="Profile">`;
+            const initialsSrc = user.full_name || user.email || 'User';
+            const initialsSeq = (initialsSrc || 'U').match(/\b\w/g) || [];
+            const initials = ((initialsSeq.shift() || '') + (initialsSeq.pop() || '')).toUpperCase();
+            avatarEl.innerHTML = `<img src="${profileData.avatar_url}" onerror="this.style.display='none'; this.parentElement.textContent='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" alt="Profile">`;
         } else {
             // Fallback to initials
             const initials = displayName.match(/\b\w/g) || [];
@@ -91,7 +97,9 @@ async function loadProfile(userId) {
         console.log('🔄 Loading profile for user:', userId);
         const res = await backendGet('/applicant/profile');
         const profile = await handleResponse(res);
-        
+        // #region agent log
+        fetch('http://127.0.0.1:7930/ingest/23d9b789-88e9-420a-a1ba-7cd27faf16d3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9e6624'},body:JSON.stringify({sessionId:'9e6624',runId:'pre-fix',hypothesisId:'A',location:'candidate-profile.js:loadProfile',message:'/applicant/profile response',data:{ok:profile.ok ?? true,hasData:!!profile.data,keys:profile && typeof profile==='object'?Object.keys(profile):null},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         console.log('📊 Profile response:', profile);
         
         if (profile.data) {
@@ -674,7 +682,16 @@ function setupNavigation() {
     if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE);
     if(navJobs) navJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.JOBS);
     if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS);
-    if(navProfile) navProfile.addEventListener('click', () => window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE);
+    if(navProfile) {
+        navProfile.addEventListener('click', async () => {
+            const u = await customAuth.getUserData();
+            if (u && u.onboarded) {
+                window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
+            } else {
+                window.location.href = CONFIG.PAGES.APPLY_FORM;
+            }
+        });
+    }
 
     if(logoutBtn) {
         logoutBtn.addEventListener('click', async () => {

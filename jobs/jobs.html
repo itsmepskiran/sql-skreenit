@@ -4,7 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jobs | Skreenit - Find Your Dream Job</title>
-    
+    <script>
+      (function() {
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+        const im = document.createElement('script');
+        im.type = 'importmap';
+        im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+        document.head.appendChild(im);
+        window.loadSharedCSS = function(file) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime();
+          document.head.appendChild(link);
+        };
+        const icon = document.createElement('link');
+        icon.rel = 'icon';
+        icon.href = `${assetsBase}/assets/images/favicon-32x32.png`;
+        document.head.appendChild(icon);
+      })();
+    </script>
+    <script>
+      loadSharedCSS('core.css');
+      loadSharedCSS('layout.css');
+      loadSharedCSS('components.css');
+      loadSharedCSS('jobs.css');
+      loadSharedCSS('warning-ribbon.css');
+      loadSharedCSS('mobile.css');
+    </script>
 <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Fix Logo

@@ -26,6 +26,15 @@ class BackendClient {
                     session?.token ||
                     null;
       
+      // Proactive expiry check using stored expiration time
+      const expiresAtStr = session?.data?.session?.expires_at;
+      const isExpired = expiresAtStr ? (Date.now() > Date.parse(expiresAtStr) - 5000) : false;
+      if (isExpired) {
+        const refreshed = await customAuth.refreshSession();
+        const refreshData = refreshed?.data || refreshed;
+        return refreshData?.access_token || refreshData?.session?.access_token || null;
+      }
+      
       // Auto-refresh token if needed
       if (!token) {
           const refresh = await customAuth.refreshSession();
@@ -42,11 +51,11 @@ class BackendClient {
 
   async request(endpoint, options = {}) {
     const { method = "GET", body = null, headers = {}, timeout } = options;
-    const token = await this.getAuthToken();
+    let token = await this.getAuthToken();
     
     // Auto-detect JSON vs FormData
     const isFormData = body instanceof FormData;
-    const finalHeaders = { ...headers };
+    let finalHeaders = { ...headers };
     
     if (!isFormData && body && !finalHeaders["Content-Type"]) {
       finalHeaders["Content-Type"] = "application/json";
@@ -66,7 +75,7 @@ class BackendClient {
     const timeoutId = setTimeout(() => controller.abort(), timeout || this.requestTimeout);
 
     // TWEAK: Conditionally build fetch options to prevent GET requests from receiving a 'body: null' property
-    const fetchOptions = {
+    let fetchOptions = {
         method,
         headers: finalHeaders,
         signal: controller.signal
@@ -77,10 +86,27 @@ class BackendClient {
     }
 
     try {
-        const resp = await fetch(url, fetchOptions);
+        let resp = await fetch(url, fetchOptions);
 
         clearTimeout(timeoutId);
 
+        // If unauthorized, attempt a single refresh + retry
+        if (resp.status === 401) {
+            try {
+                const refreshed = await customAuth.refreshSession();
+                const refreshData = refreshed?.data || refreshed;
+                token = refreshData?.access_token || refreshData?.session?.access_token || null;
+                if (token) {
+                    finalHeaders = { ...finalHeaders, Authorization: `Bearer ${token}` };
+                    fetchOptions = { ...fetchOptions, headers: finalHeaders };
+                    // Retry once
+                    resp = await fetch(url, fetchOptions);
+                }
+            } catch (e) {
+                // Fall through with original 401
+            }
+        }
+        
         if (resp.status >= 500) {
             throw new Error(`Server Error (${resp.status})`);
         }

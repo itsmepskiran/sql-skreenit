@@ -264,7 +264,7 @@ async function updateSidebarProfile(user) {
     if(nameEl) nameEl.textContent = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
 
     // 2. Set Default Role
-    const defaultTitle = "Candidate";
+    const defaultTitle = "Fresher";
     if(roleEl) roleEl.textContent = defaultTitle;
 
     try {
@@ -273,10 +273,14 @@ async function updateSidebarProfile(user) {
         const profile = json.data || {};
 
         if (profile.experience && profile.experience.length > 0) {
-            const expTitle = profile.experience[0].job_title || defaultTitle; // Fixed: use job_title instead of title
-            
-            // ✅ Update Sidebar Role
+            const sortedExperience = [...profile.experience].sort((a, b) => {
+                return new Date(b.start_date || 0) - new Date(a.start_date || 0);
+            });
+            const latestJob = sortedExperience[0];
+            const expTitle = latestJob.job_title || defaultTitle;
             if (roleEl) roleEl.textContent = expTitle;
+        } else {
+            if (roleEl) roleEl.textContent = defaultTitle;
         }
         
         // Update name with profile data if available
@@ -297,7 +301,10 @@ async function updateSidebarProfile(user) {
                 const profile = json.data || {};
                 
                 if (profile.avatar_url) {
-                    avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+                    const initialsSrc = (profile.full_name || user.full_name || user.email || 'User');
+                    const initialsSeq = initialsSrc.match(/\b\w/g) || [];
+                    const initials = ((initialsSeq.shift() || '') + (initialsSeq.pop() || '')).toUpperCase();
+                    avatarEl.innerHTML = `<img src="${profile.avatar_url}" onerror="this.style.display='none'; this.parentElement.textContent='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
                 } else {
                     const initials = (profile.full_name || user.full_name || user.email || 'User').match(/\b\w/g) || [];
                     const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
@@ -325,7 +332,14 @@ function setupEventListeners() {
         navApplications.onclick = () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
     }
     if (navProfile) {
-        navProfile.onclick = () => window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
+        navProfile.onclick = async () => {
+            const u = await customAuth.getUserData();
+            if (u && u.onboarded) {
+                window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
+            } else {
+                window.location.href = CONFIG.PAGES.APPLY_FORM;
+            }
+        };
     }
     if (navDashboard) {
         navDashboard.onclick = () => window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
