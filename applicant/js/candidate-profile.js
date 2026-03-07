@@ -44,16 +44,14 @@ async function updateSidebarProfile(user) {
     try {
         const res = await backendGet('/applicant/profile');
         const json = await handleResponse(res);
-        profileData = json.data;
+        profileData = json?.data?.data || json?.data || json;
     } catch (err) {
         console.log('Could not fetch profile for sidebar:', err);
     }
 
     // Update name with priority: profile full_name > user full_name > email
     let displayName = user.full_name || user.email?.split('@')[0] || 'User';
-    if (profileData?.full_name) {
-        displayName = profileData.full_name;
-    }
+    if (profileData?.full_name) displayName = profileData.full_name;
     
     if(nameEl) nameEl.textContent = displayName;
 
@@ -97,15 +95,16 @@ async function loadProfile(userId) {
         console.log('🔄 Loading profile for user:', userId);
         const res = await backendGet('/applicant/profile');
         const profile = await handleResponse(res);
+        const data = profile?.data?.data || profile?.data || profile;
         // #region agent log
         fetch('http://127.0.0.1:7930/ingest/23d9b789-88e9-420a-a1ba-7cd27faf16d3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9e6624'},body:JSON.stringify({sessionId:'9e6624',runId:'pre-fix',hypothesisId:'A',location:'candidate-profile.js:loadProfile',message:'/applicant/profile response',data:{ok:profile.ok ?? true,hasData:!!profile.data,keys:profile && typeof profile==='object'?Object.keys(profile):null},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
         console.log('📊 Profile response:', profile);
         
-        if (profile.data) {
+        if (data && typeof data === 'object' && Object.keys(data).length > 0) {
             console.log('✅ Profile data found, populating form');
-            populateForm(profile.data, userId);
-            setupResumeDownload(profile.data);
+            populateForm(data, userId);
+            setupResumeDownload(data);
         } else {
             console.log('❌ No profile data found');
         }
