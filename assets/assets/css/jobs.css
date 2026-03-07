@@ -651,13 +651,19 @@
     border-radius: 25px;
     border: 2px solid #fff;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    display: flex;
+    align-items: center;
 }
 
-.ad-slider {
+.ad-wrapper {
+    display: flex;
+    flex-direction: column;
     transition: transform 0.5s ease-in-out;
+    width: 100%;
+    height: 50px;
 }
 
-.ad-slide {
+.ad-item {
     height: 50px;
     display: flex;
     align-items: center;
@@ -666,12 +672,152 @@
     color: #fff;
     font-weight: 600;
     text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 0 1rem;
+}
+
+/* Inline Login Container */
+.inline-login-container {
+    margin: 2rem 0;
+    animation: slideDown 0.3s ease-out;
+}
+
+.inline-login-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.inline-login-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.inline-login-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.inline-login-header h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.inline-login-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.inline-login-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: auto;
+    transition: background 0.2s;
+}
+
+.inline-login-close:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.inline-login-form {
+    padding: 2rem;
+}
+
+.inline-login-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.inline-login-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.inline-login-form .form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.inline-login-form .form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-full {
+    width: 100%;
+    justify-content: center;
+}
+
+.inline-login-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.inline-login-footer p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.inline-login-footer a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.inline-login-footer a:hover {
+    text-decoration: underline;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Offset main content because header is fixed */
 .jobs-page-container {
     margin-top: 90px;
 }
+
 .header {
         position: fixed;
         top: 0;

@@ -40,6 +40,14 @@ const filterLocation = document.getElementById('filterLocation');
 const filterType = document.getElementById('filterType');
 const filterSalary = document.getElementById('filterSalary');
 
+// Global Elements for Inline Login
+const inlineLoginContainer = document.getElementById('inlineLoginContainer');
+const closeInlineLogin = document.getElementById('closeInlineLogin');
+const inlineLoginEmail = document.getElementById('inlineLoginEmail');
+const inlineLoginPassword = document.getElementById('inlineLoginPassword');
+const inlineLoginBtn = document.getElementById('inlineLoginBtn');
+const inlineRegisterLink = document.getElementById('inlineRegisterLink');
+
 // Global Elements for Intro Video Modal
 const introVideoModal = document.getElementById('introVideoModal');
 const useExistingVideoBtn = document.getElementById('useExistingVideoBtn');
@@ -60,6 +68,7 @@ let currentUser = null;
 let selectedJobId = null;
 let currentApplicationJobId = null;
 let existingVideoUrl = null;
+let pendingJobId = null; // Store job ID for inline login
 
 // ===============================
 // AUTHENTICATION
@@ -204,7 +213,7 @@ function createJobCard(job) {
         ? `<button class="btn btn-apply" data-job-id="${job.id}">
              <i class="fas fa-paper-plane"></i> Apply Now
            </button>`
-        : `<a href="${LOGIN_PAGE}" class="btn btn-login-prompt">
+        : `<a href="${LOGIN_PAGE}" class="btn btn-login-prompt" data-job-id="${job.id}">
              <i class="fas fa-lock"></i> Sign in to Apply
            </a>`;
     return `
@@ -264,10 +273,13 @@ function initAdSlider() {
     if (!wrapper) return;
     const items = wrapper.querySelectorAll('.ad-item');
     if (!items || items.length === 0) return;
-    const itemHeight = items[0].offsetHeight || 40;
+    
     let index = 0;
+    const itemHeight = 50; // Fixed height to match CSS
+    
     setInterval(() => {
         index = (index + 1) % items.length;
+        // Apply transform to the inner wrapper, not the container
         wrapper.style.transform = `translateY(-${index * itemHeight}px)`;
     }, 3000);
 }
@@ -283,16 +295,141 @@ function attachApplyListeners() {
         });
     });
 
-    // Login prompt buttons for unauthenticated users - redirect to login page
+    // Login prompt buttons for unauthenticated users - show inline login
     document.querySelectorAll('.btn-login-prompt').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const returnUrl = encodeURIComponent(window.location.href);
-            const loginUrl = new URL(CONFIG.PAGES.LOGIN, window.location.origin);
-            loginUrl.searchParams.set('redirect', returnUrl);
-            window.location.href = loginUrl.toString();
+            const jobId = e.currentTarget.dataset.jobId;
+            showInlineLogin(jobId);
         });
     });
+    
+    // Inline login event listeners
+    if (closeInlineLogin) {
+        closeInlineLogin.addEventListener('click', hideInlineLogin);
+    }
+    
+    if (inlineLoginBtn) {
+        inlineLoginBtn.addEventListener('click', handleInlineLogin);
+    }
+    
+    if (inlineRegisterLink) {
+        inlineRegisterLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = CONFIG.PAGES.REGISTER;
+        });
+    }
+}
+
+// ===============================
+// INLINE LOGIN FUNCTIONS
+// ===============================
+
+/**
+ * Show inline login container
+ */
+function showInlineLogin(jobId) {
+    pendingJobId = jobId;
+    
+    // Hide jobs grid temporarily
+    if (jobsContainer) {
+        jobsContainer.style.display = 'none';
+    }
+    
+    // Show inline login container
+    if (inlineLoginContainer) {
+        inlineLoginContainer.style.display = 'block';
+        
+        // Focus on email field
+        setTimeout(() => {
+            if (inlineLoginEmail) {
+                inlineLoginEmail.focus();
+            }
+        }, 100);
+    }
+    
+    // Scroll to login form
+    if (inlineLoginContainer) {
+        inlineLoginContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+/**
+ * Hide inline login container
+ */
+function hideInlineLogin() {
+    if (inlineLoginContainer) {
+        inlineLoginContainer.style.display = 'none';
+    }
+    
+    // Show jobs grid again
+    if (jobsContainer) {
+        jobsContainer.style.display = 'block';
+    }
+    
+    // Clear form
+    if (inlineLoginEmail) inlineLoginEmail.value = '';
+    if (inlineLoginPassword) inlineLoginPassword.value = '';
+    
+    pendingJobId = null;
+}
+
+/**
+ * Handle inline login submission
+ */
+async function handleInlineLogin() {
+    const email = inlineLoginEmail?.value;
+    const password = inlineLoginPassword?.value;
+    
+    if (!email || !password) {
+        showToast('Please enter email and password', 'error');
+        return;
+    }
+    
+    // Disable login button
+    if (inlineLoginBtn) {
+        inlineLoginBtn.disabled = true;
+        inlineLoginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+    }
+    
+    try {
+        // Attempt login
+        const result = await customAuth.signInWithPassword({ email, password });
+        
+        if (result.error) {
+            throw new Error(result.error.message || 'Login failed');
+        }
+        
+        // Update current user
+        currentUser = result.data?.user || null;
+        updateHeaderForAuth();
+        
+        // Hide login container
+        hideInlineLogin();
+        
+        // Show success message
+        showToast('Login successful!', 'success');
+        
+        // Re-render jobs to update apply buttons
+        renderJobs(allJobs);
+        
+        // If there was a pending job ID, apply for it after a short delay
+        if (pendingJobId) {
+            setTimeout(() => {
+                handleApply(pendingJobId);
+            }, 1000);
+        }
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        showToast(error.message || 'Login failed. Please try again.', 'error');
+    } finally {
+        // Re-enable login button
+        if (inlineLoginBtn) {
+            inlineLoginBtn.disabled = false;
+            inlineLoginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+        }
+    }
 }
 
 // ===============================
