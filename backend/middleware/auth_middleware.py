@@ -59,7 +59,7 @@ class CustomAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # 2. Allow Static Files & Logos
-        if path.startswith("/logos") or path.startswith("/static"):
+        if path.startswith("/logos") or path.startswith("/static") or path.startswith("/uploads") or path.startswith("/datastorage"):
             return await call_next(request)
 
         # 3. Check Excluded Paths (Handling trailing slashes)

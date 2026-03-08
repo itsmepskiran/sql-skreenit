@@ -154,13 +154,27 @@ async function updateSidebarProfile(user) {
 
     // Update avatar with profile image if available
     if(avatarEl) {
-        if (profileData?.avatar_url && profileData.avatar_url !== null && profileData.avatar_url !== '' && profileData.avatar_url !== 'null') {
+        console.log('🖼️ Setting up sidebar avatar...');
+        console.log('🔍 Avatar URL from profile:', profileData?.avatar_url);
+        console.log('🔍 Avatar URL type:', typeof profileData?.avatar_url);
+        console.log('🔍 Avatar URL value:', JSON.stringify(profileData?.avatar_url));
+        
+        // Construct full URL if avatar_url is just a filename
+        let avatarUrl = profileData?.avatar_url;
+        if (avatarUrl && !avatarUrl.startsWith('http')) {
+            // Use the backend-mounted URL pattern
+            avatarUrl = `http://localhost:8083/uploads/profilepics/${avatarUrl}`;
+            console.log('� Constructed sidebar avatar URL:', avatarUrl);
+        }
+        
+        if (avatarUrl && avatarUrl !== null && avatarUrl !== '' && avatarUrl !== 'null' && avatarUrl !== 'undefined') {
             const initialsSrc = user.full_name || user.email || 'User';
             const initialsSeq = (initialsSrc || 'U').match(/\b\w/g) || [];
             const initials = ((initialsSeq.shift() || '') + (initialsSeq.pop() || '')).toUpperCase();
-            avatarEl.innerHTML = `<img src="${profileData.avatar_url}" onerror="this.style.display='none'; this.parentElement.textContent='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" alt="Profile">`;
-            console.log('🖼️ Set sidebar avatar from URL:', profileData.avatar_url);
+            avatarEl.innerHTML = `<img src="${avatarUrl}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'width:100%; height:100%; border-radius:50%; background:#6366f1; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px;\\'>${initials}</div>';" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" alt="Profile">`;
+            console.log('🖼️ Set sidebar avatar from URL:', avatarUrl);
         } else {
+            console.log('🔤 No valid avatar URL, using initials');
             // Fallback to initials
             const initials = displayName.match(/\b\w/g) || [];
             avatarEl.innerHTML = `
@@ -210,14 +224,39 @@ function populateForm(profile, userId) {
     const avatarInitialsEl = document.getElementById('avatarInitials');
     
     console.log('🖼️ Setting up profile image...');
-    if (profile.avatar_url && profile.avatar_url !== null && profile.avatar_url !== '' && profile.avatar_url !== 'null') {
+    console.log('🔍 Avatar URL check:', profile.avatar_url);
+    console.log('🔍 Avatar URL type:', typeof profile.avatar_url);
+    console.log('🔍 Avatar URL value:', JSON.stringify(profile.avatar_url));
+    
+    // Construct full URL if avatar_url is just a filename
+    let avatarUrl = profile.avatar_url;
+    if (avatarUrl && !avatarUrl.startsWith('http')) {
+        // Use the backend-mounted URL pattern
+        avatarUrl = `http://localhost:8083/uploads/profilepics/${avatarUrl}`;
+        console.log('🔗 Constructed avatar URL:', avatarUrl);
+    }
+    
+    if (avatarUrl && avatarUrl !== null && avatarUrl !== '' && avatarUrl !== 'null' && avatarUrl !== 'undefined') {
         if (profileImageEl) {
-            profileImageEl.src = profile.avatar_url;
+            profileImageEl.src = avatarUrl;
             profileImageEl.style.display = 'block';
-            console.log('✅ Profile image set to:', profile.avatar_url);
+            profileImageEl.onerror = function() {
+                console.log('❌ Profile image failed to load, showing initials');
+                console.log('❌ Failed URL was:', this.src);
+                this.style.display = 'none';
+                if (avatarInitialsEl) {
+                    avatarInitialsEl.style.display = 'block';
+                }
+            };
+            profileImageEl.onload = function() {
+                console.log('✅ Profile image loaded successfully');
+                console.log('✅ Final URL:', this.src);
+            };
+            console.log('✅ Profile image set to:', avatarUrl);
         }
         if (avatarInitialsEl) avatarInitialsEl.style.display = 'none';
     } else {
+        console.log('🔤 No valid avatar URL, showing initials');
         // Show initials
         const initials = (profile.full_name || 'User').match(/\b\w/g) || [];
         const initialsText = initials ? initials[0] + (initials[1] || '') : 'U';
@@ -957,30 +996,8 @@ function setupEditProfileButton() {
         console.log('🔧 Setting up Edit Profile button');
         editProfileBtn.addEventListener('click', () => {
             console.log('✏️ Edit Profile button clicked');
-            // Toggle edit mode - show/hide edit forms
-            const editSection = document.getElementById('editSection');
-            const viewSection = document.getElementById('viewSection');
-            
-            if (editSection && viewSection) {
-                const isEditing = editSection.style.display !== 'none';
-                if (isEditing) {
-                    // Switch to view mode
-                    editSection.style.display = 'none';
-                    viewSection.style.display = 'block';
-                    editProfileBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Edit Profile';
-                    console.log('👁️ Switched to view mode');
-                } else {
-                    // Switch to edit mode
-                    editSection.style.display = 'block';
-                    viewSection.style.display = 'none';
-                    editProfileBtn.innerHTML = '<i class="fas fa-save me-2"></i> Save Profile';
-                    console.log('✏️ Switched to edit mode');
-                    // Populate edit form with current data
-                    populateEditForm();
-                }
-            } else {
-                console.log('❌ Edit or view sections not found');
-            }
+            // Since edit sections don't exist, redirect to apply form for editing
+            window.location.href = CONFIG.PAGES.APPLY_FORM;
         });
         console.log('✅ Edit Profile button setup complete');
     } else {

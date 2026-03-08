@@ -101,6 +101,22 @@ if os.path.exists(assets_dir):
 else:
     print(f"⚠️ Warning: Assets directory not found at {assets_dir}")
 
+# Mount uploads directory for profile images, resumes, and videos
+uploads_dir = os.path.join(BASE_DIR, "..", "uploads")
+if os.path.exists(uploads_dir):
+    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+    print(f"✅ Mounted uploads from: {uploads_dir}")
+else:
+    print(f"⚠️ Warning: Uploads directory not found at {uploads_dir}")
+
+# Mount datastorage directory for profile images and videos
+datastorage_dir = os.path.join(BASE_DIR, "..", "datastorage")
+if os.path.exists(datastorage_dir):
+    app.mount("/datastorage", StaticFiles(directory=datastorage_dir), name="datastorage")
+    print(f"✅ Mounted datastorage from: {datastorage_dir}")
+else:
+    print(f"⚠️ Warning: Datastorage directory not found at {datastorage_dir}")
+
 # ---------------------------------------------------------
 # Browser Display (Root)
 # ---------------------------------------------------------
