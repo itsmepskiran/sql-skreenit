@@ -190,12 +190,20 @@ function renderJobs(jobs) {
                     <span style="margin: 0 8px;">|</span>
                     <span class="badge" style="background:#f1f5f9; color:#475569; font-weight:500;">${job.job_type}</span>
                 </p>
-                <a href="job-details.html?job_id=${job.id}" class="btn btn-primary" style="display:block; text-align:center;">
+                <a href="job-details.html?job_id=${job.id}" class="btn btn-primary" style="display:block; text-align:center; margin-bottom:0.5rem;">
                     View Details
                 </a>
+                <button onclick="applyForJob('${job.id}')" class="btn btn-success" style="display:block; text-align:center; width:100%; background:#22c55e; border:none; color:white; padding:0.5rem; border-radius:6px; cursor:pointer;">
+                    <i class="fas fa-paper-plane"></i> Apply Now
+                </button>
             </div>
         </div>
     `).join('');
+}
+
+// Apply for job function - redirects to job-details with apply flow
+function applyForJob(jobId) {
+    window.location.href = `job-details.html?job_id=${jobId}`;
 }
 async function viewMyResponse(applicationId) {
     const modalEl = document.getElementById('responseModal');
@@ -439,13 +447,20 @@ function setupEventListeners() {
         });
     }
 
-    // Active Jobs card - redirect to public jobs page
+    // Active Jobs card - redirect to first recommended job details or show message
     const activeJobsCard = document.getElementById('btnActiveJobs');
     if (activeJobsCard) {
         activeJobsCard.style.cursor = 'pointer';
         activeJobsCard.addEventListener('click', () => {
-            // Redirect to public jobs page - auth status will be maintained via cookies
-            window.location.href = CONFIG.PAGES.JOBS;
+            // Get the first recommended job and redirect to its details page
+            const container = document.getElementById("recommendedJobsList");
+            const firstJobCard = container?.querySelector('.card a[href^="job-details.html"]');
+            if (firstJobCard) {
+                window.location.href = firstJobCard.href;
+            } else {
+                // Fallback: redirect to candidate dashboard
+                window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
+            }
         });
     }
 

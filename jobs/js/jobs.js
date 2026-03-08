@@ -452,17 +452,10 @@ async function handleApply(jobId) {
         return;
     }
 
-    // Check if already applied
-    const hasApplied = await checkExistingApplication(jobId, currentUser.id);
-    if (hasApplied) {
-        showToast('You have already applied for this job!', 'info');
-        return;
-    }
-
-    // Redirect to application form with job_id
-    const applyUrl = new URL(CONFIG.PAGES.APPLY_FORM, window.location.origin);
-    applyUrl.searchParams.set('job_id', jobId);
-    window.location.href = applyUrl.toString();
+    // Redirect to job details page with job_id to continue session and apply there
+    const detailsUrl = new URL(CONFIG.PAGES.JOB_DETAILS, window.location.origin);
+    detailsUrl.searchParams.set('job_id', jobId);
+    window.location.href = detailsUrl.toString();
 }
 
 /**
@@ -495,10 +488,10 @@ async function checkExistingApplication(jobId, userId) {
 function showAuthModal(jobId) {
     selectedJobId = jobId;
 
-    // Set redirect URLs with return URL
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('job_id', jobId);
-    const returnUrl = encodeURIComponent(currentUrl.toString());
+    // Set redirect URLs to job-details with job_id so session continues after login
+    const targetUrl = new URL(CONFIG.PAGES.JOB_DETAILS, window.location.origin);
+    targetUrl.searchParams.set('job_id', jobId);
+    const returnUrl = encodeURIComponent(targetUrl.toString());
 
     const loginUrl = new URL(CONFIG.PAGES.LOGIN);
     loginUrl.searchParams.set('redirect', returnUrl);

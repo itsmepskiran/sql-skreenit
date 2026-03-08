@@ -20,7 +20,7 @@ async function init() {
         return; 
     }
 
-    const role = (user.role || '').toLowerCase();
+    const role = (user.role || (user.user_metadata?.role || '')).toLowerCase();
     const isRecruiter = role === 'recruiter';
 
     // 1. Initial Sidebar & Nav Setup
