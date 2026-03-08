@@ -40,7 +40,7 @@
             const logoImg = document.getElementById('logoImg');
             if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
-            // Fix Header Login/Register Buttons
+            // Fix Header Login/Register Buttons - Use CONFIG.PAGES
             const headerActions = document.getElementById('headerActions');
             if(headerActions) {
                 // Check if any token exists in storage
@@ -49,9 +49,13 @@
                 if(token) {
                     headerActions.innerHTML = `<a href="../dashboard/index.html" class="btn btn-primary">Go to Dashboard</a>`;
                 } else {
+                    // Use CONFIG.PAGES for correct paths
+                    const loginPath = isLocal ? '/login/login.html' : 'https://login.skreenit.com/login.html';
+                    const registerPath = isLocal ? '/login/registration.html' : 'https://login.skreenit.com/registration.html';
+                    
                     headerActions.innerHTML = `
-                        <a href="../login/index.html" class="btn" style="background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); margin-right: 10px;">Sign In</a>
-                        <a href="../login/registration.html" class="btn btn-primary">Post a Job</a>
+                        <a href="${loginPath}" class="btn" style="background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); margin-right: 10px;">Sign In</a>
+                        <a href="${registerPath}" class="btn btn-primary">Get Started</a>
                     `;
                 }
             }

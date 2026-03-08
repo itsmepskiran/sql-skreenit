@@ -1,59 +1,134 @@
+// Add error handling for module imports
+window.addEventListener('error', function(e) {
+    console.error('❌ Global JavaScript error:', e.error);
+    console.error('❌ Error details:', {
+        message: e.message,
+        filename: e.filename,
+        lineno: e.lineno,
+        colno: e.colno
+    });
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('❌ Unhandled promise rejection:', e.reason);
+});
+
 import { customAuth } from '@shared/js/auth-config.js';
 import { backendPost, backendGet, handleResponse } from '@shared/js/backend-client.js';
 import { notify } from '@shared/js/auth-pages.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
+
+console.log('✅ All modules imported successfully');
+console.log('🚀 Candidate Profile script initializing...');
 const isLocal = CONFIG.IS_LOCAL;
+console.log('🌐 Local environment:', isLocal);
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+console.log('📁 Assets base path:', assetsBase);
 const logoImg = document.getElementById('logoImg');
-if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+if(logoImg) {
+    logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+    console.log('🖼️ Logo set');
+} else {
+    console.log('❌ Logo element not found');
+}
 
 let candidateUserId = null; // Stored for upload callbacks
+console.log('✅ Candidate Profile script initialization complete');
 
 async function checkAuth() {
-    const user = await customAuth.getUserData();
-    if (!user) { 
-        window.location.href = CONFIG.PAGES.LOGIN; 
-        return; 
+    console.log('🔍 checkAuth() started');
+    try {
+        // Prevent multiple initializations
+        if (window.candidateProfileInitialized) {
+            console.log('⚠️ Already initialized, skipping...');
+            return;
+        }
+        
+        const user = await customAuth.getUserData();
+        console.log('👤 User data:', user);
+        
+        if (!user) { 
+            console.log('❌ No user found, redirecting to login');
+            window.location.href = CONFIG.PAGES.LOGIN; 
+            return; 
+        }
+        
+        console.log('✅ User found, checking role...');
+        // Safety check role
+        if ((user.role || '').toLowerCase() !== 'candidate') {
+            console.log('❌ User is not a candidate, role:', user.role);
+            console.log('❌ Redirecting to recruiter dashboard');
+            window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER; 
+            return;
+        }
+        
+        console.log('✅ User role is candidate');
+        candidateUserId = user.id;
+        console.log('✅ User authenticated, candidate ID:', candidateUserId);
+        
+        // #region agent log - DISABLED to avoid connection errors
+        // fetch('http://127.0.0.1:7930/ingest/23d9b789-88e9-420a-a1ba-7cd27faf16d3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9e6624'},body:JSON.stringify({sessionId:'9e6624',runId:'pre-fix',hypothesisId:'D',location:'candidate-profile.js:checkAuth',message:'checkAuth user loaded',data:{userId:user.id,role:user.role},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+        
+        console.log('🔄 About to call updateSidebarProfile...');
+        await updateSidebarProfile(user);
+        console.log('✅ updateSidebarProfile completed');
+        
+        console.log('🔄 About to call loadProfile...');
+        await loadProfile(user.id);
+        console.log('✅ loadProfile completed');
+        
+        console.log('🔄 About to setup UI components...');
+        setupEditProfileButton();
+        console.log('✅ setupEditProfileButton completed');
+        
+        setupNavigation();
+        console.log('✅ setupNavigation completed');
+        
+        setupAvatarUpload();
+        console.log('✅ setupAvatarUpload completed');
+        
+        setupResumeUpload();
+        console.log('✅ setupResumeUpload completed');
+        
+        window.candidateProfileInitialized = true;
+        console.log('✅ checkAuth() completed successfully');
+    } catch (error) {
+        console.error('❌ checkAuth() failed with error:', error);
+        console.error('❌ Error stack:', error.stack);
     }
-    
-    // Safety check role
-    if ((user.role || '').toLowerCase() !== 'candidate') {
-        window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER; return;
-    }
-
-    candidateUserId = user.id;
-    // #region agent log
-    fetch('http://127.0.0.1:7930/ingest/23d9b789-88e9-420a-a1ba-7cd27faf16d3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9e6624'},body:JSON.stringify({sessionId:'9e6624',runId:'pre-fix',hypothesisId:'D',location:'candidate-profile.js:checkAuth',message:'checkAuth user loaded',data:{userId:user.id,role:user.role},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-    await updateSidebarProfile(user);
-    await loadProfile(user.id);
-    setupEditProfileButton();
-    setupNavigation();
-    setupAvatarUpload();
-    setupResumeUpload();
 }
 
 async function updateSidebarProfile(user) {
+    console.log('🔄 updateSidebarProfile() started for:', user.email);
     const nameEl = document.getElementById("userName");
-    const designationEl = document.getElementById("userDesignation");
+    const designationEl = document.getElementById("userDesignation");  // Fixed: use correct ID
     const avatarEl = document.getElementById("userAvatar"); 
 
     // Fetch profile data once for all sidebar updates
     let profileData = null;
     try {
+        console.log('📡 Fetching profile data from API...');
         const res = await backendGet('/applicant/profile');
         const json = await handleResponse(res);
-        profileData = json?.data?.data || json?.data || json;
+        profileData = json?.data || json;  // Remove extra .data level
+        console.log('✅ Profile data received:', profileData);
     } catch (err) {
-        console.log('Could not fetch profile for sidebar:', err);
+        console.log('❌ Could not fetch profile for sidebar:', err);
     }
 
     // Update name with priority: profile full_name > user full_name > email
     let displayName = user.full_name || user.email?.split('@')[0] || 'User';
     if (profileData?.full_name) displayName = profileData.full_name;
     
-    if(nameEl) nameEl.textContent = displayName;
+    console.log('📝 Setting sidebar name to:', displayName);
+    if(nameEl) {
+        nameEl.textContent = displayName;
+        console.log('✅ Sidebar name updated');
+    } else {
+        console.log('❌ userName element not found');
+    }
 
     // Update designation based on experience/education
     if(designationEl) {
@@ -64,11 +139,17 @@ async function updateSidebarProfile(user) {
             });
             const latestJob = sortedExperience[0];
             designationEl.textContent = latestJob.job_title || 'Professional';
+            console.log('💼 Set designation from experience:', latestJob.job_title);
         } else if (profileData?.education && profileData.education.length > 0) {
             designationEl.textContent = 'Student';
+            console.log('🎓 Set designation: Student');
         } else {
             designationEl.textContent = 'Fresher';
+            console.log('🌱 Set designation: Fresher');
         }
+        console.log('✅ Sidebar designation updated');
+    } else {
+        console.log('❌ userDesignation element not found');
     }
 
     // Update avatar with profile image if available
@@ -78,6 +159,7 @@ async function updateSidebarProfile(user) {
             const initialsSeq = (initialsSrc || 'U').match(/\b\w/g) || [];
             const initials = ((initialsSeq.shift() || '') + (initialsSeq.pop() || '')).toUpperCase();
             avatarEl.innerHTML = `<img src="${profileData.avatar_url}" onerror="this.style.display='none'; this.parentElement.textContent='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" alt="Profile">`;
+            console.log('🖼️ Set sidebar avatar from URL:', profileData.avatar_url);
         } else {
             // Fallback to initials
             const initials = displayName.match(/\b\w/g) || [];
@@ -86,8 +168,13 @@ async function updateSidebarProfile(user) {
                     ${initials ? initials[0] + (initials[1] || '') : 'U'}
                 </div>
             `;
+            console.log('🔤 Set sidebar avatar to initials');
         }
+        console.log('✅ Sidebar avatar updated');
+    } else {
+        console.log('❌ userAvatar element not found');
     }
+    console.log('✅ updateSidebarProfile() completed');
 }
 
 async function loadProfile(userId) {
@@ -95,33 +182,39 @@ async function loadProfile(userId) {
         console.log('🔄 Loading profile for user:', userId);
         const res = await backendGet('/applicant/profile');
         const profile = await handleResponse(res);
-        const data = profile?.data?.data || profile?.data || profile;
-        // #region agent log
-        fetch('http://127.0.0.1:7930/ingest/23d9b789-88e9-420a-a1ba-7cd27faf16d3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9e6624'},body:JSON.stringify({sessionId:'9e6624',runId:'pre-fix',hypothesisId:'A',location:'candidate-profile.js:loadProfile',message:'/applicant/profile response',data:{ok:profile.ok ?? true,hasData:!!profile.data,keys:profile && typeof profile==='object'?Object.keys(profile):null},timestamp:Date.now()})}).catch(()=>{});
+        const data = profile?.data || profile;  // Remove extra .data level
+        console.log('📊 Profile response received:', profile);
+        console.log('📊 Extracted profile data:', data);
+        
+        // #region agent log - DISABLED to avoid connection errors
+        // fetch('http://127.0.0.1:7930/ingest/23d9b789-88e9-420a-a1ba-7cd27faf16d3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9e6624'},body:JSON.stringify({sessionId:'9e6624',runId:'pre-fix',hypothesisId:'A',location:'candidate-profile.js:loadProfile',message:'/applicant/profile response',data:{ok:profile.ok ?? true,hasData:!!profile.data,keys:profile && typeof profile==='object'?Object.keys(profile):null},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
-        console.log('📊 Profile response:', profile);
         
         if (data && typeof data === 'object' && Object.keys(data).length > 0) {
             console.log('✅ Profile data found, populating form');
             populateForm(data, userId);
             setupResumeDownload(data);
         } else {
-            console.log('❌ No profile data found');
+            console.log('❌ No profile data found, data:', data);
         }
     } catch (err) {
-        console.error('Failed to load profile:', err);
+        console.error('❌ Failed to load profile:', err);
     }
 }
 
 function populateForm(profile, userId) {
+    console.log('🔄 populateForm() started with profile:', profile);
+    
     // Avatar display in main profile view
     const profileImageEl = document.getElementById('profileImage');
     const avatarInitialsEl = document.getElementById('avatarInitials');
     
+    console.log('🖼️ Setting up profile image...');
     if (profile.avatar_url && profile.avatar_url !== null && profile.avatar_url !== '' && profile.avatar_url !== 'null') {
         if (profileImageEl) {
             profileImageEl.src = profile.avatar_url;
             profileImageEl.style.display = 'block';
+            console.log('✅ Profile image set to:', profile.avatar_url);
         }
         if (avatarInitialsEl) avatarInitialsEl.style.display = 'none';
     } else {
@@ -131,26 +224,48 @@ function populateForm(profile, userId) {
         if (avatarInitialsEl) {
             avatarInitialsEl.textContent = initialsText;
             avatarInitialsEl.style.display = 'block';
+            console.log('🔤 Set avatar initials to:', initialsText);
         }
         if (profileImageEl) profileImageEl.style.display = 'none';
     }
     
     // Basic info - populate view elements
+    console.log('📝 Populating basic info...');
     if (profile.full_name) {
         const nameEl = document.getElementById('viewName');
-        if (nameEl) nameEl.textContent = profile.full_name;
+        if (nameEl) {
+            nameEl.textContent = profile.full_name;
+            console.log('✅ Name set to:', profile.full_name);
+        } else {
+            console.log('❌ viewName element not found');
+        }
     }
     if (profile.phone) {
         const phoneEl = document.getElementById('viewPhone');
-        if (phoneEl) phoneEl.textContent = profile.phone;
+        if (phoneEl) {
+            phoneEl.textContent = profile.phone;
+            console.log('✅ Phone set to:', profile.phone);
+        } else {
+            console.log('❌ viewPhone element not found');
+        }
     }
     if (profile.location) {
         const locationEl = document.getElementById('viewLocation');
-        if (locationEl) locationEl.textContent = profile.location;
+        if (locationEl) {
+            locationEl.textContent = profile.location;
+            console.log('✅ Location set to:', profile.location);
+        } else {
+            console.log('❌ viewLocation element not found');
+        }
     }
     if (profile.email) {
         const emailEl = document.getElementById('viewEmail');
-        if (emailEl) emailEl.textContent = profile.email;
+        if (emailEl) {
+            emailEl.textContent = profile.email;
+            console.log('✅ Email set to:', profile.email);
+        } else {
+            console.log('❌ viewEmail element not found');
+        }
     }
 
     // Role/Designation in main profile
@@ -669,46 +784,75 @@ function collectFormData() {
 }
 
 function setupNavigation() {
-    // Sidebar Navigation
-    const logoLink = document.getElementById('logoLink');
+    console.log('🔧 Candidate Profile - Setting up navigation...');
+    
+    // Sidebar Navigation - check if elements exist before adding listeners
+    const logoImg = document.getElementById('logoImg');
     const navDashboard = document.getElementById('navDashboard');
-    const navJobs = document.getElementById('navJobs');
     const navApplications = document.getElementById('navApplications');
     const navProfile = document.getElementById('navProfile');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    if(logoLink) logoLink.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE);
-    if(navDashboard) navDashboard.addEventListener('click', () => window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE);
-    if(navJobs) navJobs.addEventListener('click', () => window.location.href = CONFIG.PAGES.JOBS);
-    if(navApplications) navApplications.addEventListener('click', () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS);
-    if(navProfile) {
-        navProfile.addEventListener('click', async () => {
-            const u = await customAuth.getUserData();
-            if (u && u.onboarded) {
-                window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
-            } else {
-                window.location.href = CONFIG.PAGES.APPLY_FORM;
-            }
+    console.log('🔍 Candidate Profile - Found elements:', {
+        logoImg: !!logoImg,
+        navDashboard: !!navDashboard,
+        navApplications: !!navApplications,
+        navProfile: !!navProfile,
+        logoutBtn: !!logoutBtn
+    });
+
+    // Logo click - go to dashboard
+    if(logoImg) {
+        logoImg.style.cursor = 'pointer';
+        logoImg.addEventListener('click', () => {
+            console.log('🖼️ Logo clicked, going to dashboard');
+            window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
         });
+    }
+    
+    if(navDashboard) {
+        navDashboard.addEventListener('click', () => {
+            console.log('🏠 Dashboard nav clicked');
+            window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
+        });
+    } else {
+        console.log('❌ navDashboard not found in candidate profile');
+    }
+    
+    if(navApplications) {
+        navApplications.addEventListener('click', () => {
+            console.log('📋 Applications nav clicked');
+            window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
+        });
+    } else {
+        console.log('❌ navApplications not found in candidate profile');
+    }
+    
+    // Profile nav item - scroll to top or reload
+    if(navProfile) {
+        navProfile.addEventListener('click', () => {
+            console.log('👤 Profile nav clicked - scrolling to top');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    } else {
+        console.log('❌ navProfile not found in candidate profile');
     }
 
     if(logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
+                console.log('� Candidate Profile - Logout clicked');
                 await customAuth.signOut();
+                console.log('✅ Logged out, redirecting to jobs page');
                 window.location.href = CONFIG.PAGES.JOBS;
             } catch (err) {
+                console.error('❌ Logout failed:', err);
                 notify('Logout failed: ' + err.message, 'error');
             }
         });
+    } else {
+        console.log('❌ logoutBtn not found in candidate profile');
     }
-
-    const saveBtn = document.getElementById('saveProfileBtn');
-    if(saveBtn) saveBtn.addEventListener('click', saveProfile);
-
-    const addEduBtn = document.getElementById('addEducationBtn');
-    if(addEduBtn) addEduBtn.addEventListener('click', addEducation);
-
     const addExpBtn = document.getElementById('addExperienceBtn');
     if(addExpBtn) addExpBtn.addEventListener('click', addExperience);
 
@@ -810,11 +954,48 @@ function setupResumeUpload() {
 function setupEditProfileButton() {
     const editProfileBtn = document.getElementById('editProfileBtn');
     if (editProfileBtn) {
+        console.log('🔧 Setting up Edit Profile button');
         editProfileBtn.addEventListener('click', () => {
-            window.location.href = CONFIG.PAGES.APPLY_FORM;
+            console.log('✏️ Edit Profile button clicked');
+            // Toggle edit mode - show/hide edit forms
+            const editSection = document.getElementById('editSection');
+            const viewSection = document.getElementById('viewSection');
+            
+            if (editSection && viewSection) {
+                const isEditing = editSection.style.display !== 'none';
+                if (isEditing) {
+                    // Switch to view mode
+                    editSection.style.display = 'none';
+                    viewSection.style.display = 'block';
+                    editProfileBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Edit Profile';
+                    console.log('👁️ Switched to view mode');
+                } else {
+                    // Switch to edit mode
+                    editSection.style.display = 'block';
+                    viewSection.style.display = 'none';
+                    editProfileBtn.innerHTML = '<i class="fas fa-save me-2"></i> Save Profile';
+                    console.log('✏️ Switched to edit mode');
+                    // Populate edit form with current data
+                    populateEditForm();
+                }
+            } else {
+                console.log('❌ Edit or view sections not found');
+            }
         });
+        console.log('✅ Edit Profile button setup complete');
+    } else {
+        console.log('❌ Edit Profile button not found');
     }
 }
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', checkAuth);
+// Initialize on page load - use single reliable method
+console.log('� Adding initialization...');
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 DOM loaded, starting checkAuth...');
+        checkAuth();
+    });
+} else {
+    console.log('🚀 DOM already loaded, starting checkAuth immediately...');
+    checkAuth();
+}

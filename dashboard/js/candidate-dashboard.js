@@ -72,7 +72,7 @@ async function fetchJobs(query = '') {
     if (!container) return;
 
     try {
-        const url = query ? `/jobs/jobs?q=${encodeURIComponent(query)}` : '/jobs/jobs';
+        const url = query ? `/dashboard/jobs?q=${encodeURIComponent(query)}` : '/dashboard/jobs';
         const jobsRes = await backendGet(url);
         const jobsData = await handleResponse(jobsRes);
         
@@ -256,21 +256,36 @@ async function viewMyResponse(applicationId) {
     }
 }
 async function updateSidebarProfile(user) {
+    console.log('🔄 Candidate Dashboard - updateSidebarProfile() started');
+    console.log('👤 User data:', user);
+    
     const nameEl = document.getElementById("userName");
     const roleEl = document.getElementById("candidateRole"); // Sidebar Role ID
     const avatarEl = document.getElementById("userAvatar"); 
 
     // 1. Set Name - use full_name from user object or fallback to email
-    if(nameEl) nameEl.textContent = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
+    if(nameEl) {
+        nameEl.textContent = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
+        console.log('✅ Name set to:', nameEl.textContent);
+    } else {
+        console.log('❌ userName element not found');
+    }
 
     // 2. Set Default Role
     const defaultTitle = "Fresher";
-    if(roleEl) roleEl.textContent = defaultTitle;
+    if(roleEl) {
+        roleEl.textContent = defaultTitle;
+        console.log('✅ Default role set to:', defaultTitle);
+    } else {
+        console.log('❌ candidateRole element not found');
+    }
 
     try {
+        console.log('📡 Fetching profile data for sidebar...');
         const res = await backendGet('/applicant/profile');
         const json = await handleResponse(res);
-        const profile = json.data || {};
+        const profile = json.data || json;  // Fix: handle both data structures
+        console.log('✅ Profile data received:', profile);
 
         if (profile.experience && profile.experience.length > 0) {
             const sortedExperience = [...profile.experience].sort((a, b) => {
@@ -278,17 +293,24 @@ async function updateSidebarProfile(user) {
             });
             const latestJob = sortedExperience[0];
             const expTitle = latestJob.job_title || defaultTitle;
-            if (roleEl) roleEl.textContent = expTitle;
+            if (roleEl) {
+                roleEl.textContent = expTitle;
+                console.log('💼 Updated role from experience:', expTitle);
+            }
         } else {
-            if (roleEl) roleEl.textContent = defaultTitle;
+            if (roleEl) {
+                roleEl.textContent = defaultTitle;
+                console.log('🌱 Kept default role (no experience)');
+            }
         }
         
         // Update name with profile data if available
         if (profile.full_name && nameEl) {
             nameEl.textContent = profile.full_name;
+            console.log('📝 Updated name from profile:', profile.full_name);
         }
     } catch (err) {
-        console.warn("Profile fetch failed, using defaults");
+        console.warn("❌ Profile fetch failed, using defaults:", err);
     }
 
     // 3. Avatar logic - use profile avatar_url since user object doesn't have user_metadata
@@ -296,22 +318,27 @@ async function updateSidebarProfile(user) {
         // Get avatar from profile or use initials
         const getAvatarFromProfile = async () => {
             try {
+                console.log('🖼️ Fetching avatar for profile...');
                 const res = await backendGet('/applicant/profile');
                 const json = await handleResponse(res);
-                const profile = json.data || {};
+                const profile = json.data || json;  // Fix: handle both data structures
+                console.log('🖼️ Profile data for avatar:', profile);
                 
                 if (profile.avatar_url) {
                     const initialsSrc = (profile.full_name || user.full_name || user.email || 'User');
                     const initialsSeq = initialsSrc.match(/\b\w/g) || [];
                     const initials = ((initialsSeq.shift() || '') + (initialsSeq.pop() || '')).toUpperCase();
                     avatarEl.innerHTML = `<img src="${profile.avatar_url}" onerror="this.style.display='none'; this.parentElement.textContent='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+                    console.log('✅ Avatar set from URL:', profile.avatar_url);
                 } else {
                     const initials = (profile.full_name || user.full_name || user.email || 'User').match(/\b\w/g) || [];
                     const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
                     avatarEl.innerHTML = text; 
+                    console.log('🔤 Avatar set to initials:', text);
                 }
             } catch (err) {
-                // Fallback to email or name initials
+                console.warn('❌ Avatar fetch failed:', err);
+                // Fallback to user initials
                 const initials = (user.full_name || user.email || 'User').match(/\b\w/g) || [];
                 const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
                 avatarEl.innerHTML = text;
@@ -322,34 +349,78 @@ async function updateSidebarProfile(user) {
     }
 }
 function setupEventListeners() {
+    console.log('🔧 Setting up event listeners...');
+    
     const navDashboard = document.getElementById('navDashboard');
     const navProfile = document.getElementById('navProfile');
     const navApplications = document.getElementById('navApplications');
     const logoutBtn = document.getElementById('logoutBtn'); // Added Logout
+    
+    console.log('🔍 Found elements:', {
+        navDashboard: !!navDashboard,
+        navProfile: !!navProfile,
+        navApplications: !!navApplications,
+        logoutBtn: !!logoutBtn
+    });
+    
     const origin = window.location.origin;
     // 1. Sidebar Navigation
     if (navApplications) {
-        navApplications.onclick = () => window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
+        navApplications.onclick = () => {
+            console.log('� Applications navigation clicked');
+            window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
+        };
+    } else {
+        console.log('❌ navApplications element not found');
     }
+    
+    if (navDashboard) {
+        navDashboard.onclick = () => {
+            console.log('🏠 Dashboard navigation clicked');
+            window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
+        };
+    } else {
+        console.log('❌ navDashboard element not found');
+    }
+    
     if (navProfile) {
         navProfile.onclick = async () => {
-            const u = await customAuth.getUserData();
-            if (u && u.onboarded) {
-                window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
-            } else {
+            try {
+                console.log('🔄 Profile navigation clicked');
+                const u = await customAuth.getUserData();
+                console.log('👤 User data for profile navigation:', u);
+                
+                // Check if user has profile data (onboarded means profile exists)
+                if (u && (u.onboarded === true || u.onboarded === 'true')) {
+                    console.log('✅ User is onboarded, going to candidate profile');
+                    window.location.href = CONFIG.PAGES.CANDIDATE_PROFILE;
+                } else {
+                    console.log('📝 User not onboarded, going to apply form');
+                    window.location.href = CONFIG.PAGES.APPLY_FORM;
+                }
+            } catch (err) {
+                console.error('❌ Error in profile navigation:', err);
+                // Fallback to apply form if there's an error
                 window.location.href = CONFIG.PAGES.APPLY_FORM;
             }
         };
-    }
-    if (navDashboard) {
-        navDashboard.onclick = () => window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
+    } else {
+        console.log('❌ navProfile element not found');
     }
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
-            await customAuth.signOut();
-            window.location.href = CONFIG.PAGES.JOBS;
+            console.log('🚪 Logout button clicked');
+            try {
+                await customAuth.signOut();
+                console.log('✅ Logged out successfully');
+                window.location.href = CONFIG.PAGES.JOBS;
+            } catch (err) {
+                console.error('❌ Logout failed:', err);
+            }
         });
+    } else {
+        console.log('❌ logoutBtn element not found');
     }
 
     // 2. Dashboard Cards Navigation (FIXED ID mismatch)
