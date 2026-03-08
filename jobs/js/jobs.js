@@ -80,30 +80,48 @@ let pendingJobId = null; // Store job ID for inline login
 async function checkAuth() {
     const { data: { session } } = await customAuth.getSession();
     currentUser = session?.user || null;
-    updateHeaderForAuth();
+    await updateHeaderForAuth();
     return currentUser;
 }
 
 /**
  * Update header based on authentication status
  */
-function updateHeaderForAuth() {
+async function updateHeaderForAuth() {
     if (!headerActions) return;
 
     if (currentUser) {
-        // User is logged in - show user info
-        const userName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
-        const initial = userName.charAt(0).toUpperCase();
+        // Fetch profile for full name
+        let displayName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
+        try {
+            const response = await backendGet('/applicant/profile');
+            const profile = await handleResponse(response);
+            if (profile.data?.full_name) {
+                displayName = profile.data.full_name;
+            }
+        } catch (err) {
+            console.warn('Could not fetch profile for header:', err);
+        }
+        
+        const initial = displayName.charAt(0).toUpperCase();
 
         headerActions.innerHTML = `
-            <div class="user-info">
+            <div class="user-info" style="cursor: pointer;" id="userInfoHeader">
                 <div class="user-avatar">${initial}</div>
-                <span class="user-name">${userName}</span>
+                <span class="user-name">${displayName}</span>
             </div>
             <button id="logoutBtn" class="btn btn-outline">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         `;
+        
+        // Attach click handler to redirect to dashboard
+        const userInfoHeader = document.getElementById('userInfoHeader');
+        if (userInfoHeader) {
+            userInfoHeader.addEventListener('click', () => {
+                window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
+            });
+        }
         
         // Attach logout listener
         const logoutBtn = document.getElementById('logoutBtn');
@@ -437,7 +455,7 @@ async function handleInlineLogin() {
 // ===============================
 
 /**
- * Handle job application
+ * Handle job application - redirect to job-details to maintain session
  */
 async function handleApply(jobId) {
     if (!currentUser) {
@@ -445,14 +463,15 @@ async function handleApply(jobId) {
         return;
     }
 
-    // Check if user is a candidate
-    const role = currentUser.user_metadata?.role?.toLowerCase();
-    if (role !== 'candidate') {
-        showToast('Only candidates can apply for jobs. Please login as a candidate.', 'error');
-        return;
+    // Check role from multiple possible sources
+    const role = (currentUser.user_metadata?.role || currentUser.role || currentUser.app_metadata?.role || '').toLowerCase();
+    
+    // If not candidate, show message but still redirect to job-details where proper auth is handled
+    if (role && role !== 'candidate') {
+        showToast('Redirecting to job details...', 'info');
     }
 
-    // Redirect to job details page with job_id to continue session and apply there
+    // Always redirect to job details page with job_id - session will be maintained there
     const detailsUrl = new URL(CONFIG.PAGES.JOB_DETAILS, window.location.origin);
     detailsUrl.searchParams.set('job_id', jobId);
     window.location.href = detailsUrl.toString();

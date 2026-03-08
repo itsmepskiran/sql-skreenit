@@ -162,6 +162,97 @@
     </div>
   </div>
 
+  <!-- Video Recording Modal (Step 6 from application form) -->
+  <div class="custom-modal-backdrop" id="videoRecordingModal" style="display: none;">
+    <div class="custom-modal-card" style="max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <div class="auth-modal-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                <i class="fas fa-video" style="font-size: 1.5rem; color: white;"></i>
+            </div>
+            <h2 style="margin-bottom: 0.25rem;">Record Introduction Video</h2>
+            <p style="color: #666; font-size: 0.9rem;">Record a 60-90 second video introducing yourself to recruiters</p>
+        </div>
+        
+        <!-- Video Recording Interface -->
+        <div id="videoRecordingContainer" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; background: #f8fafc;">
+            <!-- Recording Interface -->
+            <div id="videoRecorderInterface">
+                <!-- Camera Feed -->
+                <div style="position: relative; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
+                    <video id="recordCameraFeed" autoplay muted playsinline style="width: 100%; max-height: 350px; display: block;"></video>
+                    <video id="recordPlaybackFeed" controls style="width: 100%; max-height: 350px; display: none;"></video>
+                    
+                    <!-- Recording Indicator -->
+                    <div id="recordRecordingIndicator" style="display: none; position: absolute; top: 15px; right: 15px; background: rgba(239, 68, 68, 0.9); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                        <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 6px; animation: pulse 1s infinite;"></i>
+                        <span id="recordTimerDisplay">00:00</span>
+                    </div>
+                </div>
+                
+                <!-- Recording Controls -->
+                <div id="recordRecordingControls" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                    <button type="button" id="startRecordBtn" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.1rem;">
+                        <i class="fas fa-video" style="margin-right: 8px;"></i>Start Recording
+                    </button>
+                    <p class="text-muted" style="font-size: 0.9rem; margin: 0;">
+                        <i class="fas fa-info-circle"></i> Click to start recording your intro video (60-90 seconds)
+                    </p>
+                </div>
+                
+                <!-- Stop Controls (shown while recording) -->
+                <div id="recordStopControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                    <button type="button" id="stopRecordBtn" class="btn btn-danger" style="padding: 14px 40px; font-size: 1.1rem;">
+                        <i class="fas fa-stop-circle" style="margin-right: 8px;"></i>Stop Recording
+                    </button>
+                    <p class="text-muted" style="font-size: 0.9rem; margin: 0; color: #dc2626;">
+                        <i class="fas fa-exclamation-triangle"></i> Recording in progress... Click stop when done
+                    </p>
+                </div>
+                
+                <!-- Review Controls (shown after recording) -->
+                <div id="recordReviewControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="button" id="retakeRecordBtn" class="btn btn-secondary">
+                            <i class="fas fa-redo" style="margin-right: 8px;"></i>Retake
+                        </button>
+                        <button type="button" id="acceptRecordBtn" class="btn btn-success">
+                            <i class="fas fa-check" style="margin-right: 8px;"></i>Use This Video
+                        </button>
+                    </div>
+                    <p class="text-muted" style="font-size: 0.9rem; margin: 0;">
+                        Review your video. Retake if needed, or accept to use it for your application.
+                    </p>
+                </div>
+                
+                <!-- Upload Progress -->
+                <div id="recordUploadProgress" style="display: none; margin-top: 1rem; text-align: center;">
+                    <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; max-width: 400px; margin: 0 auto;">
+                        <div id="recordProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    <p id="recordProgressText" style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.5rem;">Uploading video... 0%</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tips -->
+        <div class="alert alert-info mt-3" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+            <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+            <strong>Tips for a great intro video:</strong>
+            <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0; font-size: 0.9rem;">
+                <li>Keep it between 60-90 seconds</li>
+                <li>Find a quiet, well-lit place</li>
+                <li>Mention your name, experience, and what you're looking for</li>
+                <li>Speak clearly and confidently</li>
+                <li>Dress professionally</li>
+            </ul>
+        </div>
+        
+        <button class="btn-close-modal" id="closeRecordModalBtn" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.9rem; margin-top: 1rem;">
+            <i class="fas fa-arrow-left"></i> Back to Application
+        </button>
+    </div>
+  </div>
+
   <script type="module" src="js/job-details.js"></script>
 </body>
 </html>

@@ -9,17 +9,23 @@ if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
 // --- INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
+    console.log('[DEBUG] My Applications page loaded');
     checkAuth();
     setupNavigation();
 });
 
 async function checkAuth() {
+    console.log('[DEBUG] Checking auth...');
     const user = await customAuth.getUserData();
+    console.log('[DEBUG] User data:', user);
+    
     if (!user) { 
+        console.log('[DEBUG] No user, redirecting to login');
         window.location.href = CONFIG.PAGES.LOGIN; 
         return; 
     }
     
+    console.log('[DEBUG] User authenticated, updating sidebar and loading applications');
     updateSidebarProfile(user);
     loadApplications();
 }
@@ -94,13 +100,36 @@ async function updateSidebarProfile(user) {
 
 // --- LOAD APPLICATIONS ---
 async function loadApplications() {
+    console.log('[DEBUG] loadApplications called');
     const container = document.getElementById("applicationsList");
+    console.log('[DEBUG] Container element:', container);
+    
+    if (!container) {
+        console.error('[DEBUG] ERROR: applicationsList container not found!');
+        return;
+    }
+    
     container.innerHTML = '<div class="text-center p-5 w-100"><div class="spinner-border text-primary"></div></div>';
 
     try {
+        console.log('[DEBUG] Fetching /applicant/applications...');
         const res = await backendGet(`/applicant/applications`); 
+        console.log('[DEBUG] Response status:', res.status);
+        
         const json = await handleResponse(res);
-        const apps = json || []; 
+        console.log('[DEBUG] Response JSON:', json);
+        
+        // Handle different response structures
+        let apps = [];
+        if (Array.isArray(json)) {
+            apps = json;
+        } else if (json.data && Array.isArray(json.data)) {
+            apps = json.data;
+        } else if (json.applications && Array.isArray(json.applications)) {
+            apps = json.applications;
+        }
+        
+        console.log('[DEBUG] Parsed applications:', apps.length, apps);
         
         if(!apps.length) {
             container.innerHTML = "<div class='text-center py-5 text-muted w-100'>You haven't applied to any jobs yet.</div>";
@@ -146,7 +175,7 @@ async function loadApplications() {
             }
 
             return `
-                <div class="card h-100">
+                <div class="card h-100" style="cursor: pointer;" onclick="window.location.href='${CONFIG.PAGES.JOB_DETAILS}?job_id=${app.job_id}'">
                     <div class="card-body d-flex flex-column">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                             <div>
@@ -162,6 +191,9 @@ async function loadApplications() {
                         </small>
                         
                         <div class="mt-auto">
+                            <button class="btn btn-secondary" style="display:block; width:100%; margin-top:1rem; background:#22c55e; border:none; color:white; cursor:default;" disabled>
+                                <i class="fas fa-check-circle me-1"></i> Already Applied
+                            </button>
                             ${actionButton}
                             <a href="${CONFIG.PAGES.JOB_DETAILS}?job_id=${app.job_id}" 
                                style="display:block; text-align:center; width:100%; margin-top:0.75rem; color:var(--text-light); text-decoration:underline; font-size:0.85rem;">
@@ -244,7 +276,14 @@ function setupNavigation() {
     const navProfile = document.getElementById("navProfile");
     const navApplications = document.getElementById("navApplications"); 
     const logoutBtn = document.getElementById("logoutBtn");
-
+    const activeJobsCard = document.getElementById('btnActiveJobs');
+    if (activeJobsCard) {
+        activeJobsCard.style.cursor = 'pointer';
+        activeJobsCard.addEventListener('click', () => {
+            // Redirect to My Jobs listing page (public jobs page with filter)
+            window.location.href = CONFIG.PAGES.MY_JOBS;
+        });
+    }
     const origin = window.location.origin;
 
     // Absolute Paths for Sidebar

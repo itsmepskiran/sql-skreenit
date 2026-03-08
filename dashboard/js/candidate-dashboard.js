@@ -202,7 +202,7 @@ function renderJobs(jobs) {
 }
 
 // Apply for job function - redirects to job-details with apply flow
-function applyForJob(jobId) {
+window.applyForJob = function(jobId) {
     window.location.href = `job-details.html?job_id=${jobId}`;
 }
 async function viewMyResponse(applicationId) {
@@ -431,36 +431,23 @@ function setupEventListeners() {
         console.log('❌ logoutBtn element not found');
     }
 
-    // 2. Dashboard Cards Navigation (FIXED ID mismatch)
-    // Applications card - scroll to the applications list section
+    // 2. Dashboard Cards Navigation
+    // Applications Sent card - always redirect to My Applications page
     const appsSentCard = document.getElementById('btnAppSent') || document.getElementById('totalApplied')?.closest('.stat-card');
     if (appsSentCard) {
         appsSentCard.style.cursor = 'pointer';
-
         appsSentCard.addEventListener('click', () => {
-            const appsSection = document.getElementById('myApplicationsList');
-            if (appsSection) {
-                appsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-                window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
-            }
+            window.location.href = CONFIG.PAGES.MY_APPLICATIONS;
         });
     }
 
-    // Active Jobs card - redirect to first recommended job details or show message
+    // Active Jobs card - redirect to My Jobs listing page
     const activeJobsCard = document.getElementById('btnActiveJobs');
     if (activeJobsCard) {
         activeJobsCard.style.cursor = 'pointer';
         activeJobsCard.addEventListener('click', () => {
-            // Get the first recommended job and redirect to its details page
-            const container = document.getElementById("recommendedJobsList");
-            const firstJobCard = container?.querySelector('.card a[href^="job-details.html"]');
-            if (firstJobCard) {
-                window.location.href = firstJobCard.href;
-            } else {
-                // Fallback: redirect to candidate dashboard
-                window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
-            }
+            // Redirect to My Jobs listing page (public jobs page)
+            window.location.href = CONFIG.PAGES.MY_JOBS;
         });
     }
 
