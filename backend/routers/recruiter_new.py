@@ -15,6 +15,7 @@ from services.auth_service import get_current_user
 from middleware.role_required import ensure_permission
 from models.recruiter_models import CompanyCreate, RecruiterProfileCreate, JobCreateRequest, JobUpdateRequest
 from utils_others.logger import logger
+from config import PROFILE_IMAGE_UPLOAD_PATH, PROFILE_IMAGE_PUBLIC_URL
 
 # Create recruiter service instance
 recruiter_service = RecruiterService()
@@ -103,11 +104,11 @@ async def get_profile(request: Request):
     try:
         profile = recruiter_service.get_profile(user["id"])
         
+        # If the user has not yet created a profile, do not auto-create a placeholder company.
+        # This prevents the UI from showing "Unknown Company" or generating a company display ID
+        # before the recruiter has actually completed onboarding.
         if not profile:
-            # Create empty profile if doesn't exist
-            result = recruiter_service.upsert_profile({"user_id": user["id"]})
-            # FIX: Extract the actual profile dictionary from the result
-            profile = result.get("data", {}) 
+            return {"ok": True, "data": {}}
         
         return {"ok": True, "data": profile}
     
@@ -126,6 +127,10 @@ async def update_profile(request: Request, profile_data: dict):
         result = recruiter_service.upsert_profile(profile_data)
         return {"ok": True, "data": result}
     
+    except ValueError as e:
+        # Validation errors (e.g., missing company name) should be surfaced as 400
+        logger.warning(f"Update recruiter profile validation failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Update recruiter profile failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -145,8 +150,8 @@ async def upload_avatar(request: Request, file: UploadFile = File(...)):
         # Upload file
         avatar_url = handle_file_upload(
             file,
-            os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/uploads/profile-images"),
-            os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://yourdomain.com/uploads/profile-images")
+            PROFILE_IMAGE_UPLOAD_PATH,
+            PROFILE_IMAGE_PUBLIC_URL
         )
         
         # Update profile
@@ -168,8 +173,8 @@ async def upload_company_logo(request: Request, file: UploadFile = File(...)):
         # Upload file
         logo_url = handle_file_upload(
             file,
-            os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/uploads/profile-images"),
-            os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://yourdomain.com/uploads/profile-images")
+            PROFILE_IMAGE_UPLOAD_PATH,
+            PROFILE_IMAGE_PUBLIC_URL
         )
         
         # Update profile
@@ -178,6 +183,10 @@ async def upload_company_logo(request: Request, file: UploadFile = File(...)):
         
         return {"ok": True, "data": {"logo_url": logo_url}}
     
+    except ValueError as e:
+        # Validation errors should be surfaced as 400 for cleaner frontend handling.
+        logger.warning(f"Company logo upload validation failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Company logo upload failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -197,9 +206,9 @@ async def create_job(request: Request, job_data: JobCreateRequest):
         profile = recruiter_service.get_profile(user["id"])
 
         if not profile or not profile.get("company_id"):
-            result = recruiter_service.upsert_profile({"user_id": user["id"]})
-            profile = result.get("data", {})
-            
+            # Require profile completion before allowing job creation.
+            raise HTTPException(status_code=400, detail="Please complete your recruiter profile before posting jobs.")
+
         data = job_data.model_dump()
         data["created_by"] = user["id"]
         data["company_id"] = profile.get("company_id")  # <--- CRITICAL FIX

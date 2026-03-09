@@ -705,18 +705,22 @@ class RecruiterService(MySQLService):
                             company.description = company_data["company_description"]
                         company_id = company.id
                 else:
-                    # Create new company
-                    company_name = company_data.get("company_name", "Unknown Company")
-                    company = Company(
-                        id=generate_uuid(),
-                        name=company_name,
-                        website=company_data.get("company_website"),
-                        description=company_data.get("company_description"),
-                        created_by=user_id
-                    )
-                    db.add(company)
-                    db.flush()  # Get the ID
-                    company_id = company.id
+                    # Create new company only when a name is provided.
+                    # Prevent placeholder companies such as "Unknown Company" being created by default.
+                    company_name = (company_data.get("company_name") or "").strip()
+                    if company_name:
+                        company = Company(
+                            id=generate_uuid(),
+                            name=company_name,
+                            website=company_data.get("company_website"),
+                            description=company_data.get("company_description"),
+                            created_by=user_id
+                        )
+                        db.add(company)
+                        db.flush()  # Get the ID
+                        company_id = company.id
+                    else:
+                        company_id = None
             
             if existing_profile:
                 # Update existing profile

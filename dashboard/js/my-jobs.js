@@ -23,27 +23,26 @@ async function checkAuth() {
         return;
     }
 
-    updateSidebarProfile(user.user_metadata || {}, user.email);
-    updateUserInfo();
+    // Initialize sidebar quickly with whatever we have, then refresh from backend.
+    updateSidebarProfile({}, user);
+    await updateUserInfo();
     loadJobs(user.id);
 }
 
-function updateSidebarProfile(meta, email, avatarUrl) {
+ function updateSidebarProfile(profile, user) {
     const nameEl = document.getElementById('recruiterName');
     const avatarEl = document.getElementById('userAvatar');
-    
+
     // Fix #4: Hide the camera icon if it exists in the HTML
     const cameraIcon = document.querySelector('.camera-icon');
     if (cameraIcon) cameraIcon.style.display = 'none';
 
-    // Fix #1 & #5: Ensure name prioritizes contact_name over defaults
-    const displayName = meta.contact_name || meta.full_name || (email ? email.split('@')[0] : 'Recruiter');
+    const displayName = profile?.contact_name || profile?.full_name || user?.email?.split('@')[0] || 'Recruiter';
     if (nameEl) nameEl.textContent = displayName;
 
+    const displayAvatar = profile?.company_logo_url || profile?.avatar_url || user?.avatar_url;
     // Fix #3: Handle Broken Images fallback gracefully
     if (avatarEl) {
-        const displayAvatar = avatarUrl || meta.avatar_url;
-        // Don't try to load dummy 'yourdomain.com' URLs from unconfigured backend
         if (displayAvatar && !displayAvatar.includes('yourdomain.com')) {
             const initials = getInitials(displayName);
             avatarEl.innerHTML = `<img src="${displayAvatar}" onerror="this.style.display='none'; this.parentElement.innerHTML='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
@@ -64,15 +63,18 @@ async function updateUserInfo() {
     const res = await backendGet('/recruiter/profile');
     const data = await handleResponse(res);
     const profile = data.data || data; 
-    
-    if (profile) {
-        updateSidebarProfile(profile, user?.email, profile.company_logo_url || user?.avatar_url);
 
-        // Fix #1 & #5: Ensure correct Display ID is mapped
-        const companyIdEl = document.getElementById('companyId');
-        if (companyIdEl) {
-            companyIdEl.textContent = profile.company_display_id || profile.company_id || '---';
-        }
+    // Ensure sidebar uses latest profile values
+    updateSidebarProfile(profile || {}, user);
+
+    // Ensure company ID is shown as Pending until onboarding is complete
+    const onboardedFlag = user?.onboarded ?? user?.user_metadata?.onboarded;
+    const isOnboarded = onboardedFlag === true || onboardedFlag === 'true';
+    const companyIdEl = document.getElementById('companyId');
+    if (companyIdEl) {
+        const displayId = profile?.company_display_id || profile?.company_id || profile?.company_name;
+        const nameIsPlaceholder = (profile?.company_name || '').toLowerCase().includes('unknown');
+        companyIdEl.textContent = (isOnboarded && displayId && !nameIsPlaceholder) ? displayId : 'Pending';
     }
   } catch (error) { 
       const companyIdEl = document.getElementById('companyId');
@@ -121,8 +123,18 @@ async function loadJobs(userId) {
         const res = await backendGet(`/recruiter/jobs?user_id=${userId}`);
         const json = await handleResponse(res);
         
-        allJobs = json.data?.jobs || json.data || [];
-        if(!Array.isArray(allJobs)) allJobs = [];
+        // Normalize the response payload from the backend
+        if (Array.isArray(json?.data?.data)) {
+            allJobs = json.data.data;
+        } else if (Array.isArray(json?.data?.jobs)) {
+            allJobs = json.data.jobs;
+        } else if (Array.isArray(json?.data)) {
+            allJobs = json.data;
+        } else if (Array.isArray(json)) {
+            allJobs = json;
+        } else {
+            allJobs = [];
+        }
 
         const activeCount = allJobs.filter(j => {
             const s = (j.status || 'active').toLowerCase();

@@ -14,6 +14,7 @@ from services.auth_service import get_current_user
 from middleware.role_required import ensure_permission
 from models.applicant_models import ApplicationCreate
 from utils_others.logger import logger
+from config import PROFILE_IMAGE_UPLOAD_PATH, PROFILE_IMAGE_PUBLIC_URL, RESUME_UPLOAD_PATH, RESUME_PUBLIC_URL, VIDEO_UPLOAD_PATH, VIDEO_PUBLIC_URL
 
 router = APIRouter(prefix="/applicant", tags=["Applicant"])
 
@@ -114,27 +115,27 @@ async def update_profile_put(request: Request, profile_data: Optional[dict] = No
             if resume and resume.filename:
                 resume_url = handle_file_upload(
                     resume,
-                    os.getenv("RESUME_UPLOAD_PATH", "/datastorage/resumes"),
-                    os.getenv("RESUME_PUBLIC_URL", "https://storage.skreenit.com/datastorage/resumes")
+                    RESUME_UPLOAD_PATH,
+                    RESUME_PUBLIC_URL
                 )
                 data["resume_url"] = resume_url
-            
+
             if profile_image and profile_image.filename:
                 image_url = handle_file_upload(
                     profile_image,
-                    os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/datastorage/profilepics"),
-                    os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://storage.skreenit.com/datastorage/profilepics")
+                    PROFILE_IMAGE_UPLOAD_PATH,
+                    PROFILE_IMAGE_PUBLIC_URL
                 )
                 data["avatar_url"] = image_url
-            
+
             if intro_video and intro_video.filename:
                 video_url = handle_file_upload(
                     intro_video,
-                    os.getenv("VIDEO_UPLOAD_PATH", "/datastorage/videos"),
-                    os.getenv("VIDEO_PUBLIC_URL", "https://storage.skreenit.com/datastorage/videos")
+                    VIDEO_UPLOAD_PATH,
+                    VIDEO_PUBLIC_URL
                 )
                 data["intro_video_url"] = video_url
-            
+
             profile_data = data
         elif profile_data is None:
             profile_data = {}
@@ -197,9 +198,9 @@ async def upload_avatar(request: Request, file: UploadFile = File(...)):
     try:
         # Upload file
         avatar_url = handle_file_upload(
-            file, 
-            os.getenv("PROFILE_IMAGE_UPLOAD_PATH", "/datastorage/profilepics"),
-            os.getenv("PROFILE_IMAGE_PUBLIC_URL", "https://storage.skreenit.com/datastorage/profilepics")
+            file,
+            PROFILE_IMAGE_UPLOAD_PATH,
+            PROFILE_IMAGE_PUBLIC_URL
         )
         
         # Update profile
@@ -221,8 +222,8 @@ async def upload_resume(request: Request, file: UploadFile = File(...)):
         # Upload file
         resume_url = handle_file_upload(
             file,
-            os.getenv("RESUME_UPLOAD_PATH", "/datastorage/resumes"),
-            os.getenv("RESUME_PUBLIC_URL", "https://storage.skreenit.com/datastorage/resumes")
+            RESUME_UPLOAD_PATH,
+            RESUME_PUBLIC_URL
         )
         
         # Update profile

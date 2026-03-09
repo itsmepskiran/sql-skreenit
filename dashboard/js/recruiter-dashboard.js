@@ -28,22 +28,21 @@ async function checkAuth() {
     loadDashboardData(user.id);
 }
 
-function updateSidebarProfile(meta, email, avatarUrl) {
+function updateSidebarProfile(profile, user) {
     const nameEl = document.getElementById('recruiterName');
     const avatarEl = document.getElementById('userAvatar');
-    
+
     // Fix #4: Hide the camera icon if it exists in the HTML
     const cameraIcon = document.querySelector('.camera-icon');
     if (cameraIcon) cameraIcon.style.display = 'none';
 
-    // Fix #1 & #5: Ensure name prioritizes contact_name over defaults
-    const displayName = meta.contact_name || meta.full_name || (email ? email.split('@')[0] : 'Recruiter');
+    const displayName = (profile?.contact_name || profile?.full_name || user?.email?.split('@')[0] || 'Recruiter');
     if (nameEl) nameEl.textContent = displayName;
+
+    const displayAvatar = profile?.company_logo_url || profile?.avatar_url || user?.avatar_url;
 
     // Fix #3: Handle Broken Images fallback gracefully
     if (avatarEl) {
-        const displayAvatar = avatarUrl || meta.avatar_url;
-        // Don't try to load dummy 'yourdomain.com' URLs from unconfigured backend
         if (displayAvatar && !displayAvatar.includes('yourdomain.com')) {
             const initials = getInitials(displayName);
             avatarEl.innerHTML = `<img src="${displayAvatar}" onerror="this.style.display='none'; this.parentElement.innerHTML='${initials}';" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
@@ -65,15 +64,17 @@ async function updateUserInfo() {
     const data = await handleResponse(res);
     const profile = data.data || data; 
     
-    if (profile) {
-        updateSidebarProfile(profile, user?.email, profile.company_logo_url || user?.avatar_url);
+    // Ensure sidebar always reflects latest profile data
+    updateSidebarProfile(profile || {}, user);
 
-        // Fix #1 & #5: Ensure correct Display ID is mapped
-        const companyIdEl = document.getElementById('companyId');
-        if (companyIdEl) {
-            const isOnboarded = !!user?.onboarded;
-            companyIdEl.textContent = isOnboarded ? (profile.company_display_id || profile.company_id || '---') : 'Pending';
-        }
+    // Fix #1 & #5: Ensure correct Display ID is mapped
+    const companyIdEl = document.getElementById('companyId');
+    if (companyIdEl) {
+        const onboardedFlag = user?.onboarded ?? user?.user_metadata?.onboarded;
+        const isOnboarded = onboardedFlag === true || onboardedFlag === 'true';
+        const displayId = profile?.company_display_id || profile?.company_id || profile?.company_name;
+        const nameIsPlaceholder = (profile?.company_name || '').toLowerCase().includes('unknown');
+        companyIdEl.textContent = (isOnboarded && displayId && !nameIsPlaceholder) ? displayId : 'Pending';
     }
   } catch (error) { 
       const companyIdEl = document.getElementById('companyId');
@@ -86,7 +87,10 @@ function setupEventListeners() {
     if (navProfile) {
         navProfile.addEventListener('click', async () => {
             const u = await customAuth.getUserData();
-            if (u && u.onboarded) {
+            const onboardedFlag = u?.onboarded ?? u?.user_metadata?.onboarded;
+            const isOnboarded = onboardedFlag === true || onboardedFlag === 'true';
+
+            if (isOnboarded) {
                 window.location.href = CONFIG.PAGES.DASHBOARD_RECRUITER;
             } else {
                 window.location.href = CONFIG.PAGES.RECRUITER_PROFILE;
@@ -155,9 +159,20 @@ async function loadDashboardData(userId) {
         // A. Fetch Jobs
         const jobsRes = await backendGet(`/recruiter/jobs?user_id=${userId}`);
         const jobsData = await handleResponse(jobsRes);
-        let jobsList = jobsData?.data?.jobs || jobsData?.data || [];
-        if(!Array.isArray(jobsList)) jobsList = [];
-        
+
+        // The backend response shape can vary depending on the endpoint implementation.
+        // Older versions returned {ok, data: {jobs: [...]}} while newer ones return {ok, data: {data: [...]}}
+        let jobsList = [];
+        if (Array.isArray(jobsData?.data?.data)) {
+            jobsList = jobsData.data.data;
+        } else if (Array.isArray(jobsData?.data?.jobs)) {
+            jobsList = jobsData.data.jobs;
+        } else if (Array.isArray(jobsData?.data)) {
+            jobsList = jobsData.data;
+        } else if (Array.isArray(jobsData)) {
+            jobsList = jobsData;
+        }
+
         // Update Stats
         const activeJobsCount = jobsList.filter(j => {
             const s = (j.status || 'active').toLowerCase();
@@ -204,7 +219,7 @@ async function loadDashboardData(userId) {
 
 // Inside your renderApplications or loadRecentApplications function:
 function renderApplications(apps) {
-    const container = document.getElementById("recentApplicationsList");
+    const container = document.getElementById("recentAppsList");
     if (!container) return;
 
     if (!apps || apps.length === 0) {

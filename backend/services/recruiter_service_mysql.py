@@ -106,6 +106,9 @@ class RecruiterService:
             if not job_ids:
                 return []
             
+            # Keep a quick lookup for job data (title and other metadata)
+            job_map = {job["id"]: job for job in jobs}
+            
             app_conditions = {"job_id": job_ids}
             applications = self.mysql.get_records("job_applications", app_conditions, order_by="applied_at DESC")
             
@@ -129,6 +132,15 @@ class RecruiterService:
                         "email": candidate.get("email"),
                         "phone": candidate.get("phone")
                     }
+                    # Normalize for frontend convenience
+                    app["candidate_name"] = candidate.get("full_name")
+                    app["candidate_email"] = candidate.get("email")
+                    app["candidate_phone"] = candidate.get("phone")
+
+                job = job_map.get(app.get("job_id"))
+                if job:
+                    app["job_title"] = job.get("title")
+
                 enriched_apps.append(app)
             return enriched_apps
         except Exception as e:
@@ -140,9 +152,14 @@ class RecruiterService:
     # ---------------------------------------------------------
     def create_company(self, name: str, created_by: str) -> Dict[str, Any]:
         try:
+            # Generate a human-friendly display ID for the company.
+            # It will be stored in the `company_display_id` column and shown in the recruiter UI.
+            display_id = self._generate_company_display_id(name)
+
             payload = {
                 "id": str(uuid4()),
                 "name": name,
+                "company_display_id": display_id,
                 "created_by": created_by,
             }
             company_id = self.mysql.insert_record("companies", payload)
@@ -162,7 +179,16 @@ class RecruiterService:
     def upsert_profile(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         try:
             existing = self.mysql.get_single_record("recruiter_profiles", {"user_id": payload["user_id"]})
-            
+
+            # Backend validation: if the user provides **company metadata**, require a non-empty company name.
+            # Note: uploading a logo alone is allowed, because sometimes the recruiter updates logo before setting a name.
+            company_name = (payload.get("company_name") or "").strip()
+            company_meta_provided = any(
+                payload.get(k) for k in ["company_website", "company_description"]
+            )
+            if company_meta_provided and not company_name:
+                raise ValueError("Company name is required when providing company website or description")
+
             if existing:
                 profile_update_data = {
                     "contact_name": payload.get("contact_name"),
@@ -189,39 +215,82 @@ class RecruiterService:
                         display_id = self._generate_company_display_id(company.get("name"))
                         self.mysql.update_record("companies", {"company_display_id": display_id}, {"id": existing["company_id"]})
                 
+                # If this recruiter has a profile but no company record yet, create it when we have a company name
+                elif payload.get("company_name"):
+                    company_name = payload.get("company_name")
+                    company_data = {
+                        "id": str(uuid4()),
+                        "name": company_name,
+                        "description": payload.get("company_description"),
+                        "website": payload.get("company_website"),
+                        "logo_url": payload.get("company_logo_url"),
+                        "company_display_id": self._generate_company_display_id(company_name),
+                        "created_by": payload["user_id"]
+                    }
+                    new_company_id = self.mysql.insert_record("companies", company_data)
+                    if new_company_id:
+                        self.mysql.update_record("recruiter_profiles", {"company_id": new_company_id}, {"user_id": payload["user_id"]})
+
+                # If the recruiter has a profile but no company yet (company_id is null),
+                # create the company once they provide a company name.
+                if not existing.get("company_id"):
+                    submitted_name = (payload.get("company_name") or "").strip()
+                    if submitted_name:
+                        company_data = {
+                            "id": str(uuid4()),
+                            "name": submitted_name,
+                            "description": payload.get("company_description"),
+                            "website": payload.get("company_website"),
+                            "logo_url": payload.get("company_logo_url"),
+                            "company_display_id": self._generate_company_display_id(submitted_name),
+                            "created_by": payload["user_id"]
+                        }
+                        new_company_id = self.mysql.insert_record("companies", company_data)
+                        if new_company_id:
+                            self.mysql.update_record("recruiter_profiles", {"company_id": new_company_id}, {"user_id": payload["user_id"]})
+
                 if profile_update_data:
                     self.mysql.update_record("recruiter_profiles", profile_update_data, {"user_id": payload["user_id"]})
                 
                 updated_profile = self.get_profile(payload["user_id"])
                 return {"data": updated_profile, "updated": True}
             else:
-                company_data = {
-                    "id": str(uuid4()),
-                    "name": payload.get("company_name") or "Unknown Company",
-                    "description": payload.get("company_description"),
-                    "website": payload.get("company_website"),
-                    "logo_url": payload.get("company_logo_url"),
-                    "company_display_id": self._generate_company_display_id(payload.get("company_name") or "Unknown Company"),
-                    "created_by": payload["user_id"]
-                }
-                
-                company_id = self.mysql.insert_record("companies", company_data)
-                
+                # Create a new recruiter profile.
+                # If a company name is provided, create the company record immediately.
+                # This ensures the company name is preserved and visible in the UI.
+                company_id = None
+                company_name = (payload.get("company_name") or "").strip()
+
+                if company_name:
+                    company_data = {
+                        "id": str(uuid4()),
+                        "name": company_name,
+                        "description": payload.get("company_description"),
+                        "website": payload.get("company_website"),
+                        "logo_url": payload.get("company_logo_url"),
+                        "company_display_id": self._generate_company_display_id(company_name),
+                        "created_by": payload["user_id"]
+                    }
+                    company_id = self.mysql.insert_record("companies", company_data)
+
                 profile_data = {
                     "id": str(uuid4()),
                     "user_id": payload["user_id"],
-                    "company_id": company_data["id"],
+                    "company_id": company_id,
                     "contact_name": payload.get("contact_name"),
                     "contact_email": payload.get("contact_email"),
                     "location": payload.get("location"),
                     "company_description": payload.get("company_description")
                 }
-                
+
                 profile_id = self.mysql.insert_record("recruiter_profiles", profile_data)
                 complete_profile = self.get_profile(payload["user_id"])
-                
+
                 return {"data": complete_profile, "id": profile_id, "updated": False}
                 
+        except ValueError:
+            # Validation errors should be handled by the caller (e.g., returning 400).
+            raise
         except Exception as e:
             logger.error(f"Upsert recruiter profile failed: {str(e)}")
             raise RuntimeError("Failed to save recruiter profile")
@@ -254,10 +323,12 @@ class RecruiterService:
             if profile.get("company_id"):
                 company = self.mysql.get_single_record("companies", {"id": profile["company_id"]})
                 if company:
-                    profile["company_name"] = company.get("name")
-                    profile["company_website"] = company.get("website")
-                    profile["company_display_id"] = company.get("company_display_id")
-                    profile["company_logo_url"] = company.get("logo_url")
+                    # Always include company fields so frontend can make correct decisions.
+                    # Use empty string defaults to ensure the key is always present.
+                    profile["company_name"] = company.get("name") or ""
+                    profile["company_website"] = company.get("website") or ""
+                    profile["company_display_id"] = company.get("company_display_id") or ""
+                    profile["company_logo_url"] = company.get("logo_url") or ""
 
             return profile
         except Exception as e:

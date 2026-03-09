@@ -107,9 +107,9 @@ class BackendClient {
             }
         }
         
-        if (resp.status >= 500) {
-            throw new Error(`Server Error (${resp.status})`);
-        }
+        // Return the response and let the calling code decide how to handle errors.
+        // This enables detailed server error messages (e.g., FastAPI validation errors) to be
+        // surfaced via `handleResponse` instead of being masked as a generic "Server Error".
         return resp;
 
     } catch (err) {

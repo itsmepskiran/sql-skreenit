@@ -119,8 +119,14 @@ async function handleRegistrationSubmit(e) {
         };
 
         // 3. API Call to Register
+        console.log('[DEBUG] Registration payload:', payload);
+        console.log('[DEBUG] API_BASE:', CONFIG.API_BASE);
+        
         const response = await backendPost('/register', payload);
+        console.log('[DEBUG] Registration response status:', response.status);
+        
         const result = await handleResponse(response);
+        console.log('[DEBUG] Registration result:', result);
 
         console.log("✅ Registration successful:", result);
         

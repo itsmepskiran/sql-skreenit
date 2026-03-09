@@ -24,19 +24,24 @@ async function checkAuth() {
         window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE; 
         return;
     }
-    updateSidebarProfile(user.user_metadata || {}, user.email);
-    updateUserInfo(); 
+    // Initialize sidebar quickly, then refresh using backend profile.
+    updateSidebarProfile({}, user);
+    await updateUserInfo(); 
 }
 
-function updateSidebarProfile(meta, email) {
+function updateSidebarProfile(profile, user) {
     const nameEl = document.getElementById('recruiterName');
     const avatarEl = document.getElementById('userAvatar'); 
-    if(nameEl) nameEl.textContent = meta.full_name || meta.contact_name || email.split('@')[0];
-    if(avatarEl) {
-        if (meta.avatar_url) {
-            avatarEl.innerHTML = `<img src="${meta.avatar_url}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
+    const displayName = profile?.contact_name || profile?.full_name || (user?.email ? user.email.split('@')[0] : 'Recruiter');
+
+    if (nameEl) nameEl.textContent = displayName;
+
+    const displayAvatar = profile?.company_logo_url || profile?.avatar_url || user?.avatar_url;
+    if (avatarEl) {
+        if (displayAvatar && !displayAvatar.includes('yourdomain.com')) {
+            avatarEl.innerHTML = `<img src="${displayAvatar}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
         } else {
-            const initials = (meta.full_name || email).match(/\b\w/g) || [];
+            const initials = displayName.match(/\b\w/g) || [];
             const text = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
             avatarEl.innerHTML = text; 
         }
@@ -49,13 +54,13 @@ async function updateUserInfo() {
         const data = await handleResponse(res);
         const profile = data.data || data; 
         if (profile) {
-            if (profile.contact_name) {
-                const el = document.getElementById('recruiterName');
-                if (el) el.textContent = profile.contact_name;
-            }
-            if (profile.company_id || profile.company_name) {
-                const companyIdEl = document.getElementById('companyId');
-                if (companyIdEl) companyIdEl.textContent = profile.company_id || profile.company_name;
+            const user = await customAuth.getUserData();
+            updateSidebarProfile(profile, user);
+
+            const companyIdEl = document.getElementById('companyId');
+            if (companyIdEl) {
+                const displayId = profile.company_display_id || profile.company_id || profile.company_name;
+                companyIdEl.textContent = displayId || 'Pending';
             }
         }
     } catch (error) { /* silent fail */ }

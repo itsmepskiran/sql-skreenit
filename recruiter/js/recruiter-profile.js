@@ -82,9 +82,12 @@ async function fetchProfileData(user) {
         // Update Sidebar Company ID dynamically (use display ID if available)
         const companyIdEl = document.getElementById('companyId');
         if (companyIdEl) {
-            const companyIdValue = profile.company_display_id || profile.company_id || profile.company_name || '---';
-            console.log('🏷️ Setting companyId element to:', companyIdValue);
-            companyIdEl.textContent = companyIdValue;
+            // Interpret onboarding status consistently with the UX expectation.
+                const onboardedFlag = user?.onboarded ?? user?.user_metadata?.onboarded;
+                const isOnboarded = onboardedFlag === true || onboardedFlag === 'true';
+                const displayId = profile.company_display_id || profile.company_id || profile.company_name;
+                const companyIdValue = (isOnboarded && displayId) ? displayId : 'Pending';
+                companyIdEl.textContent = companyIdValue;
         }
 
         // Sync user_data so other pages can access company_name / logo
@@ -117,6 +120,12 @@ async function fetchProfileData(user) {
         if (user) {
             document.getElementById("contact_name").value = user.full_name || "";
             document.getElementById("contact_email").value = user.email || "";
+        }
+
+        // Ensure the footer shows Pending until profile is completed
+        const companyIdEl = document.getElementById('companyId');
+        if (companyIdEl) {
+            companyIdEl.textContent = 'Pending';
         }
     }
   } catch (err) {
@@ -196,7 +205,7 @@ async function setupAvatarUpload() {
             alert('Avatar uploaded successfully.');
         } catch (err) {
             console.error('Avatar upload failed:', err);
-            alert('Failed to upload avatar. Please try again.');
+            alert(`Failed to upload avatar: ${err?.message || 'Please try again.'}`);
         } finally {
             fileInput.value = '';
         }
@@ -233,12 +242,34 @@ async function setupCompanyLogoUpload() {
             const result = await handleResponse(res);
             console.log('✅ Company logo upload response:', result);
 
+            // Ensure the company name isn't lost when we refresh the profile.
+            // The backend /recruiter/profile/company-logo endpoint only updates the logo, so the
+            // profile refresh afterwards should still include the company name, but some setups
+            // may return a partially-populated company object. Force a backend upsert to keep it.
+            const companyName = document.getElementById('company_name')?.value?.trim();
             const user = await customAuth.getUserData();
+            const logoUrl = result?.data?.logo_url;
+
+            // Require a company name so we don't create/overwrite a company record with a blank name.
+            if (!companyName) {
+                alert('Please enter a company name before uploading a logo.');
+            } else if (user?.id && logoUrl) {
+                try {
+                    await backendPut('/recruiter/profile', {
+                        user_id: user.id,
+                        company_name: companyName,
+                        company_logo_url: logoUrl
+                    });
+                } catch (e) {
+                    console.warn('Failed to persist company metadata after logo upload', e);
+                }
+            }
+
             await fetchProfileData(user);
             alert('Company logo uploaded successfully.');
         } catch (err) {
             console.error('Company logo upload failed:', err);
-            alert('Failed to upload company logo. Please try again.');
+            alert(`Failed to upload company logo: ${err?.message || 'Please try again.'}`);
         } finally {
             fileInput.value = '';
         }

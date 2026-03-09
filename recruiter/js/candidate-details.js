@@ -26,18 +26,19 @@ async function checkAuth() {
         return;
     }
 
-    updateSidebarProfile(user.user_metadata || {}, user.email);
-    updateUserInfo(); 
+    // Initialize the sidebar quickly, then refresh with backend profile data.
+    updateSidebarProfile({}, user);
+    await updateUserInfo(); 
     setupNavigation();
     initCandidateDetails();
 }
 
-function updateSidebarProfile(meta, email) {
+function updateSidebarProfile(profile, user) {
     const nameEl = document.getElementById('recruiterName');
-    if(nameEl) nameEl.textContent = meta.full_name || email.split('@')[0];
+    if (nameEl) nameEl.textContent = profile?.contact_name || profile?.full_name || (user?.email ? user.email.split('@')[0] : 'Recruiter');
 
     const companyIdEl = document.getElementById('companyId');
-    if(companyIdEl) companyIdEl.textContent = 'Loading...';
+    if (companyIdEl) companyIdEl.textContent = 'Loading...';
 }
 
 async function updateUserInfo() {
@@ -47,13 +48,13 @@ async function updateUserInfo() {
         const profile = data.data || data; 
         
         if (profile) {
-            if (profile.contact_name) {
-                const el = document.getElementById('recruiterName');
-                if (el) el.textContent = profile.contact_name;
-            }
-            if (profile.company_id || profile.company_name) {
-                const companyIdEl = document.getElementById('companyId');
-                if (companyIdEl) companyIdEl.textContent = profile.company_id || profile.company_name;
+            const user = await customAuth.getUserData();
+            updateSidebarProfile(profile, user);
+
+            const companyIdEl = document.getElementById('companyId');
+            if (companyIdEl) {
+                const displayId = profile.company_display_id || profile.company_id || profile.company_name;
+                companyIdEl.textContent = displayId || 'Pending';
             }
         }
     } catch (error) { 
