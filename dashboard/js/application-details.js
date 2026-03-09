@@ -25,8 +25,10 @@ async function checkAuth() {
         return; 
     }
     
-    updateSidebarProfile(user.user_metadata || {}, user.email);
-    updateUserInfo();
+    // Initialize sidebar quickly
+    updateSidebarProfile({}, user);
+    // Fetch recruiter profile for complete data
+    await updateUserInfo();
 
     const urlParams = new URLSearchParams(window.location.search);
     const appId = urlParams.get('id');
@@ -40,37 +42,52 @@ async function checkAuth() {
     loadApplicationDetails(appId);
 }
 
-function updateSidebarProfile(user) {
+function updateSidebarProfile(profile, user) {
     const nameEl = document.getElementById('recruiterName');
     const companyEl = document.getElementById('companyId');
     const avatarEl = document.getElementById('userAvatar');
-    if(nameEl) {nameEl.textContent = user?.full_name || user?.name || (user?.email ? user.email.split('@')[0] : 'Recruiter');}
-    if(companyEl) {const displayId = user?.company_display_id || user?.company_name || "Company Pending";
-        companyEl.textContent = displayId;}
-    if(avatarEl) {const logoUrl = user?.company_logo_url || user?.avatar_url;
+    
+    // Handle both profile data and user data
+    const displayName = profile?.contact_name || profile?.full_name || user?.full_name || user?.name || (user?.email ? user.email.split('@')[0] : 'Recruiter');
+    if(nameEl) nameEl.textContent = displayName;
+    
+    const displayId = profile?.company_display_id || profile?.company_id || profile?.company_name || 'Pending';
+    if(companyEl) companyEl.textContent = `Company ID: ${displayId}`;
+    
+    if(avatarEl) {
+        const logoUrl = profile?.company_logo_url || profile?.avatar_url || user?.avatar_url;
         if (logoUrl) {
             avatarEl.innerHTML = `<img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius: 50%;">`;
-        }else {
+        } else {
             // Fallback to Initials
-            const name = nameEl?.textContent || 'R';
-            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
             avatarEl.innerHTML = `<div class="avatar-initials">${initials}</div>`;
         }
     }
-
 }
 
 async function updateUserInfo() {
     try {
+        const user = await customAuth.getUserData();
         const res = await backendGet('/recruiter/profile');
         const data = await handleResponse(res);
         const profile = data.data || data; 
-        if (profile && (profile.company_id || profile.company_name)) {
-            const companyIdEl = document.getElementById('companyId');
-            if (companyIdEl) companyIdEl.textContent = profile.company_id || profile.company_name;
+        
+        // Update sidebar with complete profile data
+        updateSidebarProfile(profile || {}, user);
+        
+        // Display company ID with proper format
+        const companyIdEl = document.getElementById('companyId');
+        if (companyIdEl) {
+            const onboardedFlag = user?.onboarded ?? user?.user_metadata?.onboarded;
+            const isOnboarded = onboardedFlag === true || onboardedFlag === 'true';
+            const displayId = profile?.company_display_id || profile?.company_id || profile?.company_name;
+            const nameIsPlaceholder = (profile?.company_name || '').toLowerCase().includes('unknown');
+            companyIdEl.textContent = (isOnboarded && displayId && !nameIsPlaceholder) ? `Company ID: ${displayId}` : 'Company ID: Pending';
         }
     } catch (error) { 
-        // Silent fail
+        const companyIdEl = document.getElementById('companyId');
+        if (companyIdEl) companyIdEl.textContent = 'Company ID: ---';
     }
 }
 
@@ -105,12 +122,32 @@ function setupNavigation() {
 
 // --- CORE LOGIC ---
 async function loadApplicationDetails(appId) {
+    console.log('Loading application details for ID:', appId);
     try {
-        const res = await backendGet(`/recruiter/applications/${appId}`);
-        const json = await handleResponse(res);
-        const app = json.data || json;
-
-        if (!app) throw new Error("Application not found");
+        // Workaround: Backend /recruiter/applications/{id} only returns application_id
+        // So we fetch all applications and find the specific one
+        console.log('Fetching all applications to find the specific one...');
+        const listRes = await backendGet('/recruiter/applications');
+        const listJson = await handleResponse(listRes);
+        
+        let allApps = [];
+        if (Array.isArray(listJson)) {
+            allApps = listJson;
+        } else if (listJson.data && Array.isArray(listJson.data)) {
+            allApps = listJson.data;
+        } else if (listJson.applications && Array.isArray(listJson.applications)) {
+            allApps = listJson.applications;
+        }
+        
+        console.log('Total applications found:', allApps.length);
+        
+        // Find the specific application
+        const app = allApps.find(a => a.id === appId || a.application_id === appId);
+        console.log('Found application:', app);
+        
+        if (!app) {
+            throw new Error(`Application with ID ${appId} not found in list`);
+        }
 
         currentApplicationData = app;
         renderDetails(app);
@@ -181,8 +218,12 @@ function renderDetails(app) {
             introVideoSection.style.display = 'block';
             if(noIntroVideo) noIntroVideo.style.display = 'none';
             
-            // Get signed URL for video
-            loadIntroVideo(app.intro_video_url, introVideoPlayer);
+            // Set video source directly
+            if (introVideoPlayer) {
+                introVideoPlayer.src = app.intro_video_url;
+                introVideoPlayer.style.display = 'block';
+                console.log('Loading intro video:', app.intro_video_url);
+            }
         } else {
             introVideoSection.style.display = 'none';
             if(noIntroVideo) noIntroVideo.style.display = 'block';

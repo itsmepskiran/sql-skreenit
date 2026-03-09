@@ -119,6 +119,65 @@
             </div>
           </main>
     </div>
+
+<!-- Profile Modal -->
+<div class="custom-modal-backdrop" id="profileModal">
+    <div class="custom-modal-card" style="max-width: 600px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-user text-primary me-2"></i> Candidate Profile</h3>
+            <button onclick="document.getElementById('profileModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        
+        <div id="profileModalContent" style="max-height: 400px; overflow-y: auto;">
+            <!-- Profile content will be populated here -->
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+            <button class="btn btn-secondary" onclick="document.getElementById('profileModal').classList.remove('active')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Resume Modal -->
+<div class="custom-modal-backdrop" id="resumeModal">
+    <div class="custom-modal-card" style="max-width: 800px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-file-pdf text-primary me-2"></i> Resume</h3>
+            <button onclick="document.getElementById('resumeModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        
+        <div id="resumeModalContent" style="max-height: 500px; overflow-y: auto;">
+            <!-- Resume content will be populated here -->
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+            <a id="resumeDownloadLink" href="#" download class="btn btn-primary" style="display: none;">
+                <i class="fas fa-download"></i> Download Resume
+            </a>
+            <button class="btn btn-secondary" onclick="document.getElementById('resumeModal').classList.remove('active')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Video Modal -->
+<div class="custom-modal-backdrop" id="videoModal">
+    <div class="custom-modal-card" style="max-width: 700px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-video text-primary me-2"></i> Intro Video</h3>
+            <button onclick="document.getElementById('videoModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        
+        <div id="videoModalContent" style="text-align: center;">
+            <!-- Video content will be populated here -->
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+            <button class="btn btn-secondary" onclick="document.getElementById('videoModal').classList.remove('active')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Interview Modal -->
 <div class="custom-modal-backdrop" id="interviewModal">
     <div class="custom-modal-card" style="max-width: 600px; text-align: left;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
@@ -141,6 +200,7 @@
         </div>
     </div>
 </div>
+
     <script type="module" src="js/application-list.js"></script>
 </body>
 </html>

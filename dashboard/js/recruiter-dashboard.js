@@ -8,10 +8,9 @@ const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
 if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuth();
-    setupEventListeners();
-});
+// Since script is loaded at end of body, DOM is already ready
+checkAuth();
+setupEventListeners();
 
 async function checkAuth() {
     const user = await customAuth.getUserData();
@@ -20,8 +19,21 @@ async function checkAuth() {
         return; 
     }
     
+    // Set username immediately
+    const nameEl = document.getElementById('recruiterName');
+    const companyIdEl = document.getElementById('companyId');
+    
+    if (nameEl) {
+        const displayName = user?.user_metadata?.full_name || user?.user_metadata?.contact_name || user?.email?.split('@')[0] || 'Recruiter';
+        nameEl.textContent = displayName;
+    }
+    
+    if (companyIdEl) {
+        companyIdEl.textContent = 'Loading profile...';
+    }
+    
     // Load fast initial data from custom auth
-    updateSidebarProfile(user.user_metadata || {}, user.email, user.avatar_url);
+    updateSidebarProfile(user.user_metadata || {}, user);
     
     // Load deep data from your Backend Database
     updateUserInfo(); 
@@ -60,6 +72,13 @@ function getInitials(name) {
 async function updateUserInfo() {
   try {
     const user = await customAuth.getUserData();
+    
+    // If API fails, at least show the username from auth data
+    if (!document.getElementById('recruiterName').textContent || document.getElementById('recruiterName').textContent === 'Loading...') {
+        const displayName = user?.user_metadata?.full_name || user?.user_metadata?.contact_name || user?.email?.split('@')[0] || 'Recruiter';
+        document.getElementById('recruiterName').textContent = displayName;
+    }
+    
     const res = await backendGet('/recruiter/profile');
     const data = await handleResponse(res);
     const profile = data.data || data; 
@@ -74,11 +93,19 @@ async function updateUserInfo() {
         const isOnboarded = onboardedFlag === true || onboardedFlag === 'true';
         const displayId = profile?.company_display_id || profile?.company_id || profile?.company_name;
         const nameIsPlaceholder = (profile?.company_name || '').toLowerCase().includes('unknown');
-        companyIdEl.textContent = (isOnboarded && displayId && !nameIsPlaceholder) ? displayId : 'Pending';
+        companyIdEl.textContent = (isOnboarded && displayId && !nameIsPlaceholder) ? `Company ID: ${displayId}` : 'Company ID: Pending';
     }
   } catch (error) { 
-      const companyIdEl = document.getElementById('companyId');
-      if (companyIdEl) companyIdEl.textContent = '---';
+    const companyIdEl = document.getElementById('companyId');
+    if (companyIdEl) companyIdEl.textContent = 'Company ID: ---';
+    
+    // Fallback: Show username from auth data even if API fails
+    const user = await customAuth.getUserData();
+    const displayName = user?.user_metadata?.full_name || user?.user_metadata?.contact_name || user?.email?.split('@')[0] || 'Recruiter';
+    const nameEl = document.getElementById('recruiterName');
+    if (nameEl && (!nameEl.textContent || nameEl.textContent === 'Loading...')) {
+        nameEl.textContent = displayName;
+    }
   }
 }
 

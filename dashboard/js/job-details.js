@@ -87,12 +87,11 @@ async function init() {
 
         // 1. Initial Sidebar & Nav Setup
         updateSidebarProfile(user, role);
-        fetchAndUpdateDesignation();
         setupNavigation(role, isRecruiter);
 
         // 2. Fetch Backend Profile for Recruiter (To get Company ID)
         if (isRecruiter) {
-            fetchRecruiterProfile();
+            await fetchRecruiterProfile(); // Wait for profile to load
         }
 
         // 3. Ensure we have a Job ID
@@ -111,7 +110,7 @@ async function init() {
             
             if (!jobData) throw new Error("No job data returned");
 
-            renderJob(jobData);
+            await renderJob(jobData);
 
             // 5. UI Polishing: Toggle Action Buttons based on Role
             const applyBtn = document.getElementById('applyBtn');
@@ -146,26 +145,51 @@ async function init() {
     }
 }
 
+// Global variable to store recruiter profile data
+let recruiterProfileData = null;
+
 // Fetches exact Recruiter Profile to fill in missing Sidebar gaps (like Company ID)
 async function fetchRecruiterProfile() {
     try {
+        console.log('Fetching recruiter profile...');
         const res = await backendGet('/recruiter/profile');
         const data = await handleResponse(res);
         const profile = data.data || data;
+        
+        console.log('Recruiter profile data:', profile);
+        
+        // Store profile data globally
+        recruiterProfileData = profile;
 
         if (profile) {
             const recName = document.getElementById('recruiterName');
-            if (recName && profile.contact_name) recName.textContent = profile.contact_name;
+            if (recName && profile.contact_name) {
+                recName.textContent = profile.contact_name;
+                console.log('Set recruiter name to:', profile.contact_name);
+            }
 
             const companyIdEl = document.getElementById('companyId');
-            if (companyIdEl && (profile.company_id || profile.company_name)) {
-                companyIdEl.textContent = profile.company_id || profile.company_name;
+            if (companyIdEl) {
+                // Use the company_display_id if available, otherwise fallback
+                let companyDisplay = '---';
+                if (profile.company_display_id) {
+                    companyDisplay = profile.company_display_id;
+                } else if (profile.company_id) {
+                    // Fallback: take first 8 characters of UUID and make it uppercase
+                    companyDisplay = profile.company_id.substring(0, 8).toUpperCase();
+                } else if (profile.company_name) {
+                    companyDisplay = profile.company_name;
+                }
+                companyIdEl.textContent = `Company ID: ${companyDisplay}`;
+                console.log('Set company ID to:', `Company ID: ${companyDisplay}`);
             }
         }
     } catch (err) {
         console.warn("Could not load recruiter profile for sidebar:", err);
         const companyIdEl = document.getElementById('companyId');
-        if (companyIdEl) companyIdEl.textContent = "---";
+        if (companyIdEl) {
+            companyIdEl.textContent = "---";
+        }
     }
 }
 
@@ -397,13 +421,50 @@ function markAsApplied() {
     }
 }
 
-function renderJob(job) {
-    // Add fallback for recruiter company name if available in their metadata
-    const recruiterComp = document.getElementById('companyId')?.textContent;
-    const displayCompany = job.company_name || job.company || (recruiterComp !== "---" ? recruiterComp : "Hiring Company");
+async function renderJob(job) {
+    console.log('Job data received:', job);
+    
+    // Start with default
+    let displayCompany = "Hiring Company";
+    
+    // Use recruiter profile data if available
+    if (recruiterProfileData) {
+        if (recruiterProfileData.company_name && !recruiterProfileData.company_name.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+            displayCompany = recruiterProfileData.company_name;
+            console.log('Using recruiter company_name:', displayCompany);
+        } else if (recruiterProfileData.contact_name) {
+            displayCompany = recruiterProfileData.contact_name;
+            console.log('Using recruiter contact_name:', displayCompany);
+        }
+    }
+    
+    // Check other possible fields in job data
+    if (displayCompany === "Hiring Company") {
+        const companyFields = [
+            'company_name', 'company', 'employer', 'organization', 
+            'recruiter_company', 'business_name', 'firm_name'
+        ];
+        
+        for (const field of companyFields) {
+            if (job[field] && typeof job[field] === 'string') {
+                if (!job[field].match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+                    displayCompany = job[field];
+                    console.log(`Using ${field}:`, job[field]);
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Final fallback
+    if (displayCompany === "Hiring Company") {
+        console.log('Using default "Hiring Company"');
+    }
+
+    console.log('Final display company:', displayCompany);
 
     setText("jobTitle", job.title || job.job_title);
-    setText("companyName", displayCompany); //
+    setText("companyName", displayCompany);
     setText("jobLocation", job.location || 'Remote');
     setText("jobType", job.job_type || 'Full Time');
     setText("postedDate", job.created_at ? new Date(job.created_at).toLocaleDateString() : '-');

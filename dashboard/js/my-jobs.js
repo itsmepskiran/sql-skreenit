@@ -74,11 +74,11 @@ async function updateUserInfo() {
     if (companyIdEl) {
         const displayId = profile?.company_display_id || profile?.company_id || profile?.company_name;
         const nameIsPlaceholder = (profile?.company_name || '').toLowerCase().includes('unknown');
-        companyIdEl.textContent = (isOnboarded && displayId && !nameIsPlaceholder) ? displayId : 'Pending';
+        companyIdEl.textContent = (isOnboarded && displayId && !nameIsPlaceholder) ? `Company ID: ${displayId}` : 'Company ID: Pending';
     }
   } catch (error) { 
       const companyIdEl = document.getElementById('companyId');
-      if (companyIdEl) companyIdEl.textContent = '---';
+      if (companyIdEl) companyIdEl.textContent = 'Company ID: ---';
   }
 }
 function setupNavigation() {

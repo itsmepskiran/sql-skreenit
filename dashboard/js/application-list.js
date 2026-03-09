@@ -41,7 +41,7 @@ function updateSidebarProfile(profile, user) {
     if (nameEl) nameEl.textContent = displayName;
 
     const displayId = profile?.company_display_id || profile?.company_id || profile?.company_name || 'Pending';
-    if (companyEl) companyEl.textContent = displayId;
+    if (companyEl) companyEl.textContent = `Company ID: ${displayId}`;
 
     const logoUrl = profile?.company_logo_url || profile?.avatar_url || user?.avatar_url;
     if (avatarEl) {
@@ -71,7 +71,7 @@ async function updateUserInfo() {
         if (companyIdEl) {
             const displayId = profile?.company_display_id || profile?.company_id || profile?.company_name;
             const nameIsPlaceholder = (profile?.company_name || '').toLowerCase().includes('unknown');
-            companyIdEl.textContent = (isOnboarded && displayId && !nameIsPlaceholder) ? displayId : 'Pending';
+            companyIdEl.textContent = (isOnboarded && displayId && !nameIsPlaceholder) ? `Company ID: ${displayId}` : 'Company ID: Pending';
         }
     } catch (error) {}
 }
@@ -135,13 +135,13 @@ async function loadApplications() {
         // ✅ URL Parameter Handling
         const urlParams = new URLSearchParams(window.location.search);
         const targetJobId = urlParams.get('job_id');
-        const targetStatus = (urlParams.get('status') || 'pending').toLowerCase();
+        const targetStatus = (urlParams.get('status') || 'submitted').toLowerCase();
 
         // 1. Set the Status Dropdown based on URL
         const statusDropdown = document.getElementById('statusFilter');
         if (statusDropdown) {
-            const validOptions = ['all', 'pending', 'interviewing', 'hired', 'rejected'];
-            statusDropdown.value = validOptions.includes(targetStatus) ? targetStatus : 'pending';
+            const validOptions = ['all', 'submitted', 'pending', 'interviewing', 'hired', 'rejected'];
+            statusDropdown.value = validOptions.includes(targetStatus) ? targetStatus : 'submitted';
         }
 
         // 2. Set the Job Dropdown based on URL job_id
@@ -265,17 +265,23 @@ function renderList(apps) {
             </div>
 
             <div style="display: flex; gap: 8px; justify-content: flex-end;" onclick="event.stopPropagation();">
-                <a href="application-details.html?id=${app.id}" class="btn btn-sm btn-outline-secondary" title="View Profile" style="padding: 0.35rem 0.5rem;">
+                <button onclick="showProfileModal('${app.id}')" class="btn btn-sm btn-outline-secondary" title="View Profile" style="padding: 0.35rem 0.5rem;">
                     <i class="fas fa-id-card"></i>
-                </a>
+                </button>
                 
-                <button onclick="window.location.href='application-details.html?id=${app.id}#resume'" class="btn btn-sm btn-outline-secondary" title="View Resume" style="padding: 0.35rem 0.5rem;">
+                <button onclick="showResumeModal('${app.id}')" class="btn btn-sm btn-outline-secondary" title="View Resume" style="padding: 0.35rem 0.5rem;">
                     <i class="fas fa-file-pdf"></i>
                 </button>
 
-                ${isSubmitted ? `
-                    <button onclick="viewInterviewResponses('${app.id}')" class="btn btn-sm btn-primary" title="Watch Interview" style="padding: 0.35rem 0.5rem;">
+                ${app.intro_video_url ? `
+                    <button onclick="showVideoModal('${app.id}')" class="btn btn-sm btn-primary" title="View Intro Video" style="padding: 0.35rem 0.5rem;">
                         <i class="fas fa-play-circle"></i>
+                    </button>
+                ` : ''}
+
+                ${isSubmitted ? `
+                    <button onclick="viewInterviewResponses('${app.id}')" class="btn btn-sm btn-success" title="Watch Interview" style="padding: 0.35rem 0.5rem;">
+                        <i class="fas fa-video"></i>
                     </button>
                 ` : ''}
             </div>
@@ -284,6 +290,7 @@ function renderList(apps) {
 
     document.querySelectorAll('.app-checkbox').forEach(cb => cb.addEventListener('change', updateToolbar));
 }
+
 function updateToolbar() {
     const selected = document.querySelectorAll('.app-checkbox:checked').length;
     const toolbar = document.getElementById('selectionToolbar');
@@ -378,3 +385,171 @@ function openInterviewModal(onConfirmCallback) {
     // 5. Open Modal
     modal.classList.add('active');
 }
+
+// --- POPUP MODAL FUNCTIONS ---
+window.showProfileModal = async function(appId) {
+    const modal = document.getElementById('profileModal');
+    const content = document.getElementById('profileModalContent');
+    
+    if (!modal || !content) return;
+    
+    try {
+        // Find the application data
+        const app = allApplications.find(a => a.id === appId);
+        if (!app) {
+            content.innerHTML = '<p class="text-center text-danger">Application not found</p>';
+            modal.classList.add('active');
+            return;
+        }
+        
+        // Populate profile content
+        content.innerHTML = `
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; margin: 0 auto 1rem;">
+                    ${app.candidate_name ? app.candidate_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'C'}
+                </div>
+                <h4 style="margin: 0; color: #1e293b;">${app.candidate_name || 'Candidate'}</h4>
+                <p style="margin: 0.5rem 0; color: #64748b;">${app.job_title || 'General Application'}</p>
+            </div>
+            
+            <div style="display: grid; gap: 1rem;">
+                <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <h5 style="margin: 0 0 0.5rem 0; color: #334155; font-size: 0.9rem;">Contact Information</h5>
+                    <p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-envelope me-2" style="color: #64748b;"></i> ${app.candidate_email || 'No email'}</p>
+                    ${app.candidate_phone ? `<p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-phone me-2" style="color: #64748b;"></i> ${app.candidate_phone}</p>` : ''}
+                    ${app.linkedin ? `<p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fab fa-linkedin me-2" style="color: #64748b;"></i> <a href="${app.linkedin}" target="_blank" style="color: var(--primary-color);">LinkedIn Profile</a></p>` : ''}
+                </div>
+                
+                <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <h5 style="margin: 0 0 0.5rem 0; color: #334155; font-size: 0.9rem;">Application Details</h5>
+                    <p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-calendar me-2" style="color: #64748b;"></i> Applied: ${new Date(app.applied_at).toLocaleDateString()}</p>
+                    <p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-briefcase me-2" style="color: #64748b;"></i> Status: <span style="font-weight: 600;">${app.status || 'Pending'}</span></p>
+                </div>
+                
+                ${app.skills && app.skills.length > 0 ? `
+                <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <h5 style="margin: 0 0 0.5rem 0; color: #334155; font-size: 0.9rem;">Skills</h5>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        ${app.skills.map(skill => `<span style="padding: 0.25rem 0.75rem; background: #e0e7ff; color: #4338ca; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">${skill}</span>`).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                
+                ${app.cover_letter ? `
+                <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <h5 style="margin: 0 0 0.5rem 0; color: #334155; font-size: 0.9rem;">Cover Letter</h5>
+                    <p style="margin: 0; font-size: 0.85rem; line-height: 1.6; white-space: pre-wrap; max-height: 150px; overflow-y: auto;">${app.cover_letter}</p>
+                </div>
+                ` : ''}
+            </div>
+        `;
+        
+        modal.classList.add('active');
+        
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        content.innerHTML = '<p class="text-center text-danger">Error loading profile</p>';
+        modal.classList.add('active');
+    }
+};
+
+window.showResumeModal = async function(appId) {
+    const modal = document.getElementById('resumeModal');
+    const content = document.getElementById('resumeModalContent');
+    const downloadLink = document.getElementById('resumeDownloadLink');
+    
+    if (!modal || !content) return;
+    
+    try {
+        // Find the application data
+        const app = allApplications.find(a => a.id === appId);
+        if (!app) {
+            content.innerHTML = '<p class="text-center text-danger">Application not found</p>';
+            modal.classList.add('active');
+            return;
+        }
+        
+        if (!app.resume_link) {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-file-circle-exclamation fa-3x" style="color: #cbd5e0; margin-bottom: 1rem;"></i>
+                    <p class="text-muted">No resume attached to this application.</p>
+                </div>
+            `;
+            if (downloadLink) downloadLink.style.display = 'none';
+            modal.classList.add('active');
+            return;
+        }
+        
+        // Set download link
+        if (downloadLink) {
+            downloadLink.href = app.resume_link;
+            downloadLink.style.display = 'inline-flex';
+        }
+        
+        // Display resume
+        const isGoogleViewer = !app.resume_link.endsWith('.pdf');
+        const src = isGoogleViewer 
+            ? `https://docs.google.com/gview?url=${encodeURIComponent(app.resume_link)}&embedded=true` 
+            : app.resume_link;
+            
+        content.innerHTML = `
+            <iframe src="${src}" width="100%" height="500px" style="border: none; border-radius: 8px;"></iframe>
+        `;
+        
+        modal.classList.add('active');
+        
+    } catch (error) {
+        console.error('Error loading resume:', error);
+        content.innerHTML = '<p class="text-center text-danger">Error loading resume</p>';
+        modal.classList.add('active');
+    }
+};
+
+window.showVideoModal = async function(appId) {
+    const modal = document.getElementById('videoModal');
+    const content = document.getElementById('videoModalContent');
+    
+    if (!modal || !content) return;
+    
+    try {
+        // Find the application data
+        const app = allApplications.find(a => a.id === appId);
+        if (!app) {
+            content.innerHTML = '<p class="text-center text-danger">Application not found</p>';
+            modal.classList.add('active');
+            return;
+        }
+        
+        if (!app.intro_video_url) {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-video-slash fa-3x" style="color: #cbd5e0; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <p class="text-muted">No intro video provided.</p>
+                </div>
+            `;
+            modal.classList.add('active');
+            return;
+        }
+        
+        // Display video
+        content.innerHTML = `
+            <video controls width="100%" style="max-height: 400px; border-radius: 8px;" preload="metadata">
+                <source src="${app.intro_video_url}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div style="margin-top: 1rem; text-align: center;">
+                <p style="margin: 0; color: #64748b; font-size: 0.85rem;">
+                    <i class="fas fa-user me-1"></i> ${app.candidate_name || 'Candidate'}
+                </p>
+            </div>
+        `;
+        
+        modal.classList.add('active');
+        
+    } catch (error) {
+        console.error('Error loading video:', error);
+        content.innerHTML = '<p class="text-center text-danger">Error loading video</p>';
+        modal.classList.add('active');
+    }
+};

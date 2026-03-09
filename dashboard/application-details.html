@@ -117,28 +117,40 @@
             <div id="skillsContainer" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
         </div>
         
-        <div class="profile-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="margin:0;"><i class="fas fa-file-pdf"></i> Resume Preview</h3>
-                <a id="resumeLink" href="#" target="_blank" class="btn btn-secondary btn-sm" title="Open in new tab">
-                    <i class="fas fa-external-link-alt"></i>
-                </a>
+        <div class="profile-section" id="introVideoSection" style="display: none;">
+            <h3><i class="fas fa-video"></i> Intro Video</h3>
+            <div style="border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); background: #000;">
+                <video id="introVideoPlayer" controls width="100%" style="max-height: 400px;" preload="metadata">
+                    Your browser does not support the video tag.
+                </video>
             </div>
-            
-            <div style="border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); background: #f8fafc; height: 500px;">
+            <div id="noIntroVideo" style="display: none; text-align: center; padding: 40px; color: #94a3b8;">
+                <i class="fas fa-video-slash fa-3x" style="margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>No intro video provided.</p>
+            </div>
+        </div>
+        
+        <div class="profile-section">
+            <h3><i class="fas fa-file-pdf"></i> Resume Preview</h3>
+            <div style="border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); background: #f8fafc; height: 400px;">
                 <iframe id="resumeViewer" src="" width="100%" height="100%" style="border: none; display: none;"></iframe>
                 
-                <div id="noResume" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center;">
+                <div id="noResumeState" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center;">
                     <i class="fas fa-file-circle-exclamation fa-3x" style="color: #cbd5e0; margin-bottom: 1rem;"></i>
                     <p class="text-muted">No resume attached to this application.</p>
                 </div>
             </div>
+            <div style="margin-top: 10px;">
+                <a id="resumeDownloadBtn" href="#" download class="btn btn-secondary btn-sm" style="display: none;">
+                    <i class="fas fa-download"></i> Download Resume
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="profile-section">
+    <div class="profile-section" style="flex: 0 0 300px;">
         <h3><i class="fas fa-align-left"></i> Cover Letter</h3>
-        <div id="coverLetter" style="line-height: 1.8; color: var(--text-light); white-space: pre-wrap;">
+        <div id="coverLetter" style="line-height: 1.6; color: var(--text-light); white-space: pre-wrap; max-height: 300px; overflow-y: auto; padding: 15px; background: #f8fafc; border-radius: 8px;">
             No cover letter provided.
         </div>
     </div>
