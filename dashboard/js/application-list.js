@@ -203,7 +203,11 @@ function applyFilters() {
 function renderList(apps) {
     const container = document.getElementById('applicationListContainer');
     if (!container) return;
-    if(apps.length>0) console.log("CANDIDATE DATA FROM BACKEND:", apps[0]);
+    if(apps.length>0) {
+        console.log("CANDIDATE DATA FROM BACKEND:", apps[0]);
+        console.log("ALL AVAILABLE FIELDS:", Object.keys(apps[0]));
+        console.log("COMPLETE APPLICATION OBJECT:", JSON.stringify(apps[0], null, 2));
+    }
     if (apps.length === 0) {
         container.innerHTML = `<div class="text-center py-5 text-muted">No applications found.</div>`;
         return;
@@ -273,7 +277,7 @@ function renderList(apps) {
                     <i class="fas fa-file-pdf"></i>
                 </button>
 
-                ${app.intro_video_url ? `
+                ${app.intro_video_url && app.intro_video_url !== '' ? `
                     <button onclick="showVideoModal('${app.id}')" class="btn btn-sm btn-primary" title="View Intro Video" style="padding: 0.35rem 0.5rem;">
                         <i class="fas fa-play-circle"></i>
                     </button>
@@ -386,6 +390,7 @@ function openInterviewModal(onConfirmCallback) {
     modal.classList.add('active');
 }
 
+
 // --- POPUP MODAL FUNCTIONS ---
 window.showProfileModal = async function(appId) {
     const modal = document.getElementById('profileModal');
@@ -402,7 +407,9 @@ window.showProfileModal = async function(appId) {
             return;
         }
         
-        // Populate profile content
+        console.log('Profile modal data:', app);
+        
+        // Populate profile content with all available data
         content.innerHTML = `
             <div style="text-align: center; margin-bottom: 2rem;">
                 <div style="width: 80px; height: 80px; border-radius: 50%; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; margin: 0 auto 1rem;">
@@ -424,6 +431,10 @@ window.showProfileModal = async function(appId) {
                     <h5 style="margin: 0 0 0.5rem 0; color: #334155; font-size: 0.9rem;">Application Details</h5>
                     <p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-calendar me-2" style="color: #64748b;"></i> Applied: ${new Date(app.applied_at).toLocaleDateString()}</p>
                     <p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-briefcase me-2" style="color: #64748b;"></i> Status: <span style="font-weight: 600;">${app.status || 'Pending'}</span></p>
+                    <p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-id-badge me-2" style="color: #64748b;"></i> Application ID: ${app.id || 'N/A'}</p>
+                    <p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-user me-2" style="color: #64748b;"></i> Candidate ID: ${app.candidate_id || 'N/A'}</p>
+                    <p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-briefcase me-2" style="color: #64748b;"></i> Job ID: ${app.job_id || 'N/A'}</p>
+                    ${app.ai_score ? `<p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-star me-2" style="color: #64748b;"></i> AI Score: ${app.ai_score}</p>` : ''}
                 </div>
                 
                 ${app.skills && app.skills.length > 0 ? `
@@ -441,6 +452,39 @@ window.showProfileModal = async function(appId) {
                     <p style="margin: 0; font-size: 0.85rem; line-height: 1.6; white-space: pre-wrap; max-height: 150px; overflow-y: auto;">${app.cover_letter}</p>
                 </div>
                 ` : ''}
+                
+                ${app.custom_answers && app.custom_answers.length > 0 ? `
+                <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <h5 style="margin: 0 0 0.5rem 0; color: #334155; font-size: 0.9rem;">Custom Answers</h5>
+                    <div style="font-size: 0.85rem; line-height: 1.6;">
+                        ${app.custom_answers.map((answer, index) => `
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong>Q${index + 1}:</strong> ${answer.question || 'N/A'}<br>
+                                <strong>A:</strong> ${answer.answer || 'N/A'}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                
+                ${app.interview_questions && app.interview_questions.length > 0 ? `
+                <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <h5 style="margin: 0 0 0.5rem 0; color: #334155; font-size: 0.9rem;">Interview Questions</h5>
+                    <div style="font-size: 0.85rem; line-height: 1.6;">
+                        ${app.interview_questions.map((q, index) => `
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong>Q${index + 1}:</strong> ${q}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <h5 style="margin: 0 0 0.5rem 0; color: #334155; font-size: 0.9rem;">Media Files</h5>
+                    <p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-file-pdf me-2" style="color: #64748b;"></i> Resume: ${app.resume_url ? 'Available' : 'Not attached'}</p>
+                    <p style="margin: 0.25rem 0; font-size: 0.85rem;"><i class="fas fa-video me-2" style="color: #64748b;"></i> Intro Video: ${app.intro_video_url ? 'Available' : 'Not provided'}</p>
+                </div>
             </div>
         `;
         
@@ -469,11 +513,19 @@ window.showResumeModal = async function(appId) {
             return;
         }
         
-        if (!app.resume_link) {
+        console.log('Resume modal data:', app);
+        
+        // Check multiple possible resume field names
+        const resumeUrl = app.resume_url || app.resume_link || app.resume || app.cv_url;
+        
+        if (!resumeUrl) {
             content.innerHTML = `
                 <div style="text-align: center; padding: 3rem;">
                     <i class="fas fa-file-circle-exclamation fa-3x" style="color: #cbd5e0; margin-bottom: 1rem;"></i>
                     <p class="text-muted">No resume attached to this application.</p>
+                    <div style="margin-top: 1rem; font-size: 0.8rem; color: #94a3b8;">
+                        Checked fields: resume_url, resume_link, resume, cv_url
+                    </div>
                 </div>
             `;
             if (downloadLink) downloadLink.style.display = 'none';
@@ -483,15 +535,15 @@ window.showResumeModal = async function(appId) {
         
         // Set download link
         if (downloadLink) {
-            downloadLink.href = app.resume_link;
+            downloadLink.href = resumeUrl;
             downloadLink.style.display = 'inline-flex';
         }
         
         // Display resume
-        const isGoogleViewer = !app.resume_link.endsWith('.pdf');
+        const isGoogleViewer = !resumeUrl.endsWith('.pdf');
         const src = isGoogleViewer 
-            ? `https://docs.google.com/gview?url=${encodeURIComponent(app.resume_link)}&embedded=true` 
-            : app.resume_link;
+            ? `https://docs.google.com/gview?url=${encodeURIComponent(resumeUrl)}&embedded=true` 
+            : resumeUrl;
             
         content.innerHTML = `
             <iframe src="${src}" width="100%" height="500px" style="border: none; border-radius: 8px;"></iframe>

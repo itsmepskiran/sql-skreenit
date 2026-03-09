@@ -192,15 +192,15 @@ function renderDetails(app) {
     const noResume = document.getElementById('noResumeState');
     const downloadBtn = document.getElementById('resumeDownloadBtn');
 
-    if (app.resume_link) {
-        const isGoogleViewer = !app.resume_link.endsWith('.pdf'); 
+    if (app.resume_url) {
+        const isGoogleViewer = !app.resume_url.endsWith('.pdf'); 
         const src = isGoogleViewer 
-            ? `https://docs.google.com/gview?url=${encodeURIComponent(app.resume_link)}&embedded=true` 
-            : app.resume_link;
+            ? `https://docs.google.com/gview?url=${encodeURIComponent(app.resume_url)}&embedded=true` 
+            : app.resume_url;
         if(viewer) viewer.src = src;
         if(noResume) noResume.style.display = 'none';
         if(downloadBtn) {
-            downloadBtn.href = app.resume_link;
+            downloadBtn.href = app.resume_url;
             downloadBtn.style.display = 'inline-flex';
         }
     } else {

@@ -117,11 +117,34 @@ class RecruiterService:
             
             candidate_ids = list(set(app["candidate_id"] for app in applications))
             candidate_map = {}
+            profile_map = {}
+            video_map = {}
             
             if candidate_ids:
+                # Get basic user info
                 users = self.mysql.get_records("users", {"id": candidate_ids})
                 for user in users or []:
                     candidate_map[user["id"]] = user
+                
+                # Get candidate profiles (contains resume_url, skills, etc.) - handle if table doesn't exist
+                try:
+                    profiles = self.mysql.get_records("candidate_profiles", {"user_id": candidate_ids})
+                    print(f"DEBUG: Found {len(profiles or [])} candidate profiles for IDs: {candidate_ids}")
+                    print(f"DEBUG: Profiles data: {profiles}")
+                    for profile in profiles or []:
+                        print(f"DEBUG: Profile for {profile['user_id']}: {dict(profile)}")
+                        profile_map[profile["user_id"]] = profile
+                except Exception as e:
+                    print(f"DEBUG: Could not fetch candidate profiles: {str(e)}")
+                    logger.warning(f"Could not fetch candidate profiles: {str(e)}")
+                
+                # Get intro videos - handle if table doesn't exist  
+                try:
+                    videos = self.mysql.get_records("intro_videos", {"candidate_id": candidate_ids})
+                    for video in videos or []:
+                        video_map[video["candidate_id"]] = video
+                except Exception as e:
+                    logger.warning(f"Could not fetch intro videos: {str(e)}")
             
             enriched_apps = []
             for app in applications:
@@ -136,6 +159,46 @@ class RecruiterService:
                     app["candidate_name"] = candidate.get("full_name")
                     app["candidate_email"] = candidate.get("email")
                     app["candidate_phone"] = candidate.get("phone")
+
+                # Add candidate profile data (resume, skills, cover letter, etc.)
+                try:
+                    profile = profile_map.get(app["candidate_id"])
+                    print(f"DEBUG: Processing candidate {app['candidate_id']}, profile found: {profile is not None}")
+                    if profile:
+                        print(f"DEBUG: Profile fields available: {list(profile.keys())}")
+                        print(f"DEBUG: Full profile data: {dict(profile)}")
+                        # Check multiple possible resume field names
+                        app["resume_url"] = (
+                            profile.get("resume_url") or 
+                            profile.get("resume") or 
+                            profile.get("cv_url") or 
+                            profile.get("cv") or
+                            profile.get("resume_file") or
+                            profile.get("cv_file")
+                        )
+                        print(f"DEBUG: Resume URL for candidate {app['candidate_id']}: {app['resume_url']}")
+                        app["skills"] = profile.get("skills", [])
+                        app["cover_letter"] = profile.get("cover_letter")
+                        app["linkedin"] = profile.get("linkedin_url") or profile.get("linkedin")
+                        app["custom_answers"] = profile.get("custom_answers", [])
+                        app["ai_score"] = profile.get("ai_score")
+                        
+                        # Debug logging to see what profile fields are available
+                        if not app["resume_url"]:
+                            print(f"DEBUG: No resume found for candidate {app['candidate_id']}. Available fields: {list(profile.keys())}")
+                    else:
+                        print(f"DEBUG: No profile found for candidate {app['candidate_id']}")
+                except Exception as e:
+                    print(f"DEBUG: Could not add profile data for candidate {app['candidate_id']}: {str(e)}")
+                    logger.warning(f"Could not add profile data for candidate {app['candidate_id']}: {str(e)}")
+
+                # Add intro video data
+                try:
+                    video = video_map.get(app["candidate_id"])
+                    if video:
+                        app["intro_video_url"] = video.get("video_url")
+                except Exception as e:
+                    logger.warning(f"Could not add video data for candidate {app['candidate_id']}: {str(e)}")
 
                 job = job_map.get(app.get("job_id"))
                 if job:

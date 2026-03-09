@@ -99,6 +99,7 @@
             </div>
 
 <div class="profile-grid">
+    <!-- LEFT COLUMN: Contact Info, Skills, Resume Preview -->
     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
         <div class="profile-section">
             <h3><i class="fas fa-info-circle"></i> Contact & Info</h3>
@@ -115,19 +116,6 @@
         <div class="profile-section">
             <h3><i class="fas fa-tools"></i> Skills</h3>
             <div id="skillsContainer" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-        </div>
-        
-        <div class="profile-section" id="introVideoSection" style="display: none;">
-            <h3><i class="fas fa-video"></i> Intro Video</h3>
-            <div style="border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); background: #000;">
-                <video id="introVideoPlayer" controls width="100%" style="max-height: 400px;" preload="metadata">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <div id="noIntroVideo" style="display: none; text-align: center; padding: 40px; color: #94a3b8;">
-                <i class="fas fa-video-slash fa-3x" style="margin-bottom: 1rem; opacity: 0.5;"></i>
-                <p>No intro video provided.</p>
-            </div>
         </div>
         
         <div class="profile-section">
@@ -148,10 +136,26 @@
         </div>
     </div>
 
-    <div class="profile-section" style="flex: 0 0 300px;">
-        <h3><i class="fas fa-align-left"></i> Cover Letter</h3>
-        <div id="coverLetter" style="line-height: 1.6; color: var(--text-light); white-space: pre-wrap; max-height: 300px; overflow-y: auto; padding: 15px; background: #f8fafc; border-radius: 8px;">
-            No cover letter provided.
+    <!-- RIGHT COLUMN: Cover Letter, Intro Video -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="profile-section">
+            <h3><i class="fas fa-align-left"></i> Cover Letter</h3>
+            <div id="coverLetter" style="line-height: 1.6; color: var(--text-light); white-space: pre-wrap; max-height: 300px; overflow-y: auto; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                No cover letter provided.
+            </div>
+        </div>
+
+        <div class="profile-section" id="introVideoSection" style="display: none;">
+            <h3><i class="fas fa-video"></i> Intro Video</h3>
+            <div style="border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); background: #000;">
+                <video id="introVideoPlayer" controls width="100%" style="max-height: 400px;" preload="metadata">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div id="noIntroVideo" style="display: none; text-align: center; padding: 40px; color: #94a3b8;">
+                <i class="fas fa-video-slash fa-3x" style="margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>No intro video provided.</p>
+            </div>
         </div>
     </div>
 </div>
