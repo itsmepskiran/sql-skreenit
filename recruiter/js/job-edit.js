@@ -82,7 +82,7 @@ async function initJobEditForm() {
         const job = result.data || result;
 
         // Populate fields
-        document.getElementById("job_title").value = job.title || "";
+        document.getElementById("job_title").value = job.job_title || job.title || "";
         document.getElementById("job_location").value = job.location || "";
         document.getElementById("job_type").value = job.job_type || "";
         document.getElementById("job_description").value = job.description || "";
@@ -118,7 +118,7 @@ async function handleJobUpdate(event, jobId) {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...';
 
-    const title = document.getElementById("job_title").value.trim();
+    const job_title = document.getElementById("job_title").value.trim();
     const location = document.getElementById("job_location").value.trim();
     const job_type = document.getElementById("job_type").value;
     const salary_range = document.getElementById("salary_range").value;
@@ -136,7 +136,7 @@ async function handleJobUpdate(event, jobId) {
     }
 
     const payload = {
-      title, location, job_type, salary_min, salary_max, description, requirements, status: 'active'
+      job_title, location, job_type, salary_min, salary_max, description, requirements, status: 'active'
     };
 
     const response = await backendPut(`/recruiter/jobs/${jobId}`, payload);

@@ -67,6 +67,7 @@ class User(Base):
     last_sign_in_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     user_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
     onboarded: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    extra_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column("metadata", JSON, nullable=True)
     
     # Relationships
     recruiter_profile: Mapped[Optional["RecruiterProfile"]] = relationship("RecruiterProfile", back_populates="user", uselist=False)
@@ -145,7 +146,7 @@ class Job(Base):
     __tablename__ = "jobs"
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
-    title: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
+    job_title: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     requirements: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     location: Mapped[Optional[str]] = mapped_column(VARCHAR(255), nullable=True)
@@ -188,11 +189,10 @@ class InterviewQuestion(Base):
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
     job_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
-    candidate_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)  # Added via migration
-    question_text: Mapped[str] = mapped_column(Text, nullable=False)  # Renamed from 'question' via migration
+    question_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), nullable=True)
     question_order: Mapped[int] = mapped_column(Integer, default=0)
     time_limit: Mapped[int] = mapped_column(Integer, default=120)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)  # Note: Fixed typo from 'crated_at'
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     # Relationships
     job: Mapped["Job"] = relationship("Job", back_populates="interview_questions")
@@ -209,7 +209,6 @@ class JobApplication(Base):
     intro_video_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     resume_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     custom_answers: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
-    interview_questions: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
     status: Mapped[str] = mapped_column(Enum("submitted", "reviewed", "shortlisted", "interview_scheduled", "interviewing", "hired", "rejected", name="application_status"), default="submitted", index=True)
     ai_score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     applied_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -226,14 +225,17 @@ class VideoResponse(Base):
     __tablename__ = "video_responses"
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
+    job_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
     application_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("job_applications.id", ondelete="CASCADE"), nullable=False, index=True)
     candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    question_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), ForeignKey("interview_questions.id", ondelete="CASCADE"), nullable=True, index=True)  # Added via migration
-    question: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Existing field
-    question_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Added via migration
-    question_index: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Added via migration
+    question_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), ForeignKey("interview_questions.id", ondelete="SET NULL"), nullable=True, index=True)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
     video_url: Mapped[str] = mapped_column(VARCHAR(500), nullable=False)
-    recorded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    video_path: Mapped[str] = mapped_column(VARCHAR(500), nullable=False)
+    question_index: Mapped[int] = mapped_column(Integer, default=0)
+    duration: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    transcript: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     # Relationships
     application: Mapped["JobApplication"] = relationship("JobApplication", back_populates="video_responses")
@@ -262,8 +264,6 @@ class CandidateVideo(Base):
     video_type: Mapped[str] = mapped_column(Enum("intro", "portfolio", "other", name="video_type"), default="intro")
     video_url: Mapped[str] = mapped_column(VARCHAR(500), nullable=False)
     video_path: Mapped[str] = mapped_column(VARCHAR(500), nullable=False)
-    title: Mapped[Optional[str]] = mapped_column(VARCHAR(255), nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

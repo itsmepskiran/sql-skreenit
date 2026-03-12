@@ -46,7 +46,15 @@ class RecruiterService:
             total_count = self.mysql.count_records("jobs", conditions)
             
             return {
-                "data": jobs or [],
+                "jobs": [
+                    {
+                        "id": job.get("id"),
+                        "job_title": job.get("job_title"),
+                        "status": job.get("status"),
+                        "updated_at": job.get("updated_at").isoformat() if job.get("updated_at") else None
+                    }
+                    for job in (jobs or [])
+                ],
                 "count": total_count,
                 "page": page,
                 "page_size": page_size
@@ -98,17 +106,18 @@ class RecruiterService:
     # ---------------------------------------------------------
     def get_recruiter_applications(self, recruiter_id: str, job_id: Optional[str] = None) -> List[Dict[str, Any]]:
         try:
+            # Get jobs created by this recruiter
             job_conditions = {"created_by": recruiter_id}
             if job_id:
                 job_conditions["id"] = job_id
                 
             jobs = self.mysql.get_records("jobs", job_conditions)
-            job_ids = [job["id"] for job in jobs] if jobs else []
-            
-            if not job_ids:
+            if not jobs:
                 return []
             
-            # Keep a quick lookup for job data (title and other metadata)
+            job_ids = [job["id"] for job in jobs]
+            
+            # Keep a quick lookup for job data (job_title and other metadata)
             job_map = {job["id"]: job for job in jobs}
             
             app_conditions = {"job_id": job_ids}
@@ -204,7 +213,9 @@ class RecruiterService:
 
                 job = job_map.get(app.get("job_id"))
                 if job:
-                    app["job_title"] = job.get("title")
+                    app["job_title"] = job.get("job_title")
+                    app["status"] = job.get("status")
+                    app["created_at"] = job.get("created_at")
 
                 enriched_apps.append(app)
             return enriched_apps
@@ -254,9 +265,10 @@ class RecruiterService:
                 for i, question_text in enumerate(questions):
                     question_data = {
                         "job_id": job_id,
-                        "question_text": question_text,  # Use renamed column
                         "question_order": i + 1,
-                        "candidate_id": candidate_id  # Link to specific candidate
+                        # Note: SQL schema only has question_id, not question_text
+                        # We'll store the text in question_id if it's short, or just skip for now
+                        # to avoid "Unknown column" errors until schema is fixed.
                     }
                     
                     question_id_db = self.mysql.insert_record("interview_questions", question_data)
@@ -590,7 +602,7 @@ class RecruiterService:
         try:
             app = self.mysql.get_single_record("job_applications", {"candidate_id": candidate_id, "job_id": job_id})
             if not app: return []
-            return self.mysql.get_records("video_responses", {"candidate_id": candidate_id, "application_id": app["id"]}, order_by="recorded_at ASC") or []
+            return self.mysql.get_records("video_responses", {"candidate_id": candidate_id, "application_id": app["id"]}, order_by="created_at ASC") or []
         except Exception:
             return []
 

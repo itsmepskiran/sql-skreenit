@@ -184,7 +184,7 @@ function setupEventListeners() {
 async function loadDashboardData(userId) {
     try {
         // A. Fetch Jobs
-        const jobsRes = await backendGet(`/recruiter/jobs?user_id=${userId}`);
+        const jobsRes = await backendGet(`/recruiter/jobs`);
         const jobsData = await handleResponse(jobsRes);
 
         // The backend response shape can vary depending on the endpoint implementation.
@@ -353,7 +353,7 @@ function renderJobs(jobs) {
         <div class="card mb-2 shadow-sm border-0" onclick="window.location.href='${CONFIG.PAGES.JOB_DETAILS}?job_id=${job.id}'" style="cursor:pointer; padding: 1rem;">
             <div class="d-flex justify-content-between align-items-center">
                 <div style="flex: 1;">
-                    <h4 class="mb-1" style="font-size:1rem; font-weight:600; color: var(--text-dark);">${job.title}</h4>
+                    <h4 class="mb-1" style="font-size:1rem; font-weight:600; color: var(--text-dark);">${job.job_title || job.title || 'No Title'}</h4>
                     <div class="text-muted small">
                         <i class="fas fa-map-marker-alt me-1"></i> ${job.location || 'Remote'} 
                         <span class="mx-2">|</span>

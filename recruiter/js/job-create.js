@@ -82,7 +82,7 @@ async function handleJobCreate(event) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Publishing...'; 
     }
   
-    const title = document.getElementById("job_title").value.trim();
+    const job_title = document.getElementById("job_title").value.trim();
     const location = document.getElementById("job_location").value.trim();
     const job_type = document.getElementById("job_type").value;
     const salary_range = document.getElementById("salary_range").value; 
@@ -90,7 +90,7 @@ async function handleJobCreate(event) {
     const requirements = document.getElementById("requirements").value.trim();
 
     const payload = {
-      title, location, job_type, description, requirements,
+      job_title, location, job_type, description, requirements,
       currency: "INR", status: "active" 
     };
 
@@ -110,6 +110,10 @@ async function handleJobCreate(event) {
     console.log('Job creation response ok:', response.ok);
 
     const result = await handleResponse(response);
+
+    if (result.error) {
+      throw new Error(result.error.message || 'Failed to create job');
+    }
 
     console.log('Job creation response:', response);
 
@@ -136,7 +140,7 @@ async function handleJobCreate(event) {
     submitBtn.style.backgroundColor = '#10b981';
     
     const jobUrl = `${CONFIG.PAGES.JOB_DETAILS}?job_id=${jobId}`;
-    generateJobQR(jobUrl, title);
+    generateJobQR(jobUrl, job_title);
 
   } catch (error) {
     console.error("Job create failed:", error);
@@ -148,7 +152,7 @@ async function handleJobCreate(event) {
   } 
 }
 
-async function generateJobQR(url, title) {
+async function generateJobQR(url, job_title) {
     const modal = document.getElementById('shareJobModal');
     const qrContainer = document.getElementById('qrcode');
     if (!modal || !qrContainer) return;
@@ -163,7 +167,7 @@ async function generateJobQR(url, title) {
         });
         qrContainer.appendChild(canvas);
 
-        document.getElementById('shareJobTitle').textContent = title;
+        document.getElementById('shareJobTitle').textContent =  job_title;
         document.getElementById('copyLinkInput').value = url;
 
         modal.classList.add('active');
@@ -180,7 +184,7 @@ async function generateJobQR(url, title) {
 
         document.getElementById('downloadQRBtn').onclick = () => {
             const link = document.createElement('a');
-            link.download = `Skreenit_QR_${title.replace(/\s+/g, '_')}.png`;
+            link.download = `Skreenit_QR_${job_title.replace(/\s+/g, '_')}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
         };

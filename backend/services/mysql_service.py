@@ -74,36 +74,41 @@ class MySQLService:
     def insert_record(self, table: str, data: Dict[str, Any]) -> str:
         """Insert a record into the specified table."""
         with self.session_factory() as db:
-            # Get the model class based on table name
-            model_map = {
-                'users': User,
-                'companies': Company,
-                'recruiter_profiles': RecruiterProfile,
-                'candidate_profiles': CandidateProfile,
-                'jobs': Job,
-                'job_skills': JobSkill,
-                'interview_questions': InterviewQuestion,
-                'job_applications': JobApplication,
-                'video_responses': VideoResponse,
-                'interview_responses': InterviewResponse,      # ADDED
-                'candidate_videos': CandidateVideo,
-                'notifications': Notification
-            }
-            
-            model_class = model_map.get(table)
-            if not model_class:
-                raise ValueError(f"Unknown table: {table}")
-            
-            # Only include fields that actually exist in the model
-            model_columns = {column.name for column in model_class.__table__.columns}
-            filtered_data = {k: v for k, v in data.items() if k in model_columns}
-            
-            # Create instance
-            instance = model_class(**filtered_data)
-            db.add(instance)
-            db.commit()
-            db.refresh(instance)
-            return str(instance.id)
+            try:
+                # Get the model class based on table name
+                model_map = {
+                    'users': User,
+                    'companies': Company,
+                    'recruiter_profiles': RecruiterProfile,
+                    'candidate_profiles': CandidateProfile,
+                    'jobs': Job,
+                    'job_skills': JobSkill,
+                    'interview_questions': InterviewQuestion,
+                    'job_applications': JobApplication,
+                    'video_responses': VideoResponse,
+                    'interview_responses': InterviewResponse,      # ADDED
+                    'candidate_videos': CandidateVideo,
+                    'notifications': Notification
+                }
+                
+                model_class = model_map.get(table)
+                if not model_class:
+                    raise ValueError(f"Unknown table: {table}")
+                
+                # Only include fields that actually exist in the model
+                model_columns = {column.name for column in model_class.__table__.columns}
+                filtered_data = {k: v for k, v in data.items() if k in model_columns}
+                
+                # Create instance
+                instance = model_class(**filtered_data)
+                db.add(instance)
+                db.commit()
+                db.refresh(instance)
+                return str(instance.id)
+            except SQLAlchemyError as e:
+                db.rollback()
+                logger.error(f"Database insert failed: {str(e)}")
+                raise RuntimeError(f"Database insert failed: {str(e)}")
 
     def insert_records(self, table: str, records: List[Dict[str, Any]]) -> List[str]:
         """Bulk insert multiple records into the specified table."""
@@ -515,6 +520,7 @@ class UserService(MySQLService):
                     onboarded=user_data.get("onboarded", False),
                     email_confirmed_at=datetime.now(timezone.utc) if user_data.get("email_verified") else None,
                     user_metadata=user_data.get("user_metadata", {}),
+                    extra_metadata=user_data.get("metadata", {}),
                     created_at=datetime.now(timezone.utc)
                 )
                 db.add(new_user)
@@ -829,7 +835,8 @@ class RecruiterService(MySQLService):
             
             return {
                 "id": job.id,
-                "title": job.title,
+                "job_title": job.job_title,
+                "title": job.job_title,
                 "description": job.description,
                 "requirements": job.requirements,
                 "location": job.location,
@@ -887,7 +894,7 @@ class RecruiterService(MySQLService):
         """Get applications for recruiter's jobs."""
         with self.session_factory() as db:
             # Get jobs created by this recruiter
-            jobs_query = db.query(Job.id, Job.title).filter(Job.created_by == recruiter_id)
+            jobs_query = db.query(Job.id, Job.job_title).filter(Job.created_by == recruiter_id)
             
             if job_id:
                 jobs_query = jobs_query.filter(Job.id == job_id)
@@ -1187,8 +1194,8 @@ class CandidateService(MySQLService):
             jobs = {}
             
             if job_ids:
-                job_list = db.query(Job.id, Job.title, Job.location, Job.job_type)\
-                    .filter(Job.id.in_(job_ids)).all()
+                job_list = db.query(Job.id, Job.job_title, Job.location, Job.job_type)\
+                .filter(Job.id.in_(job_ids)).all()
                 jobs = {j.id: {
                     "title": j.title,
                     "location": j.location,
@@ -1274,7 +1281,7 @@ class DashboardService(MySQLService):
             "jobs": [
                 {
                     "id": j.id,
-                    "title": j.title,
+                    "title": j.job_title,
                     "status": j.status,
                     "created_at": j.created_at.isoformat(),
                     "location": j.location,
@@ -1295,10 +1302,10 @@ class DashboardService(MySQLService):
         jobs = {}
         
         if job_ids:
-            job_list = db.query(Job.id, Job.title, Job.location, Job.job_type)\
+            job_list = db.query(Job.id, Job.job_title, Job.location, Job.job_type)\
                 .filter(Job.id.in_(job_ids)).all()
             jobs = {j.id: {
-                "title": j.title,
+                "title": j.job_title,
                 "location": j.location,
                 "job_type": j.job_type
             } for j in job_list}
@@ -1340,7 +1347,7 @@ class DashboardService(MySQLService):
             if search_query:
                 query = query.filter(
                     or_(
-                        Job.title.ilike(f"%{search_query}%"),
+                        Job.job_title.ilike(f"%{search_query}%"),
                         Job.location.ilike(f"%{search_query}%")
                     )
                 )
@@ -1373,7 +1380,8 @@ class DashboardService(MySQLService):
             return [
                 {
                     "id": job.id,
-                    "title": job.title,
+                    "job_title": job.job_title,
+                    "title": job.job_title,
                     "description": job.description,
                     "location": job.location,
                     "job_type": job.job_type,
@@ -1405,7 +1413,8 @@ class DashboardService(MySQLService):
             
             return {
                 "id": job.id,
-                "title": job.title,
+                "job_title": job.job_title,
+                "title": job.job_title,
                 "description": job.description,
                 "requirements": job.requirements,
                 "location": job.location,
@@ -1437,7 +1446,7 @@ class NotificationService(MySQLService):
                 message=notif.get("message"),
                 category=notif.get("category", "system"),
                 related_id=notif.get("related_id"),
-                metadata=notif.get("metadata", {})
+                notification_metadata=notif.get("metadata", {})
             )
             db.add(notification)
             db.commit()
@@ -1477,7 +1486,7 @@ class NotificationService(MySQLService):
                         "category": notif.category,
                         "related_id": notif.related_id,
                         "is_read": notif.is_read,
-                        "metadata": notif.metadata,
+                        "metadata": notif.notification_metadata,
                         "created_at": notif.created_at.isoformat()
                     }
                     for notif in notifications

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Mar 11, 2026 at 09:56 AM
+-- Generation Time: Mar 12, 2026 at 07:36 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -43,6 +43,13 @@ CREATE TABLE `candidate_profiles` (
   `experience` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Experience array' CHECK (json_valid(`experience`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `candidate_profiles`
+--
+
+INSERT INTO `candidate_profiles` (`id`, `user_id`, `summary`, `resume_url`, `intro_video_url`, `linkedin_url`, `portfolio_url`, `skills`, `experience_years`, `created_at`, `updated_at`, `education`, `experience`) VALUES
+('a23e4e28-a414-487b-9f64-952139725910', '431212f0-1e4d-4391-871e-5d487b7f4382', 'Customer Service Associate with 4years of experience', 'https://storage.skreenit.com/datastorage/resumes/20260311_155119_780ec1a0.docx', 'https://storage.skreenit.com/datastorage/videos/20260311_155631_8fc5e328.webm', '', '', '[\"MS Office\"]', NULL, '2026-03-11 10:21:21', '2026-03-11 10:26:33', '[{\"degree\": \"BA\", \"institution\": \"OU\", \"completion_year\": \"2021\"}]', '[{\"job_title\": \"Customer Service Associate\", \"company\": \"Digitide Inc\", \"start_date\": \"2025-07-07\", \"end_date\": \"\", \"description\": \"\"}, {\"job_title\": \"Telecaller\", \"company\": \"BMG Enterprises\", \"start_date\": \"2022-05-10\", \"end_date\": \"2025-06-15\", \"description\": \"Outbound sales of CC and Insurance\"}]');
+
 -- --------------------------------------------------------
 
 --
@@ -55,10 +62,15 @@ CREATE TABLE `candidate_videos` (
   `video_type` enum('intro','portfolio','other') DEFAULT 'intro',
   `video_url` varchar(500) NOT NULL,
   `video_path` varchar(500) NOT NULL,
-  `title` varchar(255) DEFAULT NULL,
-  `description` text DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `candidate_videos`
+--
+
+INSERT INTO `candidate_videos` (`id`, `candidate_id`, `video_type`, `video_url`, `video_path`, `created_at`) VALUES
+('85a043ad-a6d4-420c-9284-68aa82184356', '431212f0-1e4d-4391-871e-5d487b7f4382', 'intro', 'https://storage.skreenit.com/datastorage/videos/20260311_155631_8fc5e328.webm', '20260311_155631_8fc5e328.webm', '2026-03-11 10:26:33');
 
 -- --------------------------------------------------------
 
@@ -70,12 +82,21 @@ CREATE TABLE `companies` (
   `id` varchar(36) NOT NULL DEFAULT uuid(),
   `name` varchar(255) NOT NULL,
   `website` varchar(500) DEFAULT NULL,
-  `description` text DEFAULT NULL,
   `avatar_url` varchar(500) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `recruiter_id` varchar(36) DEFAULT NULL COMMENT 'Recruiter user_id from recruiter_profiles table'
+  `recruiter_id` varchar(36) DEFAULT NULL COMMENT 'Recruiter user_id from recruiter_profiles table',
+  `company_display_id` varchar(8) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `companies`
+--
+
+INSERT INTO `companies` (`id`, `name`, `website`, `avatar_url`, `created_at`, `updated_at`, `recruiter_id`, `company_display_id`, `description`, `location`) VALUES
+('04a97154-d49d-4cea-ba2b-6d944c712736', 'Skreenit', 'https://www.skreenit.com', NULL, '2026-03-12 04:31:12', '2026-03-12 04:57:03', '22bd4aca-9c4d-434c-baeb-d55b2b723c7a', 'SKRB978A', 'AI Driven Hiring Platform', 'Secunderabad');
 
 -- --------------------------------------------------------
 
@@ -150,8 +171,16 @@ CREATE TABLE `recruiter_profiles` (
   `contact_name` varchar(255) DEFAULT NULL,
   `contact_email` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `location` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `recruiter_profiles`
+--
+
+INSERT INTO `recruiter_profiles` (`id`, `user_id`, `company_id`, `contact_name`, `contact_email`, `created_at`, `updated_at`, `location`) VALUES
+('bf267003-cd8c-4201-8686-0eec025b7b11', '22bd4aca-9c4d-434c-baeb-d55b2b723c7a', '04a97154-d49d-4cea-ba2b-6d944c712736', 'Sheetal Paidimarri', 'testing2@bmgone.com', '2026-03-11 10:37:37', '2026-03-12 04:57:03', 'Secunderabad');
 
 -- --------------------------------------------------------
 
@@ -182,10 +211,10 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password_hash`, `full_name`, `phone`, `role`, `location`, `avatar_url`, `email_confirmed_at`, `created_at`, `updated_at`, `last_sign_in_at`, `user_metadata`, `onboarded`, `metadata`) VALUES
-('22bd4aca-9c4d-434c-baeb-d55b2b723c7a', 'testing2@bmgone.com', '$2b$12$1TLPkUwDJKyYS/euohBKQOevJ9e3s.pSKqBxeU8WAjY86GWf519i2', 'Sheetal Paidimarri', '9885608730', 'recruiter', 'Hyderabad', NULL, '2026-03-09 07:00:16', '2026-03-09 06:58:44', '2026-03-10 10:05:56', '2026-03-10 10:05:56', '{}', 1, NULL),
-('431212f0-1e4d-4391-871e-5d487b7f4382', 'testing1@bmgone.com', '$2b$12$BBCkUJfJ5uB2pDB5s8IVa.hynoGe1xAkOQ5zhUfrAxwI8bLYqGMjW', 'Prashanthi Sistla', '9966630349', 'candidate', 'Hyderabad', 'https://storage.skreenit.com/datastorage/profilepics/20260307_184735_809d1826.jpeg', '2026-03-07 11:02:11', '2026-03-07 11:00:42', '2026-03-10 16:34:42', '2026-03-10 16:34:42', '{}', 1, NULL),
-('f4bfa309-deaf-4349-aa79-509024adb2c4', 'testing3@bmgone.com', '$2b$12$t24g44MnjVZYLhqPVOsdlOMXtQVwQT.E46WzZCLsvoxzcuMSTuwPy', 'Naga Sai Prashasthi', '8125098875', 'candidate', 'Hyderabad', NULL, '2026-03-08 13:18:32', '2026-03-08 13:12:13', '2026-03-10 07:17:52', '2026-03-10 07:17:53', '{}', 1, NULL),
-('fd209e79-ec73-4f4d-b7ab-0c42f403a6a0', 'testing4@bmgone.com', '$2b$12$bWcX4qAlgcIBBn8MDVJ7TOPk120cyBuEuBlGEBtMIGQSkxFv8Cpzy', 'Raghava', '8499008241', 'recruiter', 'Hyderabad', NULL, '2026-03-09 06:34:55', '2026-03-09 06:33:58', '2026-03-10 16:08:52', '2026-03-10 16:08:52', '{}', 1, NULL);
+('22bd4aca-9c4d-434c-baeb-d55b2b723c7a', 'testing2@bmgone.com', '$2b$12$1TLPkUwDJKyYS/euohBKQOevJ9e3s.pSKqBxeU8WAjY86GWf519i2', 'Sheetal Paidimarri', '9885608730', 'recruiter', 'Hyderabad', NULL, '2026-03-09 07:00:16', '2026-03-09 06:58:44', '2026-03-12 04:57:04', '2026-03-12 04:48:38', '{}', 1, NULL),
+('431212f0-1e4d-4391-871e-5d487b7f4382', 'testing1@bmgone.com', '$2b$12$BBCkUJfJ5uB2pDB5s8IVa.hynoGe1xAkOQ5zhUfrAxwI8bLYqGMjW', 'Prashanthi Sistla', '9966630349', 'candidate', 'Hyderabad', 'https://storage.skreenit.com/datastorage/profilepics/20260311_155120_241b085b.jpg', '2026-03-07 11:02:11', '2026-03-07 11:00:42', '2026-03-11 10:33:51', '2026-03-11 10:33:51', '{}', 1, NULL),
+('f4bfa309-deaf-4349-aa79-509024adb2c4', 'testing3@bmgone.com', '$2b$12$t24g44MnjVZYLhqPVOsdlOMXtQVwQT.E46WzZCLsvoxzcuMSTuwPy', 'Naga Sai Prashasthi', '8125098875', 'candidate', 'Hyderabad', NULL, '2026-03-08 13:18:32', '2026-03-08 13:12:13', '2026-03-11 10:04:59', '2026-03-10 07:17:53', '{}', 0, NULL),
+('fd209e79-ec73-4f4d-b7ab-0c42f403a6a0', 'testing4@bmgone.com', '$2b$12$bWcX4qAlgcIBBn8MDVJ7TOPk120cyBuEuBlGEBtMIGQSkxFv8Cpzy', 'Raghava', '8499008241', 'recruiter', 'Hyderabad', NULL, '2026-03-09 06:34:55', '2026-03-09 06:33:58', '2026-03-11 10:05:03', '2026-03-10 16:08:52', '{}', 0, NULL);
 
 --
 -- Triggers `users`
@@ -243,7 +272,8 @@ ALTER TABLE `candidate_videos`
 ALTER TABLE `companies`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_companies_name` (`name`),
-  ADD KEY `companies_ibfk_recruiter_id` (`recruiter_id`);
+  ADD KEY `companies_ibfk_recruiter_id` (`recruiter_id`),
+  ADD KEY `idx_companies_display_id` (`company_display_id`);
 
 --
 -- Indexes for table `interview_questions`

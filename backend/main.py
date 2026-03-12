@@ -1,6 +1,8 @@
 import os
+import sys
 from dotenv import load_dotenv
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR) # Add backend directory to sys.path
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 from fastapi import FastAPI, APIRouter, Request

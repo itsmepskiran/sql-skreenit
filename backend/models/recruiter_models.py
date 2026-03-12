@@ -9,8 +9,6 @@ class RecruiterProfileBase(BaseModel):
     contact_name: Optional[str] = None
     contact_email: Optional[EmailStr] = None
     location: Optional[str] = None
-    # Renamed from 'about' to match database column 'company_description'
-    company_description: Optional[str] = None
 
 # -------------------------------------------------------------------
 # COMPANY MODELS
@@ -20,7 +18,7 @@ class CompanyBase(BaseModel):
     name: str
     description: Optional[str] = None
     website: Optional[str] = None
-    avatar_url: Optional[str] = None
+    company_logo_url: Optional[str] = None
     company_display_id: Optional[str] = None
     recruiter_id: Optional[str] = None
 
@@ -52,7 +50,7 @@ class RecruiterProfileUpdate(RecruiterProfileBase):
 # -------------------------------------------------------------------
 
 class JobBase(BaseModel):
-    title: str
+    job_title: str
     description: str
     requirements: Optional[str] = "No specific requirements"
     location: str
@@ -80,7 +78,7 @@ class JobUpdateRequest(BaseModel):
     Payload for PUT /api/v1/recruiter/jobs/{job_id}
     All fields optional to allow partial updates.
     """
-    title: Optional[str] = None
+    job_title: Optional[str] = None
     description: Optional[str] = None
     requirements: Optional[str] = None
     location: Optional[str] = None

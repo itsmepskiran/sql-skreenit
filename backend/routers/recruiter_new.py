@@ -224,7 +224,7 @@ async def create_job(request: Request, job_data: JobCreateRequest):
 
         data = job_data.model_dump()
         data["created_by"] = user["id"]
-        data["company_id"] = profile.get("company_id")  # <--- CRITICAL FIX
+        data["company_id"] = profile.get("company_id")
         
         result = recruiter_service.post_job(data)
         return {"ok": True, "data": result}

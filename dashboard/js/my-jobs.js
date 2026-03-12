@@ -155,7 +155,7 @@ async function loadJobs(userId) {
 function filterJobs(searchTerm) {
     const term = searchTerm.toLowerCase().trim();
     const filtered = allJobs.filter(job => 
-        job.title.toLowerCase().includes(term) || 
+        (job.job_title || job.title || '').toLowerCase().includes(term) || 
         (job.location || '').toLowerCase().includes(term)
     );
     
@@ -208,7 +208,7 @@ function renderJobs(jobs) {
         <div id="qr-container-${job.id}" class="qr-grid-box" style="background: white; padding: 5px; border-radius: 8px; border: 1px solid #e2e8f0; height: 70px; width: 70px; display: flex; align-items: center; justify-content: center;"></div>
         
         <div style="flex: 1;">
-            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; color: var(--text-dark); font-weight: 700;">${job.title}</h3>
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; color: var(--text-dark); font-weight: 700;">${job.job_title || job.title || 'No Title'}</h3>
             <p style="color: var(--text-light); font-size: 0.85rem; margin: 0;">
                 <i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i> ${job.location || 'Remote'}
             </p>
