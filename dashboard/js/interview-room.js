@@ -4,6 +4,7 @@ import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 // --- State Management ---
 let questions = [];
+let questionIds = []; // Store question IDs for linking responses
 let currentIndex = 0;
 let mediaRecorder;
 let recordedChunks = [];
@@ -40,24 +41,70 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadInterviewData(appId) {
     try {
-        const res = await backendGet(`/applicant/applications/${appId}/interview`);
-        const json = await handleResponse(res);
+        // console.log('DEBUG: Loading interview data for appId:', appId);
         
-        questions = json.interview_questions || json.questions || (json.data?.questions) || [];
+        // Check authentication status
+        const user = await customAuth.getUserData();
+        // console.log('DEBUG: User data:', user);
+        
+        const session = await customAuth.getSession();
+        // console.log('DEBUG: Session data:', session);
+        
+        const endpoint = `/applicant/applications/${appId}/interview`;
+        // console.log('DEBUG: Making API call to:', endpoint);
+        
+        // Check the backend client URL construction
+        const backendClient = window.backendClient;
+        if (backendClient) {
+            // console.log('DEBUG: Backend client base URL:', backendClient.getBaseUrl());
+            const fullUrl = backendClient.getBaseUrl() + endpoint;
+            // console.log('DEBUG: Full URL being requested:', fullUrl);
+        }
+        
+        // console.log('DEBUG: About to call backendGet...');
+        
+        const res = await backendGet(endpoint);
+        // console.log('DEBUG: backendGet completed');
+        // console.log('DEBUG: API response status:', res.status);
+        // console.log('DEBUG: API response headers:', res.headers);
+        // console.log('DEBUG: API response URL:', res.url);
+        // console.log('DEBUG: API response ok:', res.ok);
+        // console.log('DEBUG: API response type:', res.type);
+        
+        const json = await handleResponse(res);
+        // console.log('DEBUG: Interview API response:', json);
+        
+        // Handle the new response structure
+        const data = json.data || json;
+        questions = data.interview_questions || data.questions || [];
         
         if (!questions.length) {
-            alert("No questions found.");
+            alert("No interview questions found for this application.");
+            window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
             return;
         }
 
+        console.log('DEBUG: Loaded questions:', questions);
+        
         toggleDisplay('loadingQuestions', 'none');
         toggleDisplay('instructionContent', 'block'); 
         
         const totalEl = document.getElementById('totalQNum');
         if(totalEl) totalEl.textContent = questions.length;
 
+        // Update job title if available
+        const jobTitleEl = document.querySelector('.interview-title');
+        if (jobTitleEl && data.job_title) {
+            jobTitleEl.textContent = `Interview for ${data.job_title}`;
+        }
+        
+        console.log('Interview room loaded!');
+        return; 
+
     } catch (err) {
         console.error("Critical Load Error:", err);
+        alert("Failed to load interview questions. Please try again.");
+        window.location.href = CONFIG.PAGES.DASHBOARD_CANDIDATE;
     }
 }
 

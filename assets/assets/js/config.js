@@ -7,25 +7,29 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 export const CONFIG = {
     IS_LOCAL: isLocal,
     //Subdomain Configuration
+    // NOTE: Currently not used - all services run on single monolithic server
+    // Future: Will be used when migrating to microservices architecture
+    /*
     SUBDOMAIN: {
-        APPLICANTS: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://applicant.skreenit.com',
-        RECRUITERS: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://recruiter.skreenit.com',
-        DASHBOARD: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://dashboard.skreenit.com',
-        LOGIN: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://login.skreenit.com',
-        HRMS: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://hrms.skreenit.com',
-        APP: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://app.skreenit.com',
-        IN: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://in.skreenit.com',
-        JOBS: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://jobs.skreenit.com',
-        LEGAL: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://legal.skreenit.com',
-        SUPPORT: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://support.skreenit.com',
-        STORAGE: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://storage.skreenit.com',
-        ASSETS: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://assets.skreenit.com',
-        BACKEND: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://backend.skreenit.com',
-    },    
+        APPLICANTS: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://applicant.skreenit.com',
+        RECRUITERS: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://recruiter.skreenit.com',
+        DASHBOARD: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://dashboard.skreenit.com',
+        LOGIN: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://login.skreenit.com',
+        HRMS: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://hrms.skreenit.com',
+        APP: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://app.skreenit.com',
+        IN: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://in.skreenit.com',
+        JOBS: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://jobs.skreenit.com',
+        LEGAL: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://legal.skreenit.com',
+        SUPPORT: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://support.skreenit.com',
+        STORAGE: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://storage.skreenit.com',
+        ASSETS: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://assets.skreenit.com',
+        BACKEND: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://backend.skreenit.com',
+    },
+    */    
 
     // API Configuration
-    // Backend runs on port 8080
-    API_BASE: isLocal ? 'http://127.0.0.1:8082/api/v1' : 'https://backend.skreenit.com/api/v1',
+    // Backend runs on port 8080 for local development
+    API_BASE: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://backend.skreenit.com/api/v1',
 
     // Centralized Page Paths
     PAGES: {

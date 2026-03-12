@@ -20,7 +20,9 @@ class CompanyBase(BaseModel):
     name: str
     description: Optional[str] = None
     website: Optional[str] = None
-    logo_url: Optional[str] = None
+    avatar_url: Optional[str] = None
+    company_display_id: Optional[str] = None
+    recruiter_id: Optional[str] = None
 
 class CompanyCreate(CompanyBase):
     """

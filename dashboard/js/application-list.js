@@ -1,5 +1,5 @@
-import { customAuth } from '@shared/js/auth-config.js';;
-import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
+import { customAuth } from '@shared/js/auth-config.js';
+import { backendGet, backendPost, backendPut, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 const isLocal = CONFIG.IS_LOCAL;
@@ -328,12 +328,40 @@ async function performBulkStatusUpdate(ids, newStatus, questions) {
     }
 
     try {
-        const payload = { status: newStatus, questions: questions };
-        const promises = ids.map(id => backendPost(`/recruiter/applications/${id}/status`, payload));
-        await Promise.all(promises);
+        console.log('DEBUG: Bulk update starting for IDs:', ids);
+        console.log('DEBUG: Questions:', questions);
         
-        alert(`Successfully sent interviews to ${ids.length} candidates!`);
-        location.reload();
+        const payload = { status: newStatus, questions: questions };
+        const promises = ids.map(async (id) => {
+            try {
+                console.log(`DEBUG: Updating application ${id}`);
+                const response = await backendPut(`/recruiter/applications/${id}/status`, payload);
+                const result = await handleResponse(response);
+                console.log(`DEBUG: Application ${id} update result:`, result);
+                return { id, success: true, result };
+            } catch (error) {
+                console.error(`DEBUG: Application ${id} update failed:`, error);
+                return { id, success: false, error };
+            }
+        });
+        
+        const results = await Promise.all(promises);
+        console.log('DEBUG: All bulk update results:', results);
+        
+        const successful = results.filter(r => r.success);
+        const failed = results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+            console.error('DEBUG: Failed updates:', failed);
+            alert(`Warning: ${failed.length} of ${ids.length} updates failed. Check console for details.`);
+        } else {
+            alert(`Successfully sent interviews to ${successful.length} candidates!`);
+        }
+        
+        // Only reload if at least some succeeded
+        if (successful.length > 0) {
+            location.reload();
+        }
     } catch (err) {
         console.error("Bulk process error", err);
         alert("An error occurred during bulk processing.");

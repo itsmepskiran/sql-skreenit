@@ -76,21 +76,22 @@ class User(Base):
 
 
 class Company(Base):
-    """Company model for recruiters."""
+    """Company model."""
     __tablename__ = "companies"
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
     name: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     website: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
-    logo_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
+    location: Mapped[Optional[str]] = mapped_column(VARCHAR(255), nullable=True)
+    avatar_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     company_display_id: Mapped[Optional[str]] = mapped_column(VARCHAR(20), nullable=True, index=True)
-    created_by: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    recruiter_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    creator: Mapped["User"] = relationship("User", foreign_keys=[created_by])
+    recruiter: Mapped[Optional["User"]] = relationship("User", foreign_keys=[recruiter_id])
     jobs: Mapped[List["Job"]] = relationship("Job", back_populates="company")
     recruiter_profiles: Mapped[List["RecruiterProfile"]] = relationship("RecruiterProfile", back_populates="company")
 
@@ -102,11 +103,10 @@ class RecruiterProfile(Base):
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
     user_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
     company_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
-    # Removed: company_name, company_website (these belong in companies table)
+    # Removed: company_name, company_website, company_description (these belong in companies/users table)
+    location: Mapped[Optional[str]] = mapped_column(VARCHAR(255), nullable=True)
     contact_name: Mapped[Optional[str]] = mapped_column(VARCHAR(255), nullable=True)
     contact_email: Mapped[Optional[str]] = mapped_column(VARCHAR(255), nullable=True)
-    location: Mapped[Optional[str]] = mapped_column(VARCHAR(255), nullable=True)
-    company_description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Renamed from 'about'
     # Removed: avatar_url (belongs in users table)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -122,54 +122,22 @@ class CandidateProfile(Base):
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
     user_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
-    # Removed: full_name, email, phone, location (these belong in users table)
+    # Removed: full_name, email, phone, location, avatar_url (these belong in users table)
     summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    avatar_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     resume_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     intro_video_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     linkedin_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     portfolio_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
     skills: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
     experience_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # Education and Experience as JSON fields (unified structure)
+    education: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
+    experience: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="candidate_profile")
-    education: Mapped[List["CandidateEducation"]] = relationship("CandidateEducation", back_populates="candidate_profile", lazy="dynamic")
-    experience: Mapped[List["CandidateExperience"]] = relationship("CandidateExperience", back_populates="candidate_profile", lazy="dynamic")
-
-
-class CandidateEducation(Base):
-    """Candidate education history."""
-    __tablename__ = "candidate_education"
-    
-    id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
-    candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("candidate_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
-    degree: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
-    institution: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
-    completion_year: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    candidate_profile: Mapped[Optional["CandidateProfile"]] = relationship("CandidateProfile", back_populates="education", uselist=False)
-
-
-class CandidateExperience(Base):
-    """Candidate work experience."""
-    __tablename__ = "candidate_experience"
-    
-    id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
-    candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("candidate_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
-    job_title: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
-    company: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
-    start_date: Mapped[Optional[str]] = mapped_column(VARCHAR(50), nullable=True)
-    end_date: Mapped[Optional[str]] = mapped_column(VARCHAR(50), nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    candidate_profile: Mapped["CandidateProfile"] = relationship("CandidateProfile", back_populates="experience")
 
 
 class Job(Base):
@@ -220,10 +188,11 @@ class InterviewQuestion(Base):
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
     job_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
-    question: Mapped[str] = mapped_column(Text, nullable=False)
+    candidate_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)  # Added via migration
+    question_text: Mapped[str] = mapped_column(Text, nullable=False)  # Renamed from 'question' via migration
     question_order: Mapped[int] = mapped_column(Integer, default=0)
     time_limit: Mapped[int] = mapped_column(Integer, default=120)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)  # Note: Fixed typo from 'crated_at'
     
     # Relationships
     job: Mapped["Job"] = relationship("Job", back_populates="interview_questions")
@@ -259,12 +228,11 @@ class VideoResponse(Base):
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
     application_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("job_applications.id", ondelete="CASCADE"), nullable=False, index=True)
     candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    question: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    question_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), ForeignKey("interview_questions.id", ondelete="CASCADE"), nullable=True, index=True)  # Added via migration
+    question: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Existing field
+    question_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Added via migration
+    question_index: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Added via migration
     video_url: Mapped[str] = mapped_column(VARCHAR(500), nullable=False)
-    transcript: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    duration: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    status: Mapped[str] = mapped_column(Enum("not_started", "in_progress", "completed", "failed", name="video_status"), default="completed")
-    ai_analysis: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
     recorded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -285,13 +253,17 @@ class InterviewResponse(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class IntroVideo(Base):
-    """Introduction video for candidates."""
-    __tablename__ = "intro_videos"
+class CandidateVideo(Base):
+    """Videos for candidates (intro, portfolio, etc.)."""
+    __tablename__ = "candidate_videos"
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
-    candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    video_type: Mapped[str] = mapped_column(Enum("intro", "portfolio", "other", name="video_type"), default="intro")
     video_url: Mapped[str] = mapped_column(VARCHAR(500), nullable=False)
+    video_path: Mapped[str] = mapped_column(VARCHAR(500), nullable=False)
+    title: Mapped[Optional[str]] = mapped_column(VARCHAR(255), nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

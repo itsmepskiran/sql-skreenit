@@ -34,15 +34,13 @@ User = _database.User
 Company = _database.Company
 RecruiterProfile = _database.RecruiterProfile
 CandidateProfile = _database.CandidateProfile
-CandidateEducation = _database.CandidateEducation
-CandidateExperience = _database.CandidateExperience
 Job = _database.Job
 JobSkill = _database.JobSkill
 InterviewQuestion = _database.InterviewQuestion
 JobApplication = _database.JobApplication
 VideoResponse = _database.VideoResponse
 InterviewResponse = _database.InterviewResponse
-IntroVideo = _database.IntroVideo
+CandidateVideo = _database.CandidateVideo
 Notification = _database.Notification
 generate_uuid = _database.generate_uuid
 
@@ -82,15 +80,13 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
-                'candidate_education': CandidateEducation,     # ADDED
-                'candidate_experience': CandidateExperience,   # ADDED
                 'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
                 'interview_responses': InterviewResponse,      # ADDED
-                'intro_videos': IntroVideo,
+                'candidate_videos': CandidateVideo,
                 'notifications': Notification
             }
             
@@ -120,15 +116,13 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
-                'candidate_education': CandidateEducation,     # ADDED
-                'candidate_experience': CandidateExperience,   # ADDED
                 'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
                 'interview_responses': InterviewResponse,      # ADDED
-                'intro_videos': IntroVideo,
+                'candidate_videos': CandidateVideo,
                 'notifications': Notification
             }
 
@@ -157,15 +151,13 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
-                'candidate_education': CandidateEducation,     # ADDED
-                'candidate_experience': CandidateExperience,   # ADDED
-                'jobs': Job,
+                                'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
                 'interview_responses': InterviewResponse,      # ADDED
-                'intro_videos': IntroVideo,
+                'candidate_videos': CandidateVideo,
                 'notifications': Notification
             }
             
@@ -200,15 +192,13 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
-                'candidate_education': CandidateEducation,     # ADDED
-                'candidate_experience': CandidateExperience,   # ADDED
-                'jobs': Job,
+                                'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
                 'interview_responses': InterviewResponse,      # ADDED
-                'intro_videos': IntroVideo,
+                'candidate_videos': CandidateVideo,
                 'notifications': Notification
             }
             
@@ -259,15 +249,13 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
-                'candidate_education': CandidateEducation,     # ADDED
-                'candidate_experience': CandidateExperience,   # ADDED
-                'jobs': Job,
+                                'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
                 'interview_responses': InterviewResponse,      # ADDED
-                'intro_videos': IntroVideo,
+                'candidate_videos': CandidateVideo,
                 'notifications': Notification
             }
             
@@ -295,15 +283,13 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
-                'candidate_education': CandidateEducation,     # ADDED
-                'candidate_experience': CandidateExperience,   # ADDED
-                'jobs': Job,
+                                'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
                 'interview_responses': InterviewResponse,      # ADDED
-                'intro_videos': IntroVideo,
+                'candidate_videos': CandidateVideo,
                 'notifications': Notification
             }
             
@@ -336,15 +322,13 @@ class MySQLService:
                 'companies': Company,
                 'recruiter_profiles': RecruiterProfile,
                 'candidate_profiles': CandidateProfile,
-                'candidate_education': CandidateEducation,     # ADDED
-                'candidate_experience': CandidateExperience,   # ADDED
-                'jobs': Job,
+                                'jobs': Job,
                 'job_skills': JobSkill,
                 'interview_questions': InterviewQuestion,
                 'job_applications': JobApplication,
                 'video_responses': VideoResponse,
                 'interview_responses': InterviewResponse,      # ADDED
-                'intro_videos': IntroVideo,
+                'candidate_videos': CandidateVideo,
                 'notifications': Notification
             }
             
@@ -1010,56 +994,36 @@ class CandidateService(MySQLService):
             
             profile_id = existing_profile.id  # This is the FK for experience/education
             
-            # Handle experience
+            # Handle experience - store as JSON
             if experience_data:
-                print(f"DEBUG: Adding {len(experience_data)} experience records for profile_id: {profile_id}")
-                db.query(CandidateExperience).filter(CandidateExperience.candidate_id == profile_id).delete()
-                for exp in experience_data:
-                    print(f"DEBUG: Adding experience: {exp}")
-                    experience = CandidateExperience(
-                        id=generate_uuid(),
-                        candidate_id=profile_id,
-                        job_title=exp.get("job_title"),
-                        company=exp.get("company"),
-                        start_date=exp.get("start_date"),
-                        end_date=exp.get("end_date"),
-                        description=exp.get("description")
-                    )
-                    db.add(experience)
+                print(f"DEBUG: Adding {len(experience_data)} experience records as JSON for profile_id: {profile_id}")
+                existing_profile.experience = experience_data
             
-            # Handle education
+            # Handle education - store as JSON
             if education_data:
-                print(f"DEBUG: Adding {len(education_data)} education records for profile_id: {profile_id}")
-                db.query(CandidateEducation).filter(CandidateEducation.candidate_id == profile_id).delete()
-                for edu in education_data:
-                    print(f"DEBUG: Adding education: {edu}")
-                    education = CandidateEducation(
-                        id=generate_uuid(),
-                        candidate_id=profile_id,
-                        degree=edu.get("degree"),
-                        institution=edu.get("institution"),
-                        completion_year=edu.get("completion_year")
-                    )
-                    db.add(education)
+                print(f"DEBUG: Adding {len(education_data)} education records as JSON for profile_id: {profile_id}")
+                existing_profile.education = education_data
             
             # Update candidate profile fields
             for key, value in profile_data.items():
                 if hasattr(existing_profile, key):
                     setattr(existing_profile, key, value)
 
-            # Ensure intro_videos table stays in sync when intro_video_url is updated
+            # Ensure candidate_videos table stays in sync when intro_video_url is updated
             if "intro_video_url" in profile_data:
                 intro_url = profile_data.get("intro_video_url")
-                existing_intro = db.query(IntroVideo).filter(IntroVideo.candidate_id == user_id).first()
+                existing_intro = db.query(CandidateVideo).filter(CandidateVideo.candidate_id == user_id, CandidateVideo.video_type == "intro").first()
                 if intro_url:
                     if existing_intro:
                         existing_intro.video_url = intro_url
                         existing_intro.created_at = datetime.utcnow()
                     else:
-                        intro_record = IntroVideo(
+                        intro_record = CandidateVideo(
                             id=generate_uuid(),
                             candidate_id=user_id,
+                            video_type="intro",
                             video_url=intro_url,
+                            video_path=intro_url.split("/")[-1] if "/" in intro_url else "intro_video.webm",
                             created_at=datetime.utcnow()
                         )
                         db.add(intro_record)
@@ -1086,47 +1050,25 @@ class CandidateService(MySQLService):
             # Get profile data (extended fields from candidate_profiles)
             profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == user_id).first()
             
-            # Get experience + education data (linked by candidate_profile.id)
+            # Get experience + education data from JSON fields
             experience = []
             education = []
             if profile:
-                experience_records = db.query(CandidateExperience).filter(CandidateExperience.candidate_id == profile.id).all()
-                experience = [
-                    {
-                        "job_title": exp.job_title,
-                        "company": exp.company,
-                        "start_date": exp.start_date,
-                        "end_date": exp.end_date,
-                        "description": exp.description
-                    }
-                    for exp in experience_records
-                ]
-                
-                education_records = db.query(CandidateEducation).filter(CandidateEducation.candidate_id == profile.id).all()
-                education = [
-                    {
-                        "degree": edu.degree,
-                        "institution": edu.institution,
-                        "completion_year": edu.completion_year
-                    }
-                    for edu in education_records
-                ]
+                # Read from JSON fields instead of separate tables
+                experience = profile.experience if profile.experience else []
+                education = profile.education if profile.education else []
             
             # Combine user + profile data
             # If the candidate profile does not have an intro_video_url (legacy data),
-            # fallback to the latest entry from the intro_videos table.
+            # fallback to the latest entry from the candidate_videos table.
             intro_video_url = profile.intro_video_url if profile else None
             if not intro_video_url:
-                latest_intro = db.query(IntroVideo).filter(IntroVideo.candidate_id == user_id).order_by(desc(IntroVideo.created_at)).first()
+                latest_intro = db.query(CandidateVideo).filter(CandidateVideo.candidate_id == user_id, CandidateVideo.video_type == "intro").order_by(desc(CandidateVideo.created_at)).first()
                 if latest_intro:
                     intro_video_url = latest_intro.video_url
 
-            # Prefer avatar_url stored on candidate_profiles (candidate-centric),
-            # but fall back to the user-level avatar_url for compatibility.
-            profile_avatar_url = None
-            if profile is not None and hasattr(profile, "avatar_url"):
-                profile_avatar_url = profile.avatar_url
-            resolved_avatar_url = profile_avatar_url or user.avatar_url
+            # Avatar URL is now only in users table
+            resolved_avatar_url = user.avatar_url
 
             result = {
                 "id": user.id,
@@ -1152,9 +1094,9 @@ class CandidateService(MySQLService):
             return result
     
     def save_education(self, candidate_id: str, education_list: List[Dict[str, Any]]) -> bool:
-        """Save candidate education."""
+        """Save candidate education to JSON field in candidate_profiles."""
         with self.session_factory() as db:
-            # Find the candidate profile tied to this user
+            # Find or create the candidate profile
             profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == candidate_id).first()
             if not profile:
                 # If no profile exists, create one so we can store education
@@ -1162,27 +1104,16 @@ class CandidateService(MySQLService):
                 db.add(profile)
                 db.flush()
 
-            # Delete existing education for this profile
-            db.query(CandidateEducation).filter(CandidateEducation.candidate_id == profile.id).delete()
-            
-            # Add new education
-            for edu in education_list:
-                education = CandidateEducation(
-                    id=generate_uuid(),
-                    candidate_id=profile.id,
-                    degree=edu.get("degree"),
-                    institution=edu.get("institution"),
-                    completion_year=edu.get("completion_year")
-                )
-                db.add(education)
+            # Update education JSON field
+            profile.education = education_list if education_list else []
             
             db.commit()
             return True
     
     def save_experience(self, candidate_id: str, experience_list: List[Dict[str, Any]]) -> bool:
-        """Save candidate experience."""
+        """Save candidate experience to JSON field in candidate_profiles."""
         with self.session_factory() as db:
-            # Find the candidate profile tied to this user
+            # Find or create the candidate profile
             profile = db.query(CandidateProfile).filter(CandidateProfile.user_id == candidate_id).first()
             if not profile:
                 # If no profile exists, create one so we can store experience
@@ -1190,21 +1121,8 @@ class CandidateService(MySQLService):
                 db.add(profile)
                 db.flush()
 
-            # Delete existing experience for this profile
-            db.query(CandidateExperience).filter(CandidateExperience.candidate_id == profile.id).delete()
-            
-            # Add new experience
-            for exp in experience_list:
-                experience = CandidateExperience(
-                    id=generate_uuid(),
-                    candidate_id=profile.id,
-                    job_title=exp.get("job_title"),
-                    company=exp.get("company"),
-                    start_date=exp.get("start_date"),
-                    end_date=exp.get("end_date"),
-                    description=exp.get("description")
-                )
-                db.add(experience)
+            # Update experience JSON field
+            profile.experience = experience_list if experience_list else []
             
             db.commit()
             return True
@@ -1284,7 +1202,7 @@ class CandidateService(MySQLService):
                     "id": app.id,
                     "job_id": app.job_id,
                     "status": app.status,
-                    "applied_at": app.applied_at.isoformat(),
+                    "applied_at": app.applied_at.isoformat() if app.applied_at else None,
                     "job_title": job_info.get("title"),
                     "location": job_info.get("location"),
                     "job_type": job_info.get("job_type")
@@ -1631,10 +1549,14 @@ class VideoService(MySQLService):
     def save_intro_video(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Save introduction video."""
         with self.session_factory() as db:
-            video = IntroVideo(
+            video = CandidateVideo(
                 id=generate_uuid(),
                 candidate_id=data.get("candidate_id"),
+                video_type="intro",
                 video_url=data.get("video_url"),
+                video_path=data.get("video_path", data.get("video_url", "").split("/")[-1]),
+                title=data.get("title", "Introduction Video"),
+                description=data.get("description", ""),
             )
             db.add(video)
             db.commit()

@@ -512,6 +512,9 @@ function updateSidebarProfile(user, role) {
         if(companyIdEl) companyIdEl.style.display = 'none';
         if(userDesig) userDesig.style.display = 'block';
         if(navJobs) navJobs.style.display = 'none';
+        
+        // Fetch and update candidate's designation
+        fetchAndUpdateDesignation();
     }
 
     // Avatar Logic

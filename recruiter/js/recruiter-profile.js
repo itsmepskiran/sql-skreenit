@@ -15,8 +15,6 @@ let originalProfileData = {};
 
     await ensureRecruiter();
     setupNavigation();
-    setupAvatarUpload();
-    setupCompanyLogoUpload();
 
 
 // --- SIDEBAR / USER METADATA ---
@@ -168,114 +166,6 @@ function setValue(id, val) {
     if(el) el.value = val || "";
 }
 
-// --- AVATAR + LOGO UPLOAD ---
-async function setupAvatarUpload() {
-    const uploadBtn = document.getElementById('uploadAvatarBtn');
-    const fileInput = document.getElementById('avatarUploadInput');
-
-    if (!uploadBtn || !fileInput) return;
-
-    uploadBtn.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Please upload an image smaller than 5MB.');
-            return;
-        }
-
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const res = await backendPost('/recruiter/profile/avatar', formData);
-            const result = await handleResponse(res);
-            console.log('✅ Avatar upload response:', result);
-
-            const user = await customAuth.getUserData();
-            if (result.data?.avatar_url && user) {
-                user.avatar_url = result.data.avatar_url;
-                await customAuth.storage.setItem('user_data', JSON.stringify(user));
-                updateSidebarProfile(user);
-            }
-
-            await fetchProfileData(user);
-            alert('Avatar uploaded successfully.');
-        } catch (err) {
-            console.error('Avatar upload failed:', err);
-            alert(`Failed to upload avatar: ${err?.message || 'Please try again.'}`);
-        } finally {
-            fileInput.value = '';
-        }
-    });
-}
-
-async function setupCompanyLogoUpload() {
-    const uploadBtn = document.getElementById('uploadCompanyLogoBtn');
-    const fileInput = document.getElementById('companyLogoUpload');
-
-    if (!uploadBtn || !fileInput) return;
-
-    uploadBtn.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            alert('Please upload a valid image file.');
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Please upload an image smaller than 5MB.');
-            return;
-        }
-
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const res = await backendPost('/recruiter/profile/company-logo', formData);
-            const result = await handleResponse(res);
-            console.log('✅ Company logo upload response:', result);
-
-            // Ensure the company name isn't lost when we refresh the profile.
-            // The backend /recruiter/profile/company-logo endpoint only updates the logo, so the
-            // profile refresh afterwards should still include the company name, but some setups
-            // may return a partially-populated company object. Force a backend upsert to keep it.
-            const companyName = document.getElementById('company_name')?.value?.trim();
-            const user = await customAuth.getUserData();
-            const logoUrl = result?.data?.logo_url;
-
-            // Require a company name so we don't create/overwrite a company record with a blank name.
-            if (!companyName) {
-                alert('Please enter a company name before uploading a logo.');
-            } else if (user?.id && logoUrl) {
-                try {
-                    await backendPut('/recruiter/profile', {
-                        user_id: user.id,
-                        company_name: companyName,
-                        company_logo_url: logoUrl
-                    });
-                } catch (e) {
-                    console.warn('Failed to persist company metadata after logo upload', e);
-                }
-            }
-
-            await fetchProfileData(user);
-            alert('Company logo uploaded successfully.');
-        } catch (err) {
-            console.error('Company logo upload failed:', err);
-            alert(`Failed to upload company logo: ${err?.message || 'Please try again.'}`);
-        } finally {
-            fileInput.value = '';
-        }
-    });
-}
-
 // --- EDIT MODE LOGIC ---
 function toggleEditMode(enable) {
     const form = document.getElementById("recruiterProfileForm");
@@ -284,8 +174,8 @@ function toggleEditMode(enable) {
     const editActions = document.getElementById("editActions");
 
     inputs.forEach(input => {
-        // Company ID is ALWAYS read-only
-        if (input.id !== "company_id") {
+        // Company ID is ALWAYS read-only, upload buttons should never be disabled
+        if (input.id !== "company_id" && input.type !== "file") {
             input.disabled = !enable;
             if (enable) {
                 input.removeAttribute('readonly'); // Ensure readonly styles are removed
@@ -324,6 +214,16 @@ async function handleProfileSubmit(event) {
 
   let website = document.getElementById("company_website").value.trim();
   if (website && !website.match(/^https?:\/\//)) website = `https://${website}`;
+
+  // Frontend validation: Company name is MANDATORY for company ID generation
+  const companyName = document.getElementById("company_name").value.trim();
+  
+  if (!companyName) {
+    alert("Company name is required to generate company ID.");
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+    return;
+  }
 
   const payload = {
     user_id: user.id,
@@ -414,6 +314,75 @@ function setupNavigation() {
         populateForm(originalProfileData); 
         toggleEditMode(false);
     });
+
+    // Company Logo Upload Functionality
+    const uploadCompanyLogoBtn = document.getElementById("uploadCompanyLogoBtn");
+    const companyLogoUpload = document.getElementById("companyLogoUpload");
+    
+    if (uploadCompanyLogoBtn && companyLogoUpload) {
+        uploadCompanyLogoBtn.addEventListener("click", () => {
+            companyLogoUpload.click();
+        });
+        
+        companyLogoUpload.addEventListener("change", async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert("Please select an image file.");
+                return;
+            }
+            
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert("Image size should be less than 5MB.");
+                return;
+            }
+            
+            const btn = uploadCompanyLogoBtn;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Uploading...';
+            btn.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                // Don't set Authorization header for file uploads - let middleware handle it
+                const response = await fetch('/api/v1/recruiter/profile/company-logo', {
+                    method: 'POST',
+                    body: formData
+                    // No headers - let browser set Content-Type for FormData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Upload failed: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                console.log('[RecruiterProfile] Company logo uploaded:', result);
+                
+                // Update the UI to show the uploaded logo
+                if (result.data && result.data.avatar_url) {
+                    // You can update any logo preview element here if needed
+                    console.log('Company logo URL:', result.data.avatar_url);
+                }
+                
+                btn.innerHTML = '<i class="fas fa-check me-2"></i> Uploaded';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+                
+            } catch (error) {
+                console.error('[RecruiterProfile] Logo upload failed:', error);
+                alert(`Failed to upload logo: ${error.message}`);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    }
 
     const form = document.getElementById("recruiterProfileForm");
     if (form) form.addEventListener("submit", handleProfileSubmit);

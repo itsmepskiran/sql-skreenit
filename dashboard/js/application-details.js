@@ -1,5 +1,5 @@
 import { customAuth } from '@shared/js/auth-config.js';;
-import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
+import { backendGet, backendPost, backendPut, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
 
@@ -254,24 +254,41 @@ function renderDetails(app) {
 
 // --- STATUS UPDATE & MODAL WIRING ---
 function setupStatusUpdate(appId) {
+    console.log('DEBUG: Setting up status update for appId:', appId);
     const updateBtn = document.getElementById('updateStatusBtn');
     const statusSelect = document.getElementById('statusSelect');
     
-    if(!updateBtn || !statusSelect) return;
+    console.log('DEBUG: updateBtn found:', !!updateBtn);
+    console.log('DEBUG: statusSelect found:', !!statusSelect);
+    
+    if(!updateBtn || !statusSelect) {
+        console.log('DEBUG: Missing elements, skipping setup');
+        return;
+    }
 
     updateBtn.addEventListener('click', async () => {
+        console.log('DEBUG: Update button clicked!');
         const newStatus = statusSelect.value;
+        console.log('DEBUG: Selected status:', newStatus);
         if (newStatus === 'interviewing') {
             openInterviewModal((questionsArray) => {
                 performStatusUpdate(appId, newStatus, questionsArray);
             });
+        } else if (newStatus === 'rejected') {
+            openRejectionModal((rejectionReason) => {
+                performStatusUpdate(appId, newStatus, [], rejectionReason);
+            });
         } else {
-            performStatusUpdate(appId, newStatus, []);
+            openCommentModal(newStatus, (comment) => {
+                performStatusUpdate(appId, newStatus, [], comment);
+            });
         }
     });
 }
 
-async function performStatusUpdate(appId, newStatus, questions) {
+console.log('DEBUG: Status update event listener attached');
+
+async function performStatusUpdate(appId, newStatus, questions, rejectionReason = null, comment = null) {
     const btn = document.getElementById('updateStatusBtn');
     if(!btn) return;
 
@@ -279,15 +296,62 @@ async function performStatusUpdate(appId, newStatus, questions) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
     const payload = { status: newStatus, questions: questions };
+    if (rejectionReason) {
+        payload.rejection_reason = rejectionReason;
+    }
+    if (comment) {
+        payload.comment = comment;
+    }
+    console.log('DEBUG: Sending status update request:', payload);
+    console.log('DEBUG: Application ID:', appId);
 
     try {
-        await backendPost(`/recruiter/applications/${appId}/status`, payload);
-        btn.innerHTML = '<i class="fas fa-check"></i>';
-        btn.style.backgroundColor = "#10b981";
-        setTimeout(() => location.reload(), 1000); 
+        console.log('DEBUG: About to send PUT request to:', `${CONFIG.API_BASE}/recruiter/applications/${appId}/status`);
+        console.log('DEBUG: Payload:', payload);
+        
+        // Debug: Check what tokens are available and how backendGet works
+        console.log('DEBUG: Available tokens:');
+        console.log('  - customAuth.token:', localStorage.getItem('customAuth.token'));
+        console.log('  - token:', localStorage.getItem('token'));
+        console.log('  - auth_token:', localStorage.getItem('auth_token'));
+        
+        // Debug: Let's see what's in the session
+        console.log('DEBUG: Session data:', await customAuth.getSession());
+        
+        // Use backendPut instead of manual fetch - it should handle auth properly
+        const response = await backendPut(`/recruiter/applications/${appId}/status`, payload);
+        console.log('DEBUG: Status update response:', response);
+        console.log('DEBUG: Response status:', response.status);
+        console.log('DEBUG: Response ok:', response.ok);
+
+        if (response.ok) {
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.style.backgroundColor = "#10b981";
+            
+            // Update local data immediately before reload
+            if (currentApplicationData) {
+                currentApplicationData.status = newStatus;
+            }
+            
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            // Try to get error details from the response
+            let errorDetails = 'Failed to update status';
+            try {
+                const errorData = await response.json();
+                errorDetails = errorData.detail || errorData.message || errorData.error || 'Failed to update status';
+                console.log('DEBUG: Backend error details:', errorData);
+            } catch (e) {
+                console.log('DEBUG: Could not parse error response:', e);
+            }
+            throw new Error(errorDetails);
+        }
+        
     } catch (err) {
-        console.error("Update failed", err);
-        alert("Failed to update status.");
+        console.error("DEBUG: Update failed:", err);
+        console.error("DEBUG: Full error details:", err.message);
+        console.error("DEBUG: Error stack:", err.stack);
+        alert(`Failed to update status: ${err.message}`);
         btn.disabled = false;
         btn.textContent = "Update Status";
     }
@@ -301,6 +365,10 @@ function openInterviewModal(onConfirmCallback) {
     const confirmBtn = document.getElementById('confirmInterviewBtn');
 
     if(!modal) return;
+
+    // Set specific title for interview modal
+    const modalTitle = modal.querySelector('h3');
+    if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-video text-primary me-2"></i> Interview Questions';
 
     container.innerHTML = `
         <input type="text" class="form-control mb-3 interview-q-input" placeholder="1. e.g. Tell me about yourself." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
@@ -316,6 +384,7 @@ function openInterviewModal(onConfirmCallback) {
 
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    newConfirmBtn.textContent = 'Send to Candidate';
 
     newConfirmBtn.onclick = () => {
         const inputs = document.querySelectorAll('.interview-q-input');
@@ -332,36 +401,114 @@ function openInterviewModal(onConfirmCallback) {
 
     modal.classList.add('active');
 }
-async function sendInterviewInvite(appId, status, questions) {
-    try {
-        const response = await fetch(`${CONFIG.API_BASE}/recruiter/applications/${appId}/status`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('customAuth.token')}`
-            },
-            body: JSON.stringify({
-                status: status,
-                questions: questions
-            })
-        });
 
-        const result = await response.json();
+function openRejectionModal(onConfirmCallback) {
+    const modal = document.getElementById('interviewModal');
+    const container = document.getElementById('modalQuestionsContainer');
+    const addBtn = document.getElementById('addQuestionBtn');
+    const confirmBtn = document.getElementById('confirmInterviewBtn');
 
-        if (result.ok) {
-            // --- ADD THIS ALERT ---
-            alert("✅ Interview questions posted successfully! The candidate can now see the 'Start Interview' button.");
-            
-            // Optionally close the modal if you are using one
-            if (window.inviteModal) window.inviteModal.hide(); 
-            
-            // Refresh the page to show updated status
-            window.location.reload();
-        } else {
-            alert("❌ Failed to post questions: " + result.error);
+    if(!modal) return;
+
+    // Change modal title and content for rejection
+    const modalTitle = modal.querySelector('h3');
+    if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i> Rejection Reason';
+    
+    container.innerHTML = `
+        <textarea class="form-control mb-3 rejection-reason-input" placeholder="Please provide a reason for rejection (optional)..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; min-height: 100px; resize: vertical;"></textarea>
+    `;
+
+    // Hide add button since we don't need it for rejection
+    if (addBtn) addBtn.style.display = 'none';
+
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    newConfirmBtn.textContent = 'Save';
+
+    newConfirmBtn.onclick = () => {
+        const textarea = container.querySelector('.rejection-reason-input');
+        const rejectionReason = textarea ? textarea.value.trim() : '';
+        
+        onConfirmCallback(rejectionReason);
+        modal.classList.remove('active');
+        
+        // Reset modal for next use
+        if (addBtn) addBtn.style.display = 'block';
+        if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-video text-primary me-2"></i> Set Interview Questions';
+        if (confirmBtn) confirmBtn.textContent = 'Save & Request Interview';
+    };
+
+    modal.classList.add('active');
+}
+
+function openCommentModal(status, onConfirmCallback) {
+    const modal = document.getElementById('interviewModal');
+    const container = document.getElementById('modalQuestionsContainer');
+    const addBtn = document.getElementById('addQuestionBtn');
+    const confirmBtn = document.getElementById('confirmInterviewBtn');
+
+    if(!modal) return;
+
+    // Change modal title and content for status comment
+    const modalTitle = modal.querySelector('h3');
+    if (modalTitle) {
+        const statusCapitalized = status.charAt(0).toUpperCase() + status.slice(1);
+        let icon = '';
+        switch(status) {
+            case 'pending':
+                icon = '<i class="fas fa-clock text-warning me-2"></i>';
+                break;
+            case 'reviewed':
+                icon = '<i class="fas fa-eye text-info me-2"></i>';
+                break;
+            case 'hired':
+                icon = '<i class="fas fa-check-circle text-success me-2"></i>';
+                break;
+            default:
+                icon = '<i class="fas fa-comment text-secondary me-2"></i>';
         }
-    } catch (error) {
-        console.error("Error posting questions:", error);
-        alert("An error occurred while sending the invite.");
+        modalTitle.innerHTML = `${icon} ${statusCapitalized} - Add Comment`;
     }
+    
+    // Get placeholder text based on status
+    let placeholder = '';
+    switch(status) {
+        case 'pending':
+            placeholder = 'Add any notes about why this application is pending...';
+            break;
+        case 'reviewed':
+            placeholder = 'Add review notes or feedback...';
+            break;
+        case 'hired':
+            placeholder = 'Add onboarding details or welcome notes...';
+            break;
+        default:
+            placeholder = 'Add any additional comments...';
+    }
+    
+    container.innerHTML = `
+        <textarea class="form-control mb-3 status-comment-input" placeholder="${placeholder} (optional)..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; min-height: 100px; resize: vertical;"></textarea>
+    `;
+
+    // Hide add button since we don't need it for comments
+    if (addBtn) addBtn.style.display = 'none';
+
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    newConfirmBtn.textContent = 'Save';
+
+    newConfirmBtn.onclick = () => {
+        const textarea = container.querySelector('.status-comment-input');
+        const comment = textarea ? textarea.value.trim() : '';
+        
+        onConfirmCallback(comment);
+        modal.classList.remove('active');
+        
+        // Reset modal for next use
+        if (addBtn) addBtn.style.display = 'block';
+        if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-video text-primary me-2"></i> Set Interview Questions';
+        if (confirmBtn) confirmBtn.textContent = 'Save & Request Interview';
+    };
+
+    modal.classList.add('active');
 }

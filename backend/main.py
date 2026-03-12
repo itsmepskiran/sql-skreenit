@@ -306,3 +306,10 @@ async def on_startup():
 @app.on_event("shutdown")
 async def on_shutdown():
     logger.info("Backend Stopped")
+
+# ---------------------------------------------------------
+# Server Startup
+# ---------------------------------------------------------
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8080, reload=True)

@@ -44,18 +44,27 @@ def handle_file_upload(file: UploadFile, upload_path: str, public_url_base: str)
     try:
         from services.r2_service import R2Service
         r2_service = R2Service()
+        
+        # Reset file pointer to beginning
+        file.file.seek(0)
+        
         if "profilepics" in upload_path or "profile-images" in upload_path:
             folder = "profilepics"
         elif "company" in upload_path or "logos" in upload_path:
             folder = "profilepics"
         else:
             folder = "uploads"
+        
+        # Read file content
         file_content = file.file.read()
+        
+        # Upload to R2
         public_url = r2_service.upload_file(file_content, file.filename, folder)
+        
         return public_url
+        
     except Exception as e:
-        logger.error(f"File upload failed: {str(e)}")
-        raise HTTPException(status_code=500, detail="File upload failed")
+        raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")
 
 # ============================================================
 # COMPANY ENDPOINTS
@@ -177,11 +186,10 @@ async def upload_company_logo(request: Request, file: UploadFile = File(...)):
             PROFILE_IMAGE_PUBLIC_URL
         )
         
-        # Update profile
-        # Update profile
-        recruiter_service.upsert_profile({"user_id": user["id"], "company_logo_url": logo_url})
+        # Update company logo only (doesn't require company name for existing companies)
+        recruiter_service.update_company_logo(user["id"], logo_url)
         
-        return {"ok": True, "data": {"logo_url": logo_url}}
+        return {"ok": True, "data": {"avatar_url": logo_url}}
     
     except ValueError as e:
         # Validation errors should be surfaced as 400 for cleaner frontend handling.
@@ -190,6 +198,11 @@ async def upload_company_logo(request: Request, file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"Company logo upload failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.options("/profile/company-logo")
+async def upload_company_logo_options(request: Request):
+    """Handle OPTIONS preflight for company logo upload."""
+    return {"ok": True}
 
 # ============================================================
 # JOB ENDPOINTS
@@ -216,9 +229,14 @@ async def create_job(request: Request, job_data: JobCreateRequest):
         result = recruiter_service.post_job(data)
         return {"ok": True, "data": result}
     
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Create job failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Log the full error for debugging
+        import traceback
+        error_details = f"Create job failed: {str(e)}\n{traceback.format_exc()}"
+        print(error_details)  # This will show in console
+        raise HTTPException(status_code=500, detail=f"Failed to create job: {str(e)}")
 
 @router.get("/jobs")
 async def list_jobs(request: Request, page: int = 1, page_size: int = 20):
@@ -330,13 +348,24 @@ async def get_application_details(request: Request, application_id: str):
 @router.put("/applications/{application_id}/status")
 async def update_application_status(request: Request, application_id: str, status_data: dict):
     """Update application status."""
-    ensure_permission(request, "applications:update")
+    ensure_permission(request, "applications:read")
     user = get_user_from_request(request)
     
     try:
-        # This would need to be implemented in the service
-        # For now, return a placeholder
-        return {"ok": True, "message": "Application status updated"}
+        # Extract status and optional questions from request body
+        new_status = status_data.get("status")
+        questions = status_data.get("questions", [])
+        
+        if not new_status:
+            raise HTTPException(status_code=400, detail="Status is required")
+        
+        # Update the application status in the database
+        success = recruiter_service.update_application_status(application_id, new_status, questions)
+        
+        if success:
+            return {"ok": True, "message": "Application status updated successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Application not found or update failed")
     
     except Exception as e:
         logger.error(f"Update application status failed: {str(e)}")

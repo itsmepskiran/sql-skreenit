@@ -104,7 +104,14 @@ async function handleJobCreate(event) {
     }
 
     const response = await backendPost('/recruiter/jobs', payload);
+    
+    // Log response details for debugging
+    console.log('Job creation response status:', response.status);
+    console.log('Job creation response ok:', response.ok);
+
     const result = await handleResponse(response);
+
+    console.log('Job creation response:', response);
 
     // ✅ ROBUST SEARCH FOR ID
     const findId = (obj) => {
