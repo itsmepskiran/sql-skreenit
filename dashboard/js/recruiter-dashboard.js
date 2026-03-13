@@ -355,9 +355,9 @@ function renderJobs(jobs) {
                 <div style="flex: 1;">
                     <h4 class="mb-1" style="font-size:1rem; font-weight:600; color: var(--text-dark);">${job.job_title || job.title || 'No Title'}</h4>
                     <div class="text-muted small">
-                        <i class="fas fa-map-marker-alt me-1"></i> ${job.location || 'Remote'} 
+                        <i class="fas fa-map-marker-alt me-1"></i> ${job.location || 'Location not specified'} 
                         <span class="mx-2">|</span>
-                        <i class="far fa-clock me-1"></i> ${new Date(job.created_at).toLocaleDateString()}
+                        <i class="far fa-clock me-1"></i> ${job.created_at ? new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date not available'}
                     </div>
                 </div>
                 <i class="fas fa-chevron-right text-muted" style="font-size: 0.8rem;"></i>

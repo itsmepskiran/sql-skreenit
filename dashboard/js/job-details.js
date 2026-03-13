@@ -403,20 +403,19 @@ function markAsApplied() {
     if(applyBtn) {
         applyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Already Applied';
         applyBtn.disabled = true;
-        applyBtn.classList.add('btn-secondary');
+        applyBtn.classList.add('btn-success');
         applyBtn.classList.remove('btn-apply-massive');
-        applyBtn.style.background = '#22c55e';
-        applyBtn.style.borderColor = '#22c55e';
+        applyBtn.classList.remove('btn-primary');
+        applyBtn.classList.remove('btn-outline-primary');
         applyBtn.style.cursor = 'default';
     }
     
     if(quickApplyBtn) {
         quickApplyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Already Applied';
         quickApplyBtn.disabled = true;
-        quickApplyBtn.classList.add('btn-secondary');
+        quickApplyBtn.classList.add('btn-success');
+        quickApplyBtn.classList.remove('btn-outline-primary');
         quickApplyBtn.classList.remove('btn-primary');
-        quickApplyBtn.style.background = '#22c55e';
-        quickApplyBtn.style.borderColor = '#22c55e';
         quickApplyBtn.style.cursor = 'default';
     }
 }
@@ -465,9 +464,9 @@ async function renderJob(job) {
 
     setText("jobTitle", job.title || job.job_title);
     setText("companyName", displayCompany);
-    setText("jobLocation", job.location || 'Remote');
+    setText("jobLocation", job.location || 'Location not specified');
     setText("jobType", job.job_type || 'Full Time');
-    setText("postedDate", job.created_at ? new Date(job.created_at).toLocaleDateString() : '-');
+    setText("postedDate", job.created_at ? new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date not available');
     setText("salaryRange", job.salary || job.salary_range || "Not Specified");   
     const desc = document.getElementById("jobDescription");
     if(desc) desc.innerHTML = (job.description || "No description provided.").replace(/\n/g, "<br>");

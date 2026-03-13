@@ -23,7 +23,6 @@ from routers import (
     recruiter_new as recruiter,
     dashboard_new as dashboard,
     analytics,
-    notifications_new as notification,
     video
 )
 
@@ -205,7 +204,6 @@ api.include_router(applicant.router, tags=["Applicant"])
 api.include_router(recruiter.router, tags=["Recruiter"])
 api.include_router(dashboard.router, tags=["Dashboard"])
 api.include_router(analytics.router, tags=["Analytics"])
-api.include_router(notification.router, tags=["Notification"])
 api.include_router(video.router, tags=["Video"])
 
 @api.get("/health")

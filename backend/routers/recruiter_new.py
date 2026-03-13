@@ -363,6 +363,54 @@ async def update_application_status(request: Request, application_id: str, statu
         success = recruiter_service.update_application_status(application_id, new_status, questions)
         
         if success:
+            # ✅ NOTIFICATIONS: Notify candidate about status update
+            try:
+                from services.notification_service_mysql import NotificationService
+                notification_service = NotificationService()
+                
+                # Get application details to notify candidate
+                application = recruiter_service.get_application_details(application_id)
+                if application:
+                    candidate_id = application.get("candidate_id")
+                    job_title = application.get("job_title", "a position")
+                    
+                    # Create user-friendly status message
+                    status_messages = {
+                        "submitted": "received",
+                        "reviewed": "reviewed", 
+                        "shortlisted": "shortlisted",
+                        "interviewing": "selected for interview",
+                        "interview_submitted": "interview completed",
+                        "hired": "hired! 🎉",
+                        "rejected": "not selected"
+                    }
+                    
+                    status_display = status_messages.get(new_status, new_status)
+                    
+                    # Notify candidate
+                    notification_service.create_status_update_notification(
+                        candidate_id=candidate_id,
+                        job_title=job_title,
+                        status=status_display
+                    )
+                    
+                    # Special handling for interview scheduling
+                    if new_status == "interviewing":
+                        # Create additional interview notification
+                        interview_time = "ASAP"  # Could be enhanced with actual scheduling
+                        notification_service.create_interview_notification(
+                            candidate_id=candidate_id,
+                            job_title=job_title,
+                            interview_time=interview_time
+                        )
+                        logger.info(f"Interview notification sent to candidate {candidate_id}")
+                    
+                    logger.info(f"Status update notification sent to candidate {candidate_id}: {new_status}")
+                    
+            except Exception as notif_error:
+                logger.error(f"Failed to create status update notification: {str(notif_error)}")
+                # Continue without failing the main process
+            
             return {"ok": True, "message": "Application status updated successfully"}
         else:
             raise HTTPException(status_code=404, detail="Application not found or update failed")

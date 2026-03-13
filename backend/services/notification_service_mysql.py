@@ -2,6 +2,7 @@ from typing import Optional, Dict, Any, List
 from services.mysql_service import MySQLService
 from utils_others.logger import logger
 from datetime import datetime, timezone
+import uuid
 
 
 class NotificationService:
@@ -24,25 +25,31 @@ class NotificationService:
         - category
         """
         try:
+            print(f"DEBUG: Creating notification: {notif}")
             payload = {
                 "id": str(uuid.uuid4()),
-                "user_id": notif.get("created_by"),
+                "created_by": notif.get("created_by"),
                 "message": notif.get("message"),
                 "category": notif.get("category"),
-                "read": False,
+                "is_read": False,
                 "created_at": datetime.now(timezone.utc),
-                "metadata": notif.get("metadata") or {},
+                "notification_metadata": notif.get("metadata") or {},
             }
-
-            if not payload["user_id"] or not payload["message"]:
-                raise ValueError("user_id and message are required")
-
+            
+            print(f"DEBUG: Payload prepared: {payload}")
+            
+            if not payload["created_by"] or not payload["message"]:
+                raise ValueError("created_by and message are required")
+            
+            print(f"DEBUG: Inserting notification into database...")
             notification_id = self.mysql.insert_record("notifications", payload)
-
+            
+            print(f"DEBUG: Notification inserted with ID: {notification_id}")
+            
             logger.info(
                 "Notification created",
                 extra={
-                    "user_id": payload["user_id"],
+                    "user_id": payload["created_by"],
                     "category": payload["category"],
                 },
             )
@@ -65,9 +72,9 @@ class NotificationService:
         Get notifications for a specific user.
         """
         try:
-            conditions = {"user_id": user_id}
+            conditions = {"created_by": user_id}
             if unread_only:
-                conditions["read"] = False
+                conditions["is_read"] = False
 
             notifications = self.mysql.get_records(
                 "notifications",
@@ -89,7 +96,7 @@ class NotificationService:
         try:
             notification = self.mysql.get_single_record(
                 "notifications",
-                {"id": notification_id, "user_id": user_id}
+                {"id": notification_id, "created_by": user_id}
             )
             return notification
 
@@ -106,14 +113,14 @@ class NotificationService:
         """
         try:
             update_data = {
-                "read": True,
-                "read_at": datetime.now(timezone.utc)
+                "is_read": True,
+                "updated_at": datetime.now(timezone.utc)
             }
             
             success = self.mysql.update_record(
                 "notifications",
                 update_data,
-                {"id": notification_id, "user_id": user_id}
+                {"id": notification_id, "created_by": user_id}
             )
             
             if success:
@@ -131,12 +138,12 @@ class NotificationService:
         """
         try:
             update_data = {
-                "read": True,
-                "read_at": datetime.now(timezone.utc)
+                "is_read": True,
+                "updated_at": datetime.now(timezone.utc)
             }
             
             # Get all unread notifications first
-            unread = self.mysql.get_records("notifications", {"user_id": user_id, "read": False})
+            unread = self.mysql.get_records("notifications", {"created_by": user_id, "is_read": False})
             
             if not unread:
                 return 0
@@ -147,7 +154,7 @@ class NotificationService:
                 if self.mysql.update_record(
                     "notifications",
                     update_data,
-                    {"id": notification["id"], "user_id": user_id}
+                    {"id": notification["id"], "created_by": user_id}
                 ):
                     success_count += 1
             
@@ -168,7 +175,7 @@ class NotificationService:
         try:
             success = self.mysql.delete_record(
                 "notifications",
-                {"id": notification_id, "user_id": user_id}
+                {"id": notification_id, "created_by": user_id}
             )
             
             if success:
@@ -186,7 +193,7 @@ class NotificationService:
         """
         try:
             # Get all notifications first
-            notifications = self.mysql.get_records("notifications", {"user_id": user_id})
+            notifications = self.mysql.get_records("notifications", {"created_by": user_id})
             
             if not notifications:
                 return 0
@@ -194,7 +201,7 @@ class NotificationService:
             # Delete all notifications
             success_count = 0
             for notification in notifications:
-                if self.mysql.delete_record("notifications", {"id": notification["id"], "user_id": user_id}):
+                if self.mysql.delete_record("notifications", {"id": notification["id"], "created_by": user_id}):
                     success_count += 1
             
             logger.info(f"Cleared {success_count} notifications for user {user_id}")
@@ -212,7 +219,7 @@ class NotificationService:
         Get count of unread notifications for a user.
         """
         try:
-            count = self.mysql.count_records("notifications", {"user_id": user_id, "read": False})
+            count = self.mysql.count_records("notifications", {"created_by": user_id, "is_read": False})
             return count
 
         except Exception as e:
@@ -229,15 +236,15 @@ class NotificationService:
             for notif in notifications:
                 payload = {
                     "id": str(uuid.uuid4()),
-                    "user_id": notif.get("user_id"),
+                    "created_by": notif.get("user_id"),
                     "message": notif.get("message"),
                     "category": notif.get("category"),
-                    "read": False,
+                    "is_read": False,
                     "created_at": datetime.now(timezone.utc),
-                    "metadata": notif.get("metadata") or {},
+                    "notification_metadata": notif.get("metadata") or {},
                 }
                 
-                if payload["user_id"] and payload["message"]:
+                if payload["created_by"] and payload["message"]:
                     notification_id = self.mysql.insert_record("notifications", payload)
                     created_notifications.append({"data": payload, "id": notification_id})
             

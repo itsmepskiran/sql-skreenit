@@ -11,8 +11,21 @@ if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 document.addEventListener("DOMContentLoaded", async () => {
     await checkAuth();
     setupNavigation();
+    populateLocationDropdown();
     initJobEditForm();
 });
+
+function populateLocationDropdown() {
+    const locationSelect = document.getElementById("job_location");
+    if (!locationSelect) return;
+    
+    CONFIG.LOCATIONS.forEach(location => {
+        const option = document.createElement("option");
+        option.value = location;
+        option.textContent = location;
+        locationSelect.appendChild(option);
+    });
+}
 
 async function checkAuth() {
     const user = await customAuth.getUserData();
@@ -87,6 +100,8 @@ async function initJobEditForm() {
         document.getElementById("job_type").value = job.job_type || "";
         document.getElementById("job_description").value = job.description || "";
         document.getElementById("requirements").value = job.requirements || "";
+        document.getElementById("education_qualification").value = job.education_qualification || "";
+        document.getElementById("work_location_preference").value = job.work_location_preference || "";
 
         // ✅ THE FIX: Pre-select the salary range dropdown
         const salarySelect = document.getElementById("salary_range");
@@ -124,6 +139,8 @@ async function handleJobUpdate(event, jobId) {
     const salary_range = document.getElementById("salary_range").value;
     const description = document.getElementById("job_description").value.trim();
     const requirements = document.getElementById("requirements").value.trim();
+    const education_qualification = document.getElementById("education_qualification").value;
+    const work_location_preference = document.getElementById("work_location_preference").value;
 
     // ✅ THE FIX: Correctly parse salary from dropdown
     let salary_min = null;
@@ -136,7 +153,8 @@ async function handleJobUpdate(event, jobId) {
     }
 
     const payload = {
-      job_title, location, job_type, salary_min, salary_max, description, requirements, status: 'active'
+      job_title, location, job_type, salary_min, salary_max, description, requirements, 
+      education_qualification, work_location_preference, status: 'active'
     };
 
     const response = await backendPut(`/recruiter/jobs/${jobId}`, payload);

@@ -11,10 +11,23 @@ if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
 document.addEventListener("DOMContentLoaded", async () => {
     await checkAuth();
     setupNavigation();
-
+    populateLocationDropdown();
+    
     const form = document.getElementById("createJobForm");
     if(form) form.addEventListener("submit", handleJobCreate);
 });
+
+function populateLocationDropdown() {
+    const locationSelect = document.getElementById("job_location");
+    if (!locationSelect) return;
+    
+    CONFIG.LOCATIONS.forEach(location => {
+        const option = document.createElement("option");
+        option.value = location;
+        option.textContent = location;
+        locationSelect.appendChild(option);
+    });
+}
 
 async function checkAuth() {
     const user = await customAuth.getUserData();
@@ -88,9 +101,12 @@ async function handleJobCreate(event) {
     const salary_range = document.getElementById("salary_range").value; 
     const description = document.getElementById("job_description").value.trim();
     const requirements = document.getElementById("requirements").value.trim();
+    const education_qualification = document.getElementById("education_qualification").value;
+    const work_location_preference = document.getElementById("work_location_preference").value;
 
     const payload = {
       job_title, location, job_type, description, requirements,
+      education_qualification, work_location_preference,
       currency: "INR", status: "active" 
     };
 

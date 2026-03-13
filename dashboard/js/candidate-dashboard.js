@@ -162,7 +162,7 @@ function renderApplications(apps) {
                         </span>
                     </div>
                     <small class="text-muted" style="display:block; margin-bottom: 0.5rem;">
-                        <i class="far fa-clock me-1"></i> Applied: ${new Date(app.applied_at).toLocaleDateString()}
+                        <i class="far fa-clock me-1"></i> Applied: ${app.applied_at ? new Date(app.applied_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date not available'}
                     </small>
                     ${actionButton}
                 </div>
@@ -186,7 +186,7 @@ function renderJobs(jobs) {
                 <p class="text-muted" style="margin:0 0 12px 0; font-size:0.9rem;">${job.company_name || 'Hiring Company'}</p>
                 
                 <p class="text-muted" style="font-size:0.85rem; margin:0 0 1rem 0;">
-                    <i class="fas fa-map-marker-alt me-1"></i> ${job.location || 'Remote'}
+                    <i class="fas fa-map-marker-alt me-1"></i> ${job.location || 'Location not specified'}
                     <span style="margin: 0 8px;">|</span>
                     <span class="badge" style="background:#f1f5f9; color:#475569; font-weight:500;">${job.job_type}</span>
                 </p>
@@ -245,7 +245,7 @@ async function viewMyResponse(applicationId) {
             <div class="card mb-3 border-0 bg-light">
                 <div class="card-header bg-white border-bottom-0 pt-3">
                     <strong class="text-primary">Question ${i + 1}:</strong> ${resp.question || 'Interview Question'}
-                    <div class="small text-muted float-end">${new Date(resp.recorded_at || Date.now()).toLocaleDateString()}</div>
+                    <div class="small text-muted float-end">${resp.recorded_at ? new Date(resp.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date not available'}</div>
                 </div>
                 <div class="card-body p-0">
                     <div class="ratio ratio-16x9">
@@ -441,13 +441,12 @@ function setupEventListeners() {
         });
     }
 
-    // Active Jobs card - redirect to My Jobs listing page
+    // Active Jobs card - redirect to Public Jobs listing page
     const activeJobsCard = document.getElementById('btnActiveJobs');
     if (activeJobsCard) {
         activeJobsCard.style.cursor = 'pointer';
         activeJobsCard.addEventListener('click', () => {
-            // Redirect to My Jobs listing page (public jobs page)
-            window.location.href = CONFIG.PAGES.MY_JOBS;
+            window.location.href = CONFIG.PAGES.JOBS;
         });
     }
 

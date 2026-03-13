@@ -1194,17 +1194,29 @@ class CandidateService(MySQLService):
             jobs = {}
             
             if job_ids:
-                job_list = db.query(Job.id, Job.job_title, Job.location, Job.job_type)\
-                .filter(Job.id.in_(job_ids)).all()
+                job_list = db.query(Job.id, Job.job_title, Job.location, Job.job_type, Job.company_id)\
+                    .filter(Job.id.in_(job_ids)).all()
                 jobs = {j.id: {
                     "title": j.job_title,
                     "location": j.location,
-                    "job_type": j.job_type
+                    "job_type": j.job_type,
+                    "company_id": j.company_id
                 } for j in job_list}
+            
+            # Get company names from companies table
+            company_ids = list(set(job.get("company_id") for job in jobs.values() if job.get("company_id")))
+            companies = {}
+            if company_ids:
+                company_list = db.query(Company.id, Company.name)\
+                    .filter(Company.id.in_(company_ids)).all()
+                companies = {c.id: c.name for c in company_list}
             
             results = []
             for app in applications:
                 job_info = jobs.get(app.job_id, {})
+                company_id = job_info.get("company_id")
+                company_name = companies.get(company_id, "Hiring Company")
+                
                 results.append({
                     "id": app.id,
                     "job_id": app.job_id,
@@ -1212,12 +1224,11 @@ class CandidateService(MySQLService):
                     "applied_at": app.applied_at.isoformat() if app.applied_at else None,
                     "job_title": job_info.get("title"),
                     "location": job_info.get("location"),
-                    "job_type": job_info.get("job_type")
+                    "job_type": job_info.get("job_type"),
+                    "company_name": company_name
                 })
             
             return results
-
-
 # ============================================================
 # DASHBOARD SERVICE
 # ============================================================

@@ -2,6 +2,10 @@ import { customAuth } from '@shared/js/auth-config.js';;
 import { backendGet, backendDelete, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import '@shared/js/mobile.js';
+
+// Cache busting - force reload
+console.log('my-jobs.js loaded at:', new Date().toISOString());
+
 const isLocal = CONFIG.IS_LOCAL;
 const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
 const logoImg = document.getElementById('logoImg');
@@ -193,7 +197,9 @@ function renderJobs(jobs) {
     }
 
     // 4. Generate the Grid HTML
+    console.log('DEBUG: Jobs data for display:', jobs);
     container.innerHTML = jobs.map(job => {
+        console.log('DEBUG: Single job data:', job);
         const status = (job.status || 'active').toLowerCase();
         
         return `
@@ -201,7 +207,7 @@ function renderJobs(jobs) {
     
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <span class="job-status-badge status-${status}">${status}</span>
-        <small class="text-muted"><i class="far fa-calendar-alt"></i> ${new Date(job.created_at).toLocaleDateString()}</small>
+        <small class="text-muted"><i class="far fa-calendar-alt"></i> ${job.created_at ? (() => { try { const date = new Date(job.created_at); return isNaN(date.getTime()) ? 'Invalid date' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch(e) { return 'Date error'; } })() : 'Date not available'}</small>
     </div>
     
     <div style="display: flex; gap: 15px; margin-bottom: 1.5rem;">
@@ -210,7 +216,7 @@ function renderJobs(jobs) {
         <div style="flex: 1;">
             <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; color: var(--text-dark); font-weight: 700;">${job.job_title || job.title || 'No Title'}</h3>
             <p style="color: var(--text-light); font-size: 0.85rem; margin: 0;">
-                <i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i> ${job.location || 'Remote'}
+                <i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i> ${job.location || 'Location not specified'}
             </p>
         </div>
     </div>

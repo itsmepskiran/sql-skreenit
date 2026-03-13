@@ -203,9 +203,11 @@ async def get_candidate_applications(request: Request, page: int = 1, page_size:
 # PUBLIC DASHBOARD ENDPOINTS
 # ============================================================
 
+# TRULY PUBLIC JOBS ENDPOINT (NO AUTH REQUIRED)
+# ============================================================
 @router.get("/jobs")
-async def get_public_jobs(request: Request, search: Optional[str] = None, page: int = 1, page_size: int = 20):
-    """Get public jobs for dashboard."""
+async def get_public_jobs_no_auth(request: Request, search: Optional[str] = None, page: int = 1, page_size: int = 20):
+    """Get public jobs without authentication requirement."""
     try:
         jobs = dashboard_service.list_public_jobs(search)
         
@@ -225,7 +227,7 @@ async def get_public_jobs(request: Request, search: Optional[str] = None, page: 
                 }
             }
         }
-    
+        
     except Exception as e:
         logger.error(f"Get public jobs failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

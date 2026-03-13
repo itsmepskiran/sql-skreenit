@@ -70,5 +70,30 @@ export const CONFIG = {
         APP: isLocal ? '/app/index.html' : 'https://app.skreenit.com/index.html',
         IN: isLocal ? '/in/index.html' : 'https://in.skreenit.com/index.html',
         JOBS: isLocal ? '/jobs/jobs.html' : 'https://jobs.skreenit.com/jobs.html'
-    }
+    },
+    
+    // Common Locations for Job Posting
+    LOCATIONS: [
+        "Remote",
+        "Bangalore, Karnataka",
+        "Mumbai, Maharashtra", 
+        "Delhi, NCR",
+        "Hyderabad, Telangana",
+        "Pune, Maharashtra",
+        "Chennai, Tamil Nadu",
+        "Kolkata, West Bengal",
+        "Ahmedabad, Gujarat",
+        "Jaipur, Rajasthan",
+        "Chandigarh",
+        "Indore, Madhya Pradesh",
+        "Nagpur, Maharashtra",
+        "Kochi, Kerala",
+        "Coimbatore, Tamil Nadu",
+        "Visakhapatnam, Andhra Pradesh",
+        "Thiruvananthapuram, Kerala",
+        "Goa",
+        "Lucknow, Uttar Pradesh",
+        "Gurgaon, Haryana",
+        "Noida, Uttar Pradesh"
+    ]
 };

@@ -155,6 +155,8 @@ class Job(Base):
     salary_max: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     currency: Mapped[str] = mapped_column(VARCHAR(10), default="INR")
     is_remote: Mapped[bool] = mapped_column(Boolean, default=False)
+    education_qualification: Mapped[Optional[str]] = mapped_column(VARCHAR(50), nullable=True)
+    work_location_preference: Mapped[Optional[str]] = mapped_column(VARCHAR(50), nullable=True)
     status: Mapped[str] = mapped_column(Enum("active", "closed", "draft", name="job_status"), default="active", index=True)
     skills: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
     company_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)

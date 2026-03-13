@@ -50,7 +50,10 @@ class RecruiterService:
                     {
                         "id": job.get("id"),
                         "job_title": job.get("job_title"),
+                        "location": job.get("location"),
+                        "job_type": job.get("job_type"),
                         "status": job.get("status"),
+                        "created_at": job.get("created_at").isoformat() if job.get("created_at") else None,
                         "updated_at": job.get("updated_at").isoformat() if job.get("updated_at") else None
                     }
                     for job in (jobs or [])

@@ -68,8 +68,14 @@
     </nav>
 
     <main class="main-content dashb">
-      <header class="dashboard-header" style="justify-content: flex-end;">
+      <header class="dashboard-header" style="justify-content: space-between;">
         <h1>Welcome Back!</h1>
+        <div class="header-actions">
+          <button class="icon-btn" id="notificationBtn" style="position: relative;">
+            <i class="far fa-bell"></i>
+            <span id="notificationBadge" class="notification-badge" style="display: none;"></span>
+          </button>
+        </div>
       </header>
 
       <div class="dashboard-content">

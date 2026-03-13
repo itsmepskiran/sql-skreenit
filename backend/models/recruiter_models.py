@@ -65,6 +65,8 @@ class JobBase(BaseModel):
     
     currency: Optional[str] = "INR"
     is_remote: Optional[bool] = False
+    education_qualification: Optional[str] = None
+    work_location_preference: Optional[str] = None
     status: Optional[str] = "active"
 
 class JobCreateRequest(JobBase):
@@ -87,4 +89,6 @@ class JobUpdateRequest(BaseModel):
     salary_max: Optional[int] = None
     currency: Optional[str] = None
     is_remote: Optional[bool] = None
+    education_qualification: Optional[str] = None
+    work_location_preference: Optional[str] = None
     status: Optional[str] = None

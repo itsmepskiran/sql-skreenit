@@ -272,6 +272,54 @@ async def apply_for_job(request: Request, payload: ApplicationCreate):
         data["candidate_id"] = user["sub"]
         
         result = candidate_service.submit_application(data)
+        
+        # ✅ NOTIFICATIONS: Create notifications for both recruiter and candidate
+        try:
+            notification_service = NotificationService()
+            
+            # Get job details to include in notifications
+            job_id = data.get("job_id")
+            job_details = None
+            try:
+                # Get job details
+                recruiter_service = RecruiterService()
+                jobs_response = recruiter_service.list_jobs(user_id=None, page=1, page_size=1000)
+                all_jobs = jobs_response.get("jobs", [])
+                job_details = next((job for job in all_jobs if job.get("id") == job_id), None)
+            except Exception as job_error:
+                logger.warning(f"Could not fetch job details for notification: {str(job_error)}")
+            
+            # Get candidate name
+            candidate_name = user.get("name") or user.get("email", "Unknown").split("@")[0]
+            job_title = job_details.get("job_title", "a position") if job_details else "a position"
+            recruiter_id = job_details.get("created_by") if job_details else None
+            
+            # 1. Notify recruiter about new application
+            if recruiter_id:
+                notification_service.create_application_notification(
+                    recruiter_id=recruiter_id,
+                    candidate_name=candidate_name,
+                    job_title=job_title
+                )
+                logger.info(f"Notification sent to recruiter {recruiter_id} for new application")
+            
+            # 2. Notify candidate about application received
+            notification_service.create_notification({
+                "created_by": user["sub"],
+                "message": f"Your application for {job_title} has been received successfully!",
+                "category": "application_received",
+                "metadata": {
+                    "type": "application_received",
+                    "job_id": job_id,
+                    "job_title": job_title
+                }
+            })
+            logger.info(f"Confirmation notification sent to candidate {user['sub']}")
+            
+        except Exception as notif_error:
+            logger.error(f"Failed to create application notifications: {str(notif_error)}")
+            # Continue without failing the main application process
+        
         return {"ok": True, "data": result}
     
     except Exception as e:
@@ -659,8 +707,6 @@ async def get_candidate_videos(request: Request):
     except Exception as e:
         logger.error(f"Get videos failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
-# ============================================================
 # PUBLIC JOBS ENDPOINTS
 # ============================================================
 
@@ -668,6 +714,11 @@ async def get_candidate_videos(request: Request):
 async def get_public_jobs(request: Request, search: Optional[str] = None):
     """Get public jobs list."""
     try:
+        # Check if user is authenticated
+        auth_header = request.headers.get("authorization")
+        if not auth_header:
+            raise HTTPException(status_code=401, detail="Authentication required to view jobs")
+        
         jobs = dashboard_service.list_public_jobs(search)
         return {"ok": True, "data": jobs}
     
