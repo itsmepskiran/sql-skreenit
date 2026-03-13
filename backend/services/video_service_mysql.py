@@ -194,6 +194,33 @@ class VideoService:
     # ---------------------------------------------------------
     def save_interview_response(
         self,
+        interview_response: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Save a video interview response for a specific question.
+        This method handles the data structure from the interview recording system.
+        """
+        try:
+            payload = {
+                "application_id": interview_response.get("application_id"),
+                "candidate_id": interview_response.get("candidate_id"),
+                "question": interview_response.get("question"),
+                "video_url": interview_response.get("video_url"),
+                "status": interview_response.get("status", "pending_review")
+            }
+
+            # Insert into interview_responses table
+            response_id = self.mysql.insert_record("interview_responses", payload)
+            
+            logger.info(f"Video interview response saved for application {interview_response.get('application_id')}")
+            return {"data": payload, "id": response_id}
+
+        except Exception as e:
+            logger.error(f"Save video interview response failed: {str(e)}")
+            raise RuntimeError("Failed to save video interview response")
+
+    def save_interview_response_text(
+        self,
         application_id: str,
         question_id: str,
         response_text: str,

@@ -151,7 +151,7 @@ class RecruiterService:
                 
                 # Get intro videos - handle if table doesn't exist  
                 try:
-                    videos = self.mysql.get_records("intro_videos", {"candidate_id": candidate_ids})
+                    videos = self.mysql.get_records("candidate_videos", {"candidate_id": candidate_ids, "video_type": "intro"})
                     for video in videos or []:
                         video_map[video["candidate_id"]] = video
                 except Exception as e:
@@ -194,6 +194,9 @@ class RecruiterService:
                         app["custom_answers"] = profile.get("custom_answers", [])
                         app["ai_score"] = profile.get("ai_score")
                         
+                        # Add intro video URL from application if available
+                        app["intro_video_url"] = app.get("intro_video_url")
+                        
                         # Debug logging to see what profile fields are available
                         if not app["resume_url"]:
                             print(f"DEBUG: No resume found for candidate {app['candidate_id']}. Available fields: {list(profile.keys())}")
@@ -229,80 +232,30 @@ class RecruiterService:
             print(f"DEBUG: Updating application {application_id} to status {new_status}")
             print(f"DEBUG: Questions provided: {questions}")
             
-            # Use raw MySQL like get_recruiter_applications method
+            # Get the application first to verify it exists
+            applications = self.mysql.get_records("job_applications", {"id": application_id})
+            if not applications:
+                print(f"DEBUG: Application {application_id} not found")
+                return False
+            
+            # Prepare update data
             update_data = {
-                "status": new_status,
-                "updated_at": datetime.utcnow()
+                "status": new_status
             }
             
-            # If questions are provided, save them as separate records in interview_questions table
+            # If questions are provided, save them in the application's interview_questions JSON field
             if questions and len(questions) > 0:
-                # First get the application details to get job_id and candidate_id
-                applications = self.mysql.get_records("job_applications", {"id": application_id})
-                if not applications:
-                    print(f"DEBUG: Application {application_id} not found for saving questions")
-                    return False
-                
-                app = applications[0]
-                job_id = app.get("job_id")
-                candidate_id = app.get("candidate_id")
-                
-                print(f"DEBUG: Saving {len(questions)} interview questions for job_id: {job_id}, candidate_id: {candidate_id}")
-                
-                # Delete any existing interview questions for this application
-                # We'll use job_id + candidate_id combination to identify application-specific questions
-                existing_questions = self.mysql.get_records("interview_questions", {
-                    "job_id": job_id, 
-                    "candidate_id": candidate_id
-                })
-                
-                if existing_questions:
-                    print(f"DEBUG: Deleting {len(existing_questions)} existing questions for this application")
-                    for q in existing_questions:
-                        self.mysql.delete_record("interview_questions", {"id": q["id"]})
-                
-                # Save new questions as separate records
-                for i, question_text in enumerate(questions):
-                    question_data = {
-                        "job_id": job_id,
-                        "question_order": i + 1,
-                        # Note: SQL schema only has question_id, not question_text
-                        # We'll store the text in question_id if it's short, or just skip for now
-                        # to avoid "Unknown column" errors until schema is fixed.
-                    }
-                    
-                    question_id_db = self.mysql.insert_record("interview_questions", question_data)
-                    print(f"DEBUG: Saved question {i+1} with ID: {question_id_db}")
-                
-                print(f"DEBUG: Successfully saved {len(questions)} interview questions")
-            else:
-                print(f"DEBUG: No questions to save")
-            
-            print(f"DEBUG: Update data: {update_data}")
+                print(f"DEBUG: Saving {len(questions)} interview questions to application {application_id}")
+                update_data["interview_questions"] = questions
             
             # Update the application
-            result = self.mysql.update_record("job_applications", update_data, {"id": application_id})
-            print(f"DEBUG: Update result: {result}")
+            success = self.mysql.update_record("job_applications", 
+                update_data, {"id": application_id})
             
-            if result:
+            if success:
                 print(f"DEBUG: Successfully updated application {application_id} status to {new_status}")
-                
-                # Verify the questions were saved by reading them back
                 if questions and len(questions) > 0:
-                    try:
-                        applications = self.mysql.get_records("job_applications", {"id": application_id})
-                        if applications:
-                            app = applications[0]
-                            saved_questions = self.mysql.get_records("interview_questions", {
-                                "job_id": app.get("job_id"), 
-                                "candidate_id": app.get("candidate_id")
-                            })
-                            print(f"DEBUG: Verification - saved questions in DB: {len(saved_questions)} records")
-                            for q in saved_questions:
-                                print(f"  - Question {q.get('question_order')}: {q.get('question_text')}")
-                    except Exception as verify_err:
-                        print(f"DEBUG: Could not verify saved questions: {verify_err}")
-                
+                    print(f"DEBUG: Successfully saved {len(questions)} interview questions")
                 return True
             else:
                 print(f"DEBUG: Failed to update application {application_id}")
@@ -568,6 +521,14 @@ class RecruiterService:
             application = self._fetch_candidate_application(candidate_id, job_id) if job_id else None
             resume_url = self._get_resume_signed_url(profile) if profile else None
             intro_video = self._fetch_intro_video(candidate_id)
+            
+            # Get intro video URL from application if available
+            intro_video_url = None
+            if application and application.get("intro_video_url"):
+                intro_video_url = application.get("intro_video_url")
+            elif intro_video:
+                intro_video_url = intro_video.get("video_url")
+                
             job_videos = self._fetch_job_video_responses(candidate_id, job_id) if job_id else []
             
             return {
@@ -575,6 +536,7 @@ class RecruiterService:
                 "application": application,
                 "resume_url": resume_url,
                 "intro_video": intro_video,
+                "intro_video_url": intro_video_url,
                 "job_videos": job_videos
             }
         except Exception as e:
@@ -595,7 +557,7 @@ class RecruiterService:
         return f"/storage/resumes/{path}" if path else None
 
     def _fetch_intro_video(self, candidate_id: str):
-        return self.mysql.get_single_record("intro_videos", {"candidate_id": candidate_id})
+        return self.mysql.get_single_record("candidate_videos", {"candidate_id": candidate_id, "video_type": "intro"})
 
     def _fetch_job_video_responses(self, candidate_id: str, job_id: Optional[str]) -> List[Dict[str, Any]]:
         if not job_id: return []

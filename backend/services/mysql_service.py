@@ -1197,7 +1197,7 @@ class CandidateService(MySQLService):
                 job_list = db.query(Job.id, Job.job_title, Job.location, Job.job_type)\
                 .filter(Job.id.in_(job_ids)).all()
                 jobs = {j.id: {
-                    "title": j.title,
+                    "title": j.job_title,
                     "location": j.location,
                     "job_type": j.job_type
                 } for j in job_list}
@@ -1553,6 +1553,43 @@ class VideoService(MySQLService):
                 "video_url": response.video_url,
                 "status": response.status,
                 "recorded_at": response.recorded_at.isoformat()
+            }
+    
+    def save_interview_response(self, interview_response: Dict[str, Any]) -> Dict[str, Any]:
+        """Save a video interview response for a specific question."""
+        with self.session_factory() as db:
+            # Get job_id from application
+            application = db.query(JobApplication).filter(
+                JobApplication.id == interview_response.get("application_id")
+            ).first()
+            
+            if not application:
+                raise ValueError(f"Application {interview_response.get('application_id')} not found")
+            
+            response = VideoResponse(
+                id=generate_uuid(),
+                job_id=application.job_id,
+                application_id=interview_response.get("application_id"),
+                candidate_id=interview_response.get("candidate_id"),
+                question=interview_response.get("question"),
+                video_url=interview_response.get("video_url") or f"https://storage.skreenit.com/datastorage/{interview_response.get('video_path', '')}",
+                video_path=interview_response.get("video_path", ""),
+                question_index=interview_response.get("question_index", 0)
+            )
+            db.add(response)
+            db.commit()
+            db.refresh(response)
+            
+            logger.info(f"Video interview response saved for application {interview_response.get('application_id')}")
+            return {
+                "id": response.id,
+                "application_id": response.application_id,
+                "candidate_id": response.candidate_id,
+                "question": response.question,
+                "video_url": response.video_url,
+                "video_path": response.video_path,
+                "question_index": response.question_index,
+                "created_at": response.created_at.isoformat()
             }
     
     def save_intro_video(self, data: Dict[str, Any]) -> Dict[str, Any]:

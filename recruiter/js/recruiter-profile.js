@@ -349,11 +349,14 @@ function setupNavigation() {
                 const formData = new FormData();
                 formData.append('file', file);
                 
-                // Don't set Authorization header for file uploads - let middleware handle it
+                const {data: {session}} = await customAuth.getSession();
+                const token = session?.access_token;
                 const response = await fetch('/api/v1/recruiter/profile/company-logo', {
                     method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: formData
-                    // No headers - let browser set Content-Type for FormData
                 });
                 
                 if (!response.ok) {

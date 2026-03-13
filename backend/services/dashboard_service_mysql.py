@@ -274,3 +274,61 @@ class DashboardService:
         except Exception as e:
             logger.error(f"Mark notification read failed: {str(e)}")
             return False
+    # Add this inside the DashboardService class
+    def list_public_jobs(self, search: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List active jobs for the public job board."""
+        try:
+            conditions = {"status": "active"}
+            # Fetch active jobs
+            jobs = self.mysql.get_records("jobs", conditions, order_by="created_at DESC")
+            if not jobs:
+                return []
+                
+            # Fetch company details to append company names
+            company_ids = list(set(j["company_id"] for j in jobs if j.get("company_id")))
+            companies_map = {}
+            if company_ids:
+                companies = self.mysql.get_records("companies", {"id": company_ids})
+                companies_map = {c["id"]: c["name"] for c in (companies or [])}
+                
+            # Enrich job data with skills from jobs table
+            for job in jobs:
+                job["company_name"] = companies_map.get(job["company_id"], "Unknown Company")
+                # Skills are now stored directly in the jobs table as JSON
+                job["skills"] = job.get("skills", [])  # Get skills from jobs table or empty array
+                
+            # Basic text search filter
+            if search:
+                search_lower = search.lower()
+                jobs = [
+                    j for j in jobs 
+                    if search_lower in j.get("job_title", "").lower() 
+                    or search_lower in j.get("company_name", "").lower()
+                ]
+                
+            return jobs
+        except Exception as e:
+            logger.error(f"List public jobs failed: {str(e)}")
+            return []
+
+    def get_public_job(self, job_id: str) -> Optional[Dict[str, Any]]:
+        """Get details for a single public job."""
+        try:
+            job = self.mysql.get_single_record("jobs", {"id": job_id, "status": "active"})
+            if not job:
+                return None
+                
+            # Enrich with company and skills
+            if job.get("company_id"):
+                company = self.mysql.get_single_record("companies", {"id": job["company_id"]})
+                if company:
+                    job["company_name"] = company.get("name")
+                    job["company_logo_url"] = company.get("logo_url")
+                    
+            skills = self.mysql.get_records("job_skills", {"job_id": job_id})
+            job["skills"] = [s["skill_name"] for s in (skills or [])]
+            
+            return job
+        except Exception as e:
+            logger.error(f"Get public job failed: {str(e)}")
+            return None

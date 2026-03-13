@@ -156,6 +156,7 @@ class Job(Base):
     currency: Mapped[str] = mapped_column(VARCHAR(10), default="INR")
     is_remote: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(Enum("active", "closed", "draft", name="job_status"), default="active", index=True)
+    skills: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
     company_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
     created_by: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -202,15 +203,19 @@ class JobApplication(Base):
     """Job application from candidate."""
     __tablename__ = "job_applications"
     
-    id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
-    job_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
-    candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    cover_letter: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    intro_video_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
-    resume_url: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
-    custom_answers: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
-    status: Mapped[str] = mapped_column(Enum("submitted", "reviewed", "shortlisted", "interview_scheduled", "interviewing", "hired", "rejected", name="application_status"), default="submitted", index=True)
-    ai_score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    job_id: Mapped[str] = mapped_column(String(36), ForeignKey("jobs.id"))
+    candidate_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"))
+    cover_letter: Mapped[Optional[str]] = mapped_column(Text)
+    intro_video_url: Mapped[Optional[str]] = mapped_column(String(500))
+    resume_url: Mapped[Optional[str]] = mapped_column(String(500))
+    custom_answers: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON)
+    interview_questions: Mapped[Optional[List[str]]] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(
+        Enum("submitted", "reviewed", "shortlisted", "interview_scheduled", "interviewing", "hired", "rejected", name="application_status"),
+        default="submitted"
+    )
+    ai_score: Mapped[Optional[int]] = mapped_column(Integer)
     applied_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -225,10 +230,10 @@ class VideoResponse(Base):
     __tablename__ = "video_responses"
     
     id: Mapped[str] = mapped_column(VARCHAR(36), primary_key=True, default=generate_uuid)
-    job_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
+    job_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("jobs.id"), nullable=False)
     application_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("job_applications.id", ondelete="CASCADE"), nullable=False, index=True)
     candidate_id: Mapped[str] = mapped_column(VARCHAR(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    question_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), ForeignKey("interview_questions.id", ondelete="SET NULL"), nullable=True, index=True)
+    question_id: Mapped[Optional[str]] = mapped_column(VARCHAR(36), nullable=True)
     question: Mapped[str] = mapped_column(Text, nullable=False)
     video_url: Mapped[str] = mapped_column(VARCHAR(500), nullable=False)
     video_path: Mapped[str] = mapped_column(VARCHAR(500), nullable=False)

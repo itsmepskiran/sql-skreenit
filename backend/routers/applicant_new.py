@@ -347,8 +347,11 @@ async def get_interview_questions(request: Request, application_id: str):
         # logger.info(f"Getting application for ID: {application_id}")
         
         # Use recruiter service to get application by ID
-        application = recruiter_service.get_application_by_id(application_id)
-        # logger.info(f"Application found: {application is not None}")
+        application_data = recruiter_service.get_application_by_id(application_id)
+        # logger.info(f"Application found: {application_data is not None}")
+        
+        # Extract the actual application from the nested structure
+        application = application_data.get("application") if application_data else None
         
         if application:
             # logger.info(f"Application data keys: {list(application.keys())}")
@@ -365,7 +368,7 @@ async def get_interview_questions(request: Request, application_id: str):
                         # Get all applications for this candidate for this job
                         candidate_applications = recruiter_service.mysql.get_records(
                             "job_applications", 
-                            {"candidate_id": user["id"], "job_id": application_id}
+                            {"candidate_id": user["sub"], "job_id": application_id}
                         )
                         if candidate_applications:
                             application = candidate_applications[0]  # Use first found
@@ -383,7 +386,7 @@ async def get_interview_questions(request: Request, application_id: str):
                                     ],
                                     "job_title": job.get("title", "Unknown Position"),
                                     "application_id": application_id,
-                                    "candidate_id": user["id"],
+                                    "candidate_id": user["sub"],
                                     "note": f"No application found for this candidate and job {application_id}"
                                 }
                             }
@@ -396,7 +399,7 @@ async def get_interview_questions(request: Request, application_id: str):
             
             # CRITICAL: Verify application ownership
             application_candidate_id = application.get("candidate_id")
-            logged_in_candidate_id = user["id"]
+            logged_in_candidate_id = user["sub"]
             # logger.info(f"Application candidate_id: {application_candidate_id}")
             # logger.info(f"Logged-in candidate_id: {logged_in_candidate_id}")
             
@@ -417,6 +420,9 @@ async def get_interview_questions(request: Request, application_id: str):
                         "note": f"SECURITY: This application belongs to candidate {application_candidate_id}, not {logged_in_candidate_id}"
                     }
                 }
+            else:
+                # Ownership check passed - candidate {application_candidate_id} == logged_in {logged_in_candidate_id}
+                pass
         else:
             # logger.warning(f"Application is None or empty")
             pass
@@ -433,7 +439,7 @@ async def get_interview_questions(request: Request, application_id: str):
                     ],
                     "job_title": "Senior Developer Position",
                     "application_id": application_id,
-                    "candidate_id": user["id"],
+                    "candidate_id": user["sub"],
                     "note": "Using mock data - application not found"
                 }
             }
@@ -466,55 +472,66 @@ async def get_interview_questions(request: Request, application_id: str):
                         "Describe a challenging situation you've faced at work",
                         "Where do you see yourself in 5 years?"
                     ],
-                    "job_title": application.get("job_title", "Unknown Position"),
+                    "job_title": application_data.get("job", {}).get("job_title") if application_data and application_data.get("job") else "Unknown Position",
                     "application_id": application_id,
-                    "candidate_id": user["id"],
+                    "candidate_id": user["sub"],
                     "note": "Using mock data - job_id not found"
                 }
             }
         
         # Fetch interview questions from the database
         try:
-            # logger.info(f"Fetching interview questions for job_id: {job_id}")
-            # Use the recruiter service to get interview questions
-            interview_questions = recruiter_service.mysql.get_records(
-                "interview_questions", 
-                filters={"job_id": job_id},
-                order_by="question_order ASC"
-            )
+            # logger.info(f"Fetching interview questions for application_id: {application_id}")
             
-            # logger.info(f"Found {len(interview_questions)} interview questions in database")
+            # First check if the application has interview_questions in JSON field
+            application_questions = application.get("interview_questions")
             
-            if not interview_questions:
-                # logger.warning(f"No interview questions found for job_id: {job_id}, using mock data")
-                return {
-                    "data": {
-                        "interview_questions": [
-                            "Tell me about yourself and your experience",
-                            "Why do you want to work for our company?",
-                            "What are your greatest strengths?",
-                            "Describe a challenging situation you've faced at work",
-                            "Where do you see yourself in 5 years?"
-                        ],
-                        "job_title": application.get("job_title", "Unknown Position"),
-                        "application_id": application_id,
-                        "candidate_id": user["id"],
-                        "note": f"Using mock data - no questions found for job_id: {job_id}"
+            if application_questions and len(application_questions) > 0:
+                # logger.info(f"Found {len(application_questions)} interview questions in application JSON field")
+                questions_list = application_questions
+            else:
+                # Fallback to the interview_questions table (for job-level questions)
+                # logger.info(f"No questions in application, checking interview_questions table for job_id: {job_id}")
+                interview_questions = recruiter_service.mysql.get_records(
+                    "interview_questions", 
+                    {"job_id": job_id},
+                    order_by="question_order ASC"
+                )
+                
+                # logger.info(f"Found {len(interview_questions)} interview questions in database")
+                
+                if not interview_questions:
+                    # logger.warning(f"No interview questions found for job_id: {job_id}, using mock data")
+                    return {
+                        "data": {
+                            "interview_questions": [
+                                "Tell me about yourself and your experience",
+                                "Why do you want to work for our company?",
+                                "What are your greatest strengths?",
+                                "Describe a challenging situation you've faced at work",
+                                "Where do you see yourself in 5 years?"
+                            ],
+                            "job_title": application_data.get("job", {}).get("job_title") if application_data and application_data.get("job") else "Unknown Position",
+                            "application_id": application_id,
+                            "candidate_id": user["sub"],
+                            "note": f"Using mock data - no questions found for job_id: {job_id}"
+                        }
                     }
-                }
+                
+                # Extract question text from the records
+                questions_list = [q["question"] for q in interview_questions]
+                # logger.info(f"Extracted questions: {questions_list}")
             
-            # Extract question text from the records
-            questions_list = [q["question"] for q in interview_questions]
-            # logger.info(f"Extracted questions: {questions_list}")
+            # logger.info(f"Final questions list: {questions_list}")
             
             # logger.info(f"Loaded {len(questions_list)} real interview questions for job_id: {job_id}")
             
             return {
                 "data": {
                     "interview_questions": questions_list,
-                    "job_title": application.get("job_title", "Unknown Position"),
+                    "job_title": application_data.get("job", {}).get("job_title") if application_data and application_data.get("job") else application.get("job_title", "Unknown Position"),
                     "application_id": application_id,
-                    "candidate_id": user["id"],
+                    "candidate_id": user["sub"],
                     "job_id": job_id,
                     "question_count": len(questions_list),
                     "note": "Using real database questions"
@@ -533,9 +550,9 @@ async def get_interview_questions(request: Request, application_id: str):
                         "Describe a challenging situation you've faced at work",
                         "Where do you see yourself in 5 years?"
                     ],
-                    "job_title": application.get("job_title", "Unknown Position"),
+                    "job_title": application_data.get("job", {}).get("job_title") if application_data and application_data.get("job") else "Unknown Position",
                     "application_id": application_id,
-                    "candidate_id": user["id"],
+                    "candidate_id": user["sub"],
                     "note": f"Using mock data due to database error: {str(db_error)}"
                 }
             }
@@ -777,19 +794,17 @@ async def save_response_metadata(
             # Prepare data for database
             interview_response = {
                 "application_id": application_id,
-                "candidate_id": user["id"],
+                "candidate_id": user["sub"],
                 "question": question,
                 "video_path": video_path,
                 "question_index": question_index,
-                "video_url": response_data.get("video_url"),  # R2 URL if available
-                "created_at": datetime.utcnow().isoformat(),
-                "status": "uploaded"
+                "video_url": response_data.get("url")  # R2 URL from upload response
             }
             
             # Use video_service to save to database
             result = video_service.save_interview_response(interview_response)
             
-            logger.info(f"Interview response saved to database: application_id={application_id}, candidate_id={user['id']}, question_index={question_index}")
+            logger.info(f"Interview response saved to database: application_id={application_id}, candidate_id={user['sub']}, question_index={question_index}")
             
             return {
                 "ok": True,
@@ -798,7 +813,7 @@ async def save_response_metadata(
                     "application_id": application_id,
                     "question": question,
                     "video_path": video_path,
-                    "video_url": response_data.get("video_url"),
+                    "video_url": response_data.get("url"),
                     "question_index": question_index,
                     "response_id": result.get("id", f"resp_{uuid.uuid4().hex[:8]}"),
                     "database_saved": True
@@ -811,7 +826,7 @@ async def save_response_metadata(
             # Fallback to logging if database save fails
             response_record = {
                 "application_id": application_id,
-                "candidate_id": user["id"] if user else "unknown",
+                "candidate_id": user["sub"] if user else "unknown",
                 "question": question,
                 "video_path": video_path,
                 "question_index": question_index,
@@ -921,24 +936,32 @@ async def finish_interview(request: Request, application_id: str):
                 "data": {
                     "message": "Interview completed successfully (mock)",
                     "application_id": application_id,
-                    "status": "interview_completed",
+                    "status": "interviewing",
                     "candidate_id": "unknown",
                     "completed_at": time.time(),
                     "note": "Mock completion due to missing authentication"
                 }
             }
         
-        # TODO: Update application status in database
-        # For now, just return success response
-        logger.info(f"Interview completed for application {application_id} by user {user['id']}")
+        # Update application status in database
+        try:
+            success = recruiter_service.update_application_status(application_id, "interviewing")
+            if success:
+                logger.info(f"Application status updated to 'interviewing' for {application_id}")
+            else:
+                logger.warning(f"Failed to update application status for {application_id}")
+        except Exception as status_error:
+            logger.error(f"Error updating application status: {str(status_error)}")
+        
+        logger.info(f"Interview completed for application {application_id} by user {user['sub']}")
         
         return {
             "ok": True,
             "data": {
                 "message": "Interview completed successfully",
                 "application_id": application_id,
-                "status": "interview_completed",
-                "candidate_id": user["id"],
+                "status": "interviewing",
+                "candidate_id": user["sub"],
                 "completed_at": time.time()
             }
         }
@@ -953,7 +976,7 @@ async def finish_interview(request: Request, application_id: str):
             "data": {
                 "message": "Interview completed successfully (mock due to error)",
                 "application_id": application_id,
-                "status": "interview_completed",
+                "status": "interviewing",
                 "candidate_id": "unknown",
                 "completed_at": time.time(),
                 "note": f"Mock completion due to error: {str(e)}"

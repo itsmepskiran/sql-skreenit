@@ -238,7 +238,7 @@ function createJobCard(job) {
         <div class="job-card">
             <div class="job-card-header">
                 <div class="job-card-title-section">
-                    <h3 class="job-card-title">${escapeHtml(job.title)}</h3>
+                    <h3 class="job-card-title">${escapeHtml(job.job_title)}</h3>
                     <p class="job-card-company">${escapeHtml(job.company_name || 'Unknown Company')}</p>
                 </div>
                 ${job.job_type ? `<span class="job-card-badge">${formatJobType(job.job_type)}</span>` : ''}
@@ -482,7 +482,7 @@ async function handleApply(jobId) {
  */
 async function checkExistingApplication(jobId, userId) {
     try {
-        const response = await backendGet('/job_applications');
+        const response = await backendGet('/applicant/applications');
         const result = await handleResponse(response);
         
         const applications = result.data || [];
@@ -584,11 +584,15 @@ async function submitApplicationWithVideo() {
     
     // Submit application
     try {
-        const response = await backendPost('/job_applications', {
+        // Get candidate profile to include resume URL
+        const profileResponse = await backendGet('/applicant/profile');
+        const profile = await handleResponse(profileResponse);
+        
+        const response = await backendPost('/applicant/apply', {
             job_id: currentApplicationJobId,
             candidate_id: currentUser.id,
-            status: 'submitted',
-            intro_video_url: existingVideoUrl || null
+            intro_video_url: existingVideoUrl || null,
+            resume_url: profile.data?.resume_url || null
         });
         
         const result = await handleResponse(response);
@@ -650,7 +654,7 @@ function applyFilters() {
     const salary = filterSalary?.value || '';
 
     if (position) {
-        filtered = filtered.filter(j => j.title?.toLowerCase().includes(position));
+        filtered = filtered.filter(j => j.job_title?.toLowerCase().includes(position));
     }
 
     if (skills) {
@@ -713,7 +717,7 @@ function searchJobs() {
     }
 
     const filtered = allJobs.filter(job =>
-        job.title?.toLowerCase().includes(query) ||
+        job.job_title?.toLowerCase().includes(query) ||
         job.company?.toLowerCase().includes(query) ||
         (job.skills || []).some(skill => skill.toLowerCase().includes(query))
     );
