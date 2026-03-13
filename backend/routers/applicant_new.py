@@ -10,6 +10,7 @@ from datetime import datetime
 # Import MySQL services
 from services.mysql_service import candidate_service, video_service, user_service, dashboard_service
 from services.recruiter_service_mysql import RecruiterService
+from services.notification_service_mysql import NotificationService
 from services.auth_service import get_current_user
 from middleware.role_required import ensure_permission
 from models.applicant_models import ApplicationCreate
@@ -20,6 +21,9 @@ router = APIRouter(prefix="/applicant", tags=["Applicant"])
 
 # Create recruiter service instance
 recruiter_service = RecruiterService()
+
+# Create notification service instance
+notification_service = NotificationService()
 
 # ============================================================
 # HELPER FUNCTIONS
@@ -924,19 +928,18 @@ async def delete_video(request: Request, video_data: dict):
 async def finish_interview(request: Request, application_id: str):
     """Mark interview as completed and update application status."""
     # Temporarily remove auth requirement for debugging
-    # ensure_permission(request, "applications:update")
+    ensure_permission(request, "applications:update")
     
     try:
         user = get_user_from_request(request)
         if not user:
             logger.warning(f"No user found in request, using mock finish for application {application_id}")
-            # Return mock success response
+            # Return mock success response to prevent frontend from breaking
             return {
                 "ok": True,
                 "data": {
-                    "message": "Interview completed successfully (mock)",
                     "application_id": application_id,
-                    "status": "interviewing",
+                    "status": "interview_submitted",
                     "candidate_id": "unknown",
                     "completed_at": time.time(),
                     "note": "Mock completion due to missing authentication"
@@ -945,9 +948,52 @@ async def finish_interview(request: Request, application_id: str):
         
         # Update application status in database
         try:
-            success = recruiter_service.update_application_status(application_id, "interviewing")
+            success = recruiter_service.update_application_status(application_id, "interview_submitted")
             if success:
-                logger.info(f"Application status updated to 'interviewing' for {application_id}")
+                logger.info(f"Application status updated to 'interview_submitted' for {application_id}")
+                
+                # ✅ NEW: Create notification for recruiter
+                try:
+                    # Get application details to find job and recruiter
+                    from services.mysql_service import MySQLService
+                    mysql = MySQLService()
+                    application = mysql.get_single_record("job_applications", {"id": application_id})
+                    
+                    if application:
+                        job_id = application.get("job_id")
+                        candidate_id = application.get("candidate_id")
+                        
+                        # Get job details to find recruiter
+                        job = mysql.get_single_record("jobs", {"id": job_id})
+                        if job:
+                            recruiter_id = job.get("created_by")
+                            job_title = job.get("job_title", "Unknown Position")
+                            
+                            # Get candidate name
+                            candidate = mysql.get_single_record("users", {"id": candidate_id})
+                            candidate_name = candidate.get("full_name", "A candidate") if candidate else "A candidate"
+                            
+                            # Create notification for recruiter
+                            notification = {
+                                "created_by": recruiter_id,
+                                "title": "Interview Responses Submitted",
+                                "message": f"{candidate_name} has submitted video interview responses for '{job_title}'",
+                                "category": "interview_submitted",
+                                "related_id": application_id,
+                                "metadata": {
+                                    "application_id": application_id,
+                                    "job_id": job_id,
+                                    "candidate_id": candidate_id,
+                                    "candidate_name": candidate_name,
+                                    "job_title": job_title
+                                }
+                            }
+                            
+                            notification_service.create_notification(notification)
+                            logger.info(f"Notification created for recruiter {recruiter_id} about interview submission")
+                except Exception as notif_error:
+                    logger.error(f"Failed to create notification: {str(notif_error)}")
+                    # Don't fail the whole operation if notification fails
             else:
                 logger.warning(f"Failed to update application status for {application_id}")
         except Exception as status_error:
@@ -960,7 +1006,7 @@ async def finish_interview(request: Request, application_id: str):
             "data": {
                 "message": "Interview completed successfully",
                 "application_id": application_id,
-                "status": "interviewing",
+                "status": "interview_submitted",
                 "candidate_id": user["sub"],
                 "completed_at": time.time()
             }
@@ -976,7 +1022,7 @@ async def finish_interview(request: Request, application_id: str):
             "data": {
                 "message": "Interview completed successfully (mock due to error)",
                 "application_id": application_id,
-                "status": "interviewing",
+                "status": "interview_submitted",
                 "candidate_id": "unknown",
                 "completed_at": time.time(),
                 "note": f"Mock completion due to error: {str(e)}"

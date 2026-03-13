@@ -230,6 +230,55 @@ function renderDetails(app) {
         }
     }
 
+    // ✅ NEW: INTERVIEW VIDEO RESPONSES SECTION
+    const interviewVideosSection = document.getElementById('interviewVideosSection');
+    const interviewVideosContainer = document.getElementById('interviewVideosContainer');
+    const noInterviewVideos = document.getElementById('noInterviewVideos');
+    const interviewVideoCount = document.getElementById('interviewVideoCount');
+    
+    if (interviewVideosSection) {
+        const responses = app.interview_responses || [];
+        const videoUrls = app.interview_video_urls || [];
+        
+        // Update count in header
+        if (interviewVideoCount) {
+            interviewVideoCount.textContent = responses.length > 0 ? `(${responses.length})` : '';
+        }
+        
+        if (responses.length > 0 || videoUrls.length > 0) {
+            interviewVideosSection.style.display = 'block';
+            if(noInterviewVideos) noInterviewVideos.style.display = 'none';
+            
+            if (interviewVideosContainer) {
+                // Build video player HTML for each response
+                const videosHtml = responses.map((response, index) => `
+                    <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <h6 style="margin: 0 0 1rem 0; color: #334155; font-size: 1rem; font-weight: 600;">
+                            <span style="background: #4338ca; color: white; padding: 4px 12px; border-radius: 6px; margin-right: 10px; font-size: 0.85rem;">Q${index + 1}</span>
+                            ${response.question || `Question ${index + 1}`}
+                        </h6>
+                        <video controls width="100%" style="max-height: 350px; border-radius: 8px; background: #000;" preload="metadata">
+                            <source src="${response.video_url}" type="video/webm">
+                            <source src="${response.video_url}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div style="margin-top: 0.75rem; font-size: 0.85rem; color: #64748b; display: flex; gap: 1.5rem;">
+                            ${response.duration ? `<span><i class="fas fa-clock me-1"></i> ${Math.round(response.duration / 60)}:${(response.duration % 60).toString().padStart(2, '0')}</span>` : ''}
+                            ${response.created_at ? `<span><i class="fas fa-calendar me-1"></i> ${new Date(response.created_at).toLocaleString()}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+                
+                interviewVideosContainer.innerHTML = videosHtml;
+                console.log(`Loaded ${responses.length} interview videos for application ${app.id}`);
+            }
+        } else {
+            interviewVideosSection.style.display = 'block'; // Show section but with "no videos" message
+            if(interviewVideosContainer) interviewVideosContainer.innerHTML = '';
+            if(noInterviewVideos) noInterviewVideos.style.display = 'flex';
+        }
+    }
+
     const skillsContainer = document.getElementById('skillsContainer');
     if (skillsContainer) {
         if (app.skills && app.skills.length > 0) {

@@ -30,6 +30,7 @@ async function checkAuth() {
     updateSidebarProfile({}, user);
     await updateUserInfo();
     loadApplications();
+    loadNotifications(); // ✅ NEW: Load notifications
 }
 
 function updateSidebarProfile(profile, user) {
@@ -135,13 +136,13 @@ async function loadApplications() {
         // ✅ URL Parameter Handling
         const urlParams = new URLSearchParams(window.location.search);
         const targetJobId = urlParams.get('job_id');
-        const targetStatus = (urlParams.get('status') || 'submitted').toLowerCase();
+        const targetStatus = (urlParams.get('status') || 'all').toLowerCase();
 
         // 1. Set the Status Dropdown based on URL
         const statusDropdown = document.getElementById('statusFilter');
         if (statusDropdown) {
             const validOptions = ['all', 'submitted', 'pending', 'interviewing', 'hired', 'rejected'];
-            statusDropdown.value = validOptions.includes(targetStatus) ? targetStatus : 'submitted';
+            statusDropdown.value = validOptions.includes(targetStatus) ? targetStatus : 'all';
         }
 
         // 2. Set the Job Dropdown based on URL job_id
@@ -161,6 +162,67 @@ async function loadApplications() {
         console.error("Failed to load applications:", err);
     }
 }
+
+// ✅ Auto-refresh applications every 30 seconds to catch status updates
+setInterval(() => {
+    console.log('Auto-refreshing applications...');
+    loadApplications();
+}, 30000);
+
+// ✅ NEW: Load and display notifications
+async function loadNotifications() {
+    try {
+        const res = await backendGet('/notifications/');
+        const json = await handleResponse(res);
+        
+        let notifications = [];
+        if (Array.isArray(json)) {
+            notifications = json;
+        } else if (json.data && Array.isArray(json.data.notifications)) {
+            notifications = json.data.notifications;
+        } else if (json.data && Array.isArray(json.data)) {
+            notifications = json.data;
+        }
+        
+        // Filter unread notifications
+        const unreadNotifications = notifications.filter(n => !n.read && !n.is_read);
+        const unreadCount = unreadNotifications.length;
+        
+        // Update notification badge in sidebar if element exists
+        const notifBadge = document.getElementById('notificationBadge');
+        if (notifBadge) {
+            if (unreadCount > 0) {
+                notifBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                notifBadge.style.display = 'inline-block';
+            } else {
+                notifBadge.style.display = 'none';
+            }
+        }
+        
+        // Log for debugging
+        console.log(`Loaded ${notifications.length} notifications, ${unreadCount} unread`);
+        
+        // Show recent notifications as toast (optional)
+        if (unreadCount > 0) {
+            const interviewNotifications = unreadNotifications.filter(
+                n => n.category === 'interview_submitted' || n.message?.includes('interview')
+            );
+            
+            if (interviewNotifications.length > 0) {
+                console.log('New interview submissions:', interviewNotifications);
+            }
+        }
+        
+    } catch (err) {
+        console.error('Failed to load notifications:', err);
+    }
+}
+
+// ✅ Auto-refresh notifications every 60 seconds
+setInterval(() => {
+    console.log('Auto-refreshing notifications...');
+    loadNotifications();
+}, 60000);
 
 // ✅ Master Filter Function
 function applyFilters() {
@@ -217,6 +279,11 @@ function renderList(apps) {
         // 1. Status Capitalization & Formatting
         const status = (app.status || 'pending').toLowerCase();
         const isSubmitted = status === 'interview_submitted' || status === 'completed' || status === 'responses ready';
+        
+        // DEBUG: Log status detection
+        if (status.includes('interview')) {
+            console.log(`DEBUG: App ${app.id} - status: "${status}", isSubmitted: ${isSubmitted}`);
+        }
         const displayStatus = isSubmitted ? 'Responses Ready' : (status.charAt(0).toUpperCase() + status.slice(1));
         
         // Dynamic Badge Colors based on status
@@ -630,6 +697,86 @@ window.showVideoModal = async function(appId) {
     } catch (error) {
         console.error('Error loading video:', error);
         content.innerHTML = '<p class="text-center text-danger">Error loading video</p>';
+        modal.classList.add('active');
+    }
+};
+
+// ✅ NEW: View Interview Responses Modal
+window.viewInterviewResponses = async function(appId) {
+    const modal = document.getElementById('videoModal');
+    const content = document.getElementById('videoModalContent');
+    
+    if (!modal || !content) {
+        // Fallback to alert if modal not found
+        const app = allApplications.find(a => a.id === appId);
+        if (app && app.interview_video_urls && app.interview_video_urls.length > 0) {
+            alert(`Interview Videos:\n\n${app.interview_video_urls.join('\n')}`);
+        } else {
+            alert('No interview videos found for this application.');
+        }
+        return;
+    }
+    
+    try {
+        // Find the application data
+        const app = allApplications.find(a => a.id === appId);
+        if (!app) {
+            content.innerHTML = '<p class="text-center text-danger">Application not found</p>';
+            modal.classList.add('active');
+            return;
+        }
+        
+        // Check for interview responses
+        const responses = app.interview_responses || [];
+        const videoUrls = app.interview_video_urls || [];
+        
+        if (responses.length === 0 && videoUrls.length === 0) {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-video-slash fa-3x" style="color: #cbd5e0; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <p class="text-muted">No interview responses recorded yet.</p>
+                </div>
+            `;
+            modal.classList.add('active');
+            return;
+        }
+        
+        // Build video player HTML for each response
+        let videosHtml = responses.map((response, index) => `
+            <div style="margin-bottom: 2rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                <h5 style="margin: 0 0 1rem 0; color: #334155; font-size: 0.95rem;">
+                    <span style="background: #4338ca; color: white; padding: 2px 8px; border-radius: 4px; margin-right: 8px;">Q${index + 1}</span>
+                    ${response.question || `Question ${index + 1}`}
+                </h5>
+                <video controls width="100%" style="max-height: 300px; border-radius: 8px;" preload="metadata">
+                    <source src="${response.video_url}" type="video/webm">
+                    Your browser does not support the video tag.
+                </video>
+                <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #64748b;">
+                    ${response.duration ? `<i class="fas fa-clock me-1"></i> ${Math.round(response.duration / 60)}:${(response.duration % 60).toString().padStart(2, '0')}` : ''}
+                    ${response.created_at ? `<i class="fas fa-calendar ms-3 me-1"></i> ${new Date(response.created_at).toLocaleString()}` : ''}
+                </div>
+            </div>
+        `).join('');
+        
+        content.innerHTML = `
+            <div style="max-height: 70vh; overflow-y: auto; padding-right: 1rem;">
+                <h4 style="margin: 0 0 1rem 0; color: #1e293b;">
+                    <i class="fas fa-video me-2" style="color: #4338ca;"></i>
+                    Interview Responses - ${app.candidate_name || 'Candidate'}
+                </h4>
+                <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    ${responses.length} question${responses.length > 1 ? 's' : ''} answered
+                </p>
+                ${videosHtml}
+            </div>
+        `;
+        
+        modal.classList.add('active');
+        
+    } catch (error) {
+        console.error('Error loading interview responses:', error);
+        content.innerHTML = '<p class="text-center text-danger">Error loading interview responses</p>';
         modal.classList.add('active');
     }
 };

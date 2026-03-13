@@ -70,6 +70,10 @@ class DashboardService:
             applications = []
             if job_ids:
                 applications = self.mysql.get_records("job_applications", {"job_id": job_ids})
+                # DEBUG: Log what fields are returned
+                if applications:
+                    logger.info(f"DEBUG: First application fields: {list(applications[0].keys())}")
+                    logger.info(f"DEBUG: First application status: {applications[0].get('status')}")
             
             # Calculate stats
             stats = {

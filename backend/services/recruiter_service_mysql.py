@@ -127,9 +127,11 @@ class RecruiterService:
                 return []
             
             candidate_ids = list(set(app["candidate_id"] for app in applications))
+            application_ids = [app["id"] for app in applications]  # Get all application IDs
             candidate_map = {}
             profile_map = {}
             video_map = {}
+            interview_response_map = {}  # Map to store interview responses by application_id
             
             if candidate_ids:
                 # Get basic user info
@@ -156,6 +158,27 @@ class RecruiterService:
                         video_map[video["candidate_id"]] = video
                 except Exception as e:
                     logger.warning(f"Could not fetch intro videos: {str(e)}")
+                
+                # ✅ NEW: Get interview video responses from video_responses table
+                try:
+                    interview_responses = self.mysql.get_records("video_responses", {"application_id": application_ids})
+                    print(f"DEBUG: Found {len(interview_responses or [])} interview video responses for applications: {application_ids}")
+                    for response in interview_responses or []:
+                        app_id = response.get("application_id")
+                        if app_id not in interview_response_map:
+                            interview_response_map[app_id] = []
+                        interview_response_map[app_id].append({
+                            "question": response.get("question"),
+                            "video_url": response.get("video_url"),
+                            "video_path": response.get("video_path"),
+                            "question_index": response.get("question_index"),
+                            "duration": response.get("duration"),
+                            "transcript": response.get("transcript"),
+                            "created_at": response.get("created_at")
+                        })
+                except Exception as e:
+                    print(f"DEBUG: Could not fetch interview video responses: {str(e)}")
+                    logger.warning(f"Could not fetch interview video responses: {str(e)}")
             
             enriched_apps = []
             for app in applications:
@@ -214,10 +237,23 @@ class RecruiterService:
                 except Exception as e:
                     logger.warning(f"Could not add video data for candidate {app['candidate_id']}: {str(e)}")
 
+                # ✅ NEW: Add interview video responses to application data
+                try:
+                    interview_videos = interview_response_map.get(app["id"], [])
+                    if interview_videos:
+                        app["interview_responses"] = interview_videos
+                        app["interview_video_count"] = len(interview_videos)
+                        # Also provide a convenience field with just the video URLs
+                        app["interview_video_urls"] = [v.get("video_url") for v in interview_videos if v.get("video_url")]
+                        print(f"DEBUG: Added {len(interview_videos)} interview videos to application {app['id']}")
+                except Exception as e:
+                    print(f"DEBUG: Could not add interview videos for application {app['id']}: {str(e)}")
+
                 job = job_map.get(app.get("job_id"))
                 if job:
                     app["job_title"] = job.get("job_title")
-                    app["status"] = job.get("status")
+                    # ❌ REMOVED: app["status"] = job.get("status") - was overwriting application status!
+                    # ✅ Application status comes from job_applications table, not jobs table
                     app["created_at"] = job.get("created_at")
 
                 enriched_apps.append(app)
