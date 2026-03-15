@@ -11,7 +11,7 @@ ROLES_PERMISSIONS = {
     "candidate": [
         "jobs:view","jobs:apply",
         "profile:read","profile:edit","profile:update","profile:avatar","profile:delete",
-        "applications:create","applications:view","applications:read","applications:edit","applications:delete",
+        "applications:create","applications:view","applications:read","applications:edit","applications:update","applications:delete",
         "dashboard:read","video:upload","notifications:view"
     ],
     "admin": ["*"]

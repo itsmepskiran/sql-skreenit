@@ -260,12 +260,12 @@ function renderApplications(apps) {
         let badgeClass = "badge-pending";
         let actionButton = '';
 
-        if (status === 'interview_submitted' || status === 'completed') {
+        if (status === 'interview_submitted' || status === 'completed' || status === 'responses ready') {
             displayStatus = 'Responses Received';
             badgeClass = "badge-success"; 
             actionButton = `
-                <button onclick="viewInterviewResponses('${app.id}')" class="btn btn-sm btn-primary w-100 mt-2">
-                    <i class="fas fa-play-circle me-1"></i> View Responses
+                <button onclick="watchInterviewResponses('${app.id}')" class="btn btn-sm btn-primary w-100 mt-2">
+                    <i class="fas fa-play-circle me-1"></i> Watch Responses
                 </button>`;
         } else if (status === 'interviewing') {
             displayStatus = 'Interviewing';
@@ -295,8 +295,8 @@ function renderApplications(apps) {
             </div>`;
     }).join('');
 }
-// ✅ NEW HELPER FUNCTION: Handle viewing responses in a modal
-window.viewInterviewResponses = async function(applicationId) {
+// ✅ NEW HELPER FUNCTION: Watch responses in a popup similar to intro video
+window.watchInterviewResponses = async function(applicationId) {
     const modalEl = document.getElementById('responseModal');
     const modalBody = document.getElementById('responseModalBody');
     
@@ -306,38 +306,65 @@ window.viewInterviewResponses = async function(applicationId) {
     }
 
     const modal = new bootstrap.Modal(modalEl);
-    modalBody.innerHTML = `<div class="text-center p-4"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Loading responses...</p></div>`;
-    modal.show();
-
+    
     try {
+        // Show loading state
+        modalBody.innerHTML = `
+            <div style="text-align: center; padding: 3rem;">
+                <i class="fas fa-spinner fa-spin fa-3x" style="color: #3b82f6; margin-bottom: 1rem;"></i>
+                <p class="text-muted">Loading interview responses...</p>
+            </div>
+        `;
+        modal.show();
+
         // Fetch responses using the recruiter-secured endpoint
         const res = await backendGet(`/recruiter/applications/${applicationId}/responses`);
         const data = await handleResponse(res);
         const responses = data.responses || [];
 
         if (responses.length === 0) {
-            modalBody.innerHTML = `<div class="alert alert-warning">No video responses found for this candidate.</div>`;
+            modalBody.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-video-slash fa-3x" style="color: #cbd5e0; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <p class="text-muted">No video responses found for this candidate.</p>
+                </div>
+            `;
             return;
         }
 
-        modalBody.innerHTML = responses.map((resp, i) => `
-            <div class="card mb-3 bg-light border-0">
-                <div class="card-header bg-transparent border-0 pt-3">
-                    <strong>Question ${i + 1}:</strong> ${resp.question}
-                </div>
-                <div class="card-body">
-                    <div class="ratio ratio-16x9">
-                        <video controls style="border-radius: 8px; background: #000;">
-                            <source src="${resp.video_url}" type="video/webm">
-                            Your browser does not support the video tag.
-                        </video>
+        // Display all responses in a scrollable container
+        modalBody.innerHTML = `
+            <div style="max-height: 60vh; overflow-y: auto;">
+                <h5 class="mb-3 text-center">
+                    <i class="fas fa-video me-2"></i>Interview Responses
+                </h5>
+                ${responses.map((resp, i) => `
+                    <div class="card mb-3 bg-light border-0">
+                        <div class="card-header bg-transparent border-0 pt-3">
+                            <strong>Question ${i + 1}:</strong> ${resp.question || 'Interview Question'}
+                            ${resp.recorded_at ? `<div class="small text-muted mt-1">${new Date(resp.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>` : ''}
+                        </div>
+                        <div class="card-body p-2">
+                            <div class="ratio ratio-16x9">
+                                <video controls style="border-radius: 8px; background: #000;" preload="metadata">
+                                    <source src="${resp.video_url}" type="video/webm">
+                                    <source src="${resp.video_url}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                `).join('')}
             </div>
-        `).join('');
+        `;
     } catch (err) {
         console.error("Failed to load interview responses:", err);
-        modalBody.innerHTML = `<div class="alert alert-danger">Error loading video responses.</div>`;
+        modalBody.innerHTML = `
+            <div style="text-align: center; padding: 3rem;">
+                <i class="fas fa-exclamation-triangle fa-3x" style="color: #ef4444; margin-bottom: 1rem;"></i>
+                <p class="text-danger">Error loading video responses. Please try again.</p>
+            </div>
+        `;
     }
 };
 function renderJobs(jobs) {

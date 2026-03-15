@@ -25,6 +25,7 @@ async function checkAuth() {
     
     updateSidebarProfile(user);
     await loadData(user.id);
+    loadNotifications(); // Load notifications
 }
 
 // --- DATA LOADING ---
@@ -67,6 +68,58 @@ async function loadData(userId) {
         if(appList) appList.innerHTML = "<p class='text-danger'>Error loading data. Please refresh.</p>";
     }
 }
+
+// Load and display notifications
+async function loadNotifications() {
+    try {
+        const res = await backendGet('/notifications/');
+        const json = await handleResponse(res);
+        
+        let notifications = [];
+        if (Array.isArray(json)) {
+            notifications = json;
+        } else if (json.data && Array.isArray(json.data.notifications)) {
+            notifications = json.data.notifications;
+        } else if (json.data && Array.isArray(json.data)) {
+            notifications = json.data;
+        }
+        
+        // Filter unread notifications
+        const unreadNotifications = notifications.filter(n => !n.read && !n.is_read);
+        const unreadCount = unreadNotifications.length;
+        
+        // Update notification badge if element exists
+        const notifBadge = document.getElementById('notificationBadge');
+        if (notifBadge) {
+            if (unreadCount > 0) {
+                notifBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                notifBadge.style.display = 'inline-block';
+            } else {
+                notifBadge.style.display = 'none';
+            }
+        }
+        
+        console.log(`Loaded ${notifications.length} notifications, ${unreadCount} unread`);
+        
+    } catch (err) {
+        console.error('Failed to load notifications:', err);
+    }
+}
+
+// Auto-refresh notifications every 60 seconds
+setInterval(() => {
+    console.log('Auto-refreshing notifications...');
+    loadNotifications();
+}, 60000);
+
+// Auto-refresh applications every 30 seconds to catch status updates
+setInterval(() => {
+    console.log('Auto-refreshing applications...');
+    const user = customAuth.getUserData();
+    if (user) {
+        loadData(user.id);
+    }
+}, 30000);
 async function fetchJobs(query = '') {
     const container = document.getElementById("recommendedJobsList");
     if (!container) return;
@@ -122,10 +175,10 @@ function renderApplications(apps) {
         let displayStatus = app.status || 'Applied';
         let badgeColor = "background:#ebf8ff; color:#2b6cb0;"; 
 
-        if (status === 'interviewing') {
+        if (status === 'interviewing' && !(app.interview_responses && app.interview_responses.length > 0)) {
             displayStatus = 'Pending Interview';
             badgeColor = "background:#fffaf0; color:#c05621;"; 
-        } else if (status === 'interview_submitted' || status === 'completed') {
+        } else if (status === 'interviewing' || status === 'interview_submitted' || status.includes('submitted')) {
             displayStatus = 'Interview Submitted';
             badgeColor = "background:#e6fffa; color:#2c7a7b;"; 
         } else if (status === 'hired') {
@@ -137,15 +190,25 @@ function renderApplications(apps) {
         }
 
         let actionButton = '';
-        if (status === 'interviewing') {
+        if (status === 'interviewing' && !(app.interview_responses && app.interview_responses.length > 0)) {
             actionButton = `
                 <a href="interview-room.html?application_id=${app.id}" class="btn btn-primary" style="display:block; text-align:center; margin-top:1rem;">
                    <i class="fas fa-video me-1"></i> Start Interview
                 </a>`;
-        } else if (status === 'interview_submitted' || status === 'completed') {
+        } else if (status === 'interviewing' || status === 'interview_submitted' || status.includes('submitted')) {
             actionButton = `
                 <button data-application-id="${app.id}" class="btn view-response-btn" style="display:block; width:100%; margin-top:1rem; background:transparent; border:1px solid var(--primary-color); color:var(--primary-color);">
                     <i class="fas fa-play-circle me-1"></i> Review Responses
+                </button>`;
+        } else if (status === 'hired') {
+            actionButton = `
+                <button data-application-id="${app.id}" class="btn view-response-btn" style="display:block; width:100%; margin-top:1rem; background:transparent; border:1px solid var(--primary-color); color:var(--primary-color);">
+                    <i class="fas fa-play-circle me-1"></i> View Offer
+                </button>`;
+        } else if (status === 'rejected') {
+            actionButton = `
+                <button data-application-id="${app.id}" class="btn view-response-btn" style="display:block; width:100%; margin-top:1rem; background:transparent; border:1px solid var(--primary-color); color:var(--primary-color);">
+                    <i class="fas fa-play-circle me-1"></i> View Feedback
                 </button>`;
         }
 

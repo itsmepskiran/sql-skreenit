@@ -130,6 +130,17 @@ async function loadApplications() {
         let fetchedApps = Array.isArray(json) ? json : (json.data || []);
         allApplications = fetchedApps;
         
+        // DEBUG: Log what we actually received from backend
+        console.log('=== FRONTEND RECEIVED DATA ===');
+        if(fetchedApps.length > 0) {
+            const firstApp = fetchedApps[0];
+            console.log('First app interview_responses:', firstApp.interview_responses);
+            console.log('First app interview_video_urls:', firstApp.interview_video_urls);
+            console.log('First app interview_video_count:', firstApp.interview_video_count);
+            console.log('Full first app object:', firstApp);
+        }
+        console.log('==============================');
+        
         // Populate the dropdown filter with all available jobs
         populateJobFilter(fetchedApps);
 
@@ -278,13 +289,43 @@ function renderList(apps) {
     container.innerHTML = apps.map(app => {
         // 1. Status Capitalization & Formatting
         const status = (app.status || 'pending').toLowerCase();
-        const isSubmitted = status === 'interview_submitted' || status === 'completed' || status === 'responses ready';
         
-        // DEBUG: Log status detection
-        if (status.includes('interview')) {
-            console.log(`DEBUG: App ${app.id} - status: "${status}", isSubmitted: ${isSubmitted}`);
+        // More comprehensive check for submitted interviews
+        const isSubmitted = status === 'interviewing' ||  // Updated to match database
+                           status === 'completed' || 
+                           status === 'responses ready' || 
+                           status === 'submitted' ||
+                           status.includes('submitted') ||
+                           status.includes('completed') ||
+                           (app.interview_video_urls && app.interview_video_urls.length > 0) ||
+                           (app.interview_responses && app.interview_responses.length > 0);
+        
+        // TEMP FIX: Also show button if interview videos exist (regardless of status)
+        const hasInterviewVideos = app.interview_video_urls && app.interview_video_urls.length > 0;
+        const hasInterviewResponses = app.interview_responses && app.interview_responses.length > 0;
+        const showWatchButton = isSubmitted || hasInterviewVideos || hasInterviewResponses;
+        
+        // DEBUG: Log status detection for all apps
+        console.log(`DEBUG: App ${app.id} - status: "${status}", isSubmitted: ${isSubmitted}`);
+        console.log(`DEBUG: App ${app.id} - raw status: "${app.status}", lowercase: "${status}"`);
+        console.log(`DEBUG: App ${app.id} - hasInterviewVideos: ${hasInterviewVideos}, hasInterviewResponses: ${hasInterviewResponses}, showWatchButton: ${showWatchButton}`);
+        
+        // Additional debug for interview-related statuses
+        if (app.status && (app.status.toLowerCase().includes('interview') || app.status.toLowerCase().includes('submit') || app.status.toLowerCase().includes('complete'))) {
+            console.log(`DEBUG: App ${app.id} - INTERVIEW RELATED - Full app object:`, app);
         }
-        const displayStatus = isSubmitted ? 'Responses Ready' : (status.charAt(0).toUpperCase() + status.slice(1));
+        
+        // Better display status logic
+        let displayStatus;
+        if (status === 'interviewing' || status === 'interview_submitted' || status.includes('submitted')) {
+            displayStatus = 'Responses Ready';
+        } else if (status === 'completed' || status.includes('completed')) {
+            displayStatus = 'Responses Submitted';
+        } else if (status === 'responses ready') {
+            displayStatus = 'Responses Ready';
+        } else {
+            displayStatus = status.charAt(0).toUpperCase() + status.slice(1);
+        }
         
         // Dynamic Badge Colors based on status
         let badgeBg = '#f1f5f9'; let badgeColor = '#475569'; // Default Gray (Pending)
@@ -350,8 +391,8 @@ function renderList(apps) {
                     </button>
                 ` : ''}
 
-                ${isSubmitted ? `
-                    <button onclick="viewInterviewResponses('${app.id}')" class="btn btn-sm btn-success" title="Watch Interview" style="padding: 0.35rem 0.5rem;">
+                ${showWatchButton ? `
+                    <button onclick="viewInterviewResponses('${app.id}')" class="btn btn-sm btn-success" title="Watch Responses" style="padding: 0.35rem 0.5rem;">
                         <i class="fas fa-video"></i>
                     </button>
                 ` : ''}
@@ -730,6 +771,30 @@ window.viewInterviewResponses = async function(appId) {
         const responses = app.interview_responses || [];
         const videoUrls = app.interview_video_urls || [];
         
+        // DEBUG: Log response structure
+        console.log(`DEBUG: App ${appId} - Total responses: ${responses.length}`);
+        console.log(`DEBUG: App ${appId} - Response data:`, responses);
+        
+        if (responses.length > 0) {
+            // Group responses by question and get latest for each
+            const latestResponses = {};
+            responses.forEach(response => {
+                const questionKey = response.question || `Question ${response.question_index || 0}`;
+                if (!latestResponses[questionKey] || 
+                    new Date(response.created_at) > new Date(latestResponses[questionKey].created_at)) {
+                    latestResponses[questionKey] = response;
+                }
+            });
+            
+            const finalResponses = Object.values(latestResponses);
+            console.log(`DEBUG: App ${appId} - Latest responses per question: ${finalResponses.length}`);
+            console.log(`DEBUG: App ${appId} - Final responses:`, finalResponses);
+            
+            // Use finalResponses instead of original responses
+            responses.length = 0;
+            responses.push(...finalResponses);
+        }
+        
         if (responses.length === 0 && videoUrls.length === 0) {
             content.innerHTML = `
                 <div style="text-align: center; padding: 3rem;">
@@ -742,7 +807,11 @@ window.viewInterviewResponses = async function(appId) {
         }
         
         // Build video player HTML for each response
-        let videosHtml = responses.map((response, index) => `
+        let videosHtml = responses.map((response, index) => {
+            console.log(`DEBUG: Video ${index + 1} - URL: ${response.video_url}`);
+            console.log(`DEBUG: Video ${index + 1} - Full response:`, response);
+            
+            return `
             <div style="margin-bottom: 2rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
                 <h5 style="margin: 0 0 1rem 0; color: #334155; font-size: 0.95rem;">
                     <span style="background: #4338ca; color: white; padding: 2px 8px; border-radius: 4px; margin-right: 8px;">Q${index + 1}</span>
@@ -750,14 +819,21 @@ window.viewInterviewResponses = async function(appId) {
                 </h5>
                 <video controls width="100%" style="max-height: 300px; border-radius: 8px;" preload="metadata">
                     <source src="${response.video_url}" type="video/webm">
+                    <source src="${response.video_url}" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
                 <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #64748b;">
                     ${response.duration ? `<i class="fas fa-clock me-1"></i> ${Math.round(response.duration / 60)}:${(response.duration % 60).toString().padStart(2, '0')}` : ''}
                     ${response.created_at ? `<i class="fas fa-calendar ms-3 me-1"></i> ${new Date(response.created_at).toLocaleString()}` : ''}
+                    <br>
+                    <small style="color: #94a3b8;">
+                        <i class="fas fa-link me-1"></i> 
+                        Video URL: <a href="${response.video_url}" target="_blank" style="color: #4338ca;">Open in new tab</a>
+                    </small>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
         
         content.innerHTML = `
             <div style="max-height: 70vh; overflow-y: auto; padding-right: 1rem;">

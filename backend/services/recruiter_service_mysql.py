@@ -168,6 +168,9 @@ class RecruiterService:
                     print(f"DEBUG: Found {len(interview_responses or [])} interview video responses for applications: {application_ids}")
                     for response in interview_responses or []:
                         app_id = response.get("application_id")
+                        print(f"DEBUG: Raw response from DB: {response}")
+                        print(f"DEBUG: video_url from DB: {response.get('video_url')}")
+                        print(f"DEBUG: video_path from DB: {response.get('video_path')}")
                         if app_id not in interview_response_map:
                             interview_response_map[app_id] = []
                         interview_response_map[app_id].append({

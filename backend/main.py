@@ -23,7 +23,8 @@ from routers import (
     recruiter_new as recruiter,
     dashboard_new as dashboard,
     analytics,
-    video
+    video,
+    notifications
 )
 
 ENV = os.getenv("ENVIRONMENT", "development")
@@ -205,6 +206,7 @@ api.include_router(recruiter.router, tags=["Recruiter"])
 api.include_router(dashboard.router, tags=["Dashboard"])
 api.include_router(analytics.router, tags=["Analytics"])
 api.include_router(video.router, tags=["Video"])
+api.include_router(notifications.router, tags=["Notifications"])
 
 @api.get("/health")
 async def versioned_health():

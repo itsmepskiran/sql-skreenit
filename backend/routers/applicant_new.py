@@ -759,20 +759,21 @@ async def upload_video_response(
         # Read video file content
         video_content = await video_file.read()
         
-        # Generate unique filename
+        # Generate unique filename - just the filename without folder prefix
         import uuid
         import time
         file_extension = video_file.filename.split('.')[-1] if '.' in video_file.filename else 'webm'
         timestamp = int(time.time())
         unique_id = uuid.uuid4().hex[:8]
-        filename = f"interviews/{application_id}/q_{question_index}_{timestamp}_{unique_id}.{file_extension}"
+        # R2 service will add the "interviews" folder, so we just provide the sub-path
+        filename = f"{application_id}/q_{question_index}_{timestamp}_{unique_id}.{file_extension}"
         
         # Upload to R2 storage
         try:
             from services.r2_service import R2Service
             r2_service = R2Service()
             
-            # Upload to R2 with proper folder structure
+            # Upload to R2 - folder "interviews" will be prepended by the service
             public_url = r2_service.upload_file(video_content, filename, "interviews")
             
             logger.info(f"Video uploaded to R2: {filename} -> {public_url}")
@@ -846,18 +847,13 @@ async def save_response_metadata(
         
         # Save to database using video_service
         try:
-            # Prepare data for database
-            interview_response = {
+            # Prepare data for database using the correct method save_video_response
+            result = video_service.save_video_response({
                 "application_id": application_id,
-                "candidate_id": user["sub"],
                 "question": question,
-                "video_path": video_path,
-                "question_index": question_index,
-                "video_url": response_data.get("url")  # R2 URL from upload response
-            }
-            
-            # Use video_service to save to database
-            result = video_service.save_interview_response(interview_response)
+                "video_url": response_data.get("url"),  # R2 URL from upload response
+                "candidate_id": user["sub"]
+            })
             
             logger.info(f"Interview response saved to database: application_id={application_id}, candidate_id={user['sub']}, question_index={question_index}")
             
@@ -990,7 +986,7 @@ async def finish_interview(request: Request, application_id: str):
                 "ok": True,
                 "data": {
                     "application_id": application_id,
-                    "status": "interview_submitted",
+                    "status": "interviewing",
                     "candidate_id": "unknown",
                     "completed_at": time.time(),
                     "note": "Mock completion due to missing authentication"
@@ -999,9 +995,9 @@ async def finish_interview(request: Request, application_id: str):
         
         # Update application status in database
         try:
-            success = recruiter_service.update_application_status(application_id, "interview_submitted")
+            success = recruiter_service.update_application_status(application_id, "interviewing")
             if success:
-                logger.info(f"Application status updated to 'interview_submitted' for {application_id}")
+                logger.info(f"Application status updated to 'interviewing' for {application_id}")
                 
                 # ✅ NEW: Create notification for recruiter
                 try:
@@ -1057,7 +1053,7 @@ async def finish_interview(request: Request, application_id: str):
             "data": {
                 "message": "Interview completed successfully",
                 "application_id": application_id,
-                "status": "interview_submitted",
+                "status": "interviewing",
                 "candidate_id": user["sub"],
                 "completed_at": time.time()
             }
@@ -1073,7 +1069,7 @@ async def finish_interview(request: Request, application_id: str):
             "data": {
                 "message": "Interview completed successfully (mock due to error)",
                 "application_id": application_id,
-                "status": "interview_submitted",
+                "status": "interviewing",
                 "candidate_id": "unknown",
                 "completed_at": time.time(),
                 "note": f"Mock completion due to error: {str(e)}"

@@ -1153,7 +1153,7 @@ class CandidateService(MySQLService):
                 intro_video_url=data.get("intro_video_url"),
                 resume_url=data.get("resume_url"),
                 custom_answers=data.get("custom_answers"),
-                status="submitted"
+                status="pending"
             )
             
             db.add(application)
