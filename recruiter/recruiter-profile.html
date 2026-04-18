@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile – Skreenit</title>
+
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+
+  <script>
+    loadSharedCSS('core.css');   
+    loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css');
+    loadSharedCSS('mobile.css');
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  
+  <style>
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: #667eea;
+        font-weight: 700;
+        flex-shrink: 0;
+        border: 4px solid rgba(255,255,255,0.3);
+    }
+    
+    .profile-header-info h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .profile-header-info p {
+        opacity: 0.9;
+        margin: 0 0 0.75rem 0;
+    }
+    
+    .profile-badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .profile-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        border: 1px solid #f1f5f9;
+    }
+    
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    
+    .stat-icon.bg-blue { background: #dbeafe; color: #2563eb; }
+    .stat-icon.bg-green { background: #dcfce7; color: #16a34a; }
+    .stat-icon.bg-purple { background: #f3e8ff; color: #9333ea; }
+    .stat-icon.bg-orange { background: #fef3c7; color: #d97706; }
+    
+    .stat-info h4 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+    
+    .stat-info p {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    .profile-section {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    
+    .profile-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .profile-section-header h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .profile-section-header h3 i {
+        color: #6366f1;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .info-item {
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+    
+    .info-item label {
+        display: block;
+        font-size: 0.75rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-item span {
+        font-size: 0.95rem;
+        color: #1e293b;
+        font-weight: 500;
+    }
+    
+    .specializations-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .specialization-tag {
+        padding: 0.5rem 1rem;
+        background: #e0e7ff;
+        color: #4f46e5;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .achievement-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .achievement-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    
+    .achievement-info h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+    }
+    
+    .achievement-info p {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin: 0.25rem 0 0 0;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    
+    .activity-content h4 {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #1e293b;
+        margin: 0;
+    }
+    
+    .activity-content p {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin: 0.25rem 0 0 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #475569;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        color: #1e293b;
+        background: #f8fafc;
+        transition: all 0.2s;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        background: white;
+    }
+    
+    .form-group input:disabled,
+    .form-group textarea:disabled {
+        background: #f8fafc;
+        color: #475569;
+        cursor: not-allowed;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+         <div class="logo">
+            <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+         </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
+        <li class="nav-item" id="navJobs"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+        <li class="nav-item" id="navApplications"><i class="fas fa-users"></i><span>Applications</span></li>
+        <li class="nav-item" id="navAnalysis"><i class="fas fa-brain"></i><span>Analysis Reports</span></li>
+        <li class="nav-item active" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="user-details">
+             <span id="recruiterName" class="user-name">Loading...</span>
+             <span id="companyId" class="user-role">---</span>
+             <span id="userIdDisplay" class="user-id"></span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+      </div>
+    </nav>
+
+    <main class="main-content dashb">
+      <header class="dashboard-header" style="justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button id="backBtn" class="btn btn-outline-secondary btn-sm">
+              <i class="fas fa-arrow-left me-1"></i> Back
+          </button>
+          <h1 style="margin: 0; font-size: 1.5rem;">My Profile</h1>
+        </div>
+        <div class="header-actions">
+          <button id="editBtn" class="btn btn-primary">
+              <i class="fas fa-edit me-1"></i> Edit Profile
+          </button>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        <!-- Profile Header -->
+        <div class="profile-header">
+          <div class="profile-avatar" id="profileAvatar">R</div>
+          <div class="profile-header-info">
+            <h1 id="profileName">Loading...</h1>
+            <p id="profileRole"><i class="fas fa-building me-1"></i> <span id="profileCompany">Company</span></p>
+            <div class="profile-badges">
+              <span class="profile-badge"><i class="fas fa-map-marker-alt me-1"></i> <span id="profileLocation">Location</span></span>
+              <span class="profile-badge"><i class="fas fa-calendar me-1"></i> Member since <span id="profileJoined">2024</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon bg-blue"><i class="fas fa-briefcase"></i></div>
+            <div class="stat-info">
+              <h4 id="statJobs">0</h4>
+              <p>Jobs Posted</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-green"><i class="fas fa-users"></i></div>
+            <div class="stat-info">
+              <h4 id="statApplications">0</h4>
+              <p>Applications Received</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-purple"><i class="fas fa-user-check"></i></div>
+            <div class="stat-info">
+              <h4 id="statHired">0</h4>
+              <p>Candidates Hired</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-orange"><i class="fas fa-brain"></i></div>
+            <div class="stat-info">
+              <h4 id="statAnalysis">0</h4>
+              <p>Analysis Reports</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Company Information -->
+        <div class="profile-section">
+          <div class="profile-section-header">
+            <h3><i class="fas fa-building"></i> Company Information</h3>
+          </div>
+          <form id="recruiterProfileForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="company_name">Company Name</label>
+                <input type="text" id="company_name" name="company_name" disabled />
+              </div>
+              <div class="form-group">
+                <label for="company_id">Company ID</label>
+                <input type="text" id="company_id" name="company_id" disabled />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="contact_name">Contact Name</label>
+                <input type="text" id="contact_name" name="contact_name" disabled />
+              </div>
+              <div class="form-group">
+                <label for="contact_email">Email Address</label>
+                <input type="email" id="contact_email" name="contact_email" disabled />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="company_website">Website</label>
+                <input type="url" id="company_website" name="company_website" disabled />
+              </div>
+              <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" id="location" name="location" disabled />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="company_description">About Company</label>
+              <textarea id="company_description" name="company_description" rows="4" disabled></textarea>
+            </div>
+
+            <div id="editActions" class="form-actions" style="display: none;">
+              <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+              <button type="submit" id="saveBtn" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Specializations -->
+        <div class="profile-section">
+          <div class="profile-section-header">
+            <h3><i class="fas fa-tags"></i> Hiring Specializations</h3>
+          </div>
+          <div class="specializations-list" id="specializationsList">
+            <span class="specialization-tag">Technology</span>
+            <span class="specialization-tag">Software Development</span>
+            <span class="specialization-tag">Product Management</span>
+            <span class="specialization-tag">Data Science</span>
+          </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="profile-section">
+          <div class="profile-section-header">
+            <h3><i class="fas fa-trophy"></i> Achievements</h3>
+          </div>
+          <div id="achievementsList">
+            <div class="achievement-card">
+              <div class="achievement-icon" style="background: #fef3c7; color: #d97706;">
+                <i class="fas fa-star"></i>
+              </div>
+              <div class="achievement-info">
+                <h4>First Job Posted</h4>
+                <p>Posted your first job listing</p>
+              </div>
+            </div>
+            <div class="achievement-card">
+              <div class="achievement-icon" style="background: #dcfce7; color: #16a34a;">
+                <i class="fas fa-users"></i>
+              </div>
+              <div class="achievement-info">
+                <h4>Talent Scout</h4>
+                <p>Received 10+ applications</p>
+              </div>
+            </div>
+            <div class="achievement-card">
+              <div class="achievement-icon" style="background: #dbeafe; color: #2563eb;">
+                <i class="fas fa-user-check"></i>
+              </div>
+              <div class="achievement-info">
+                <h4>First Hire</h4>
+                <p>Hired your first candidate</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="profile-section">
+          <div class="profile-section-header">
+            <h3><i class="fas fa-history"></i> Recent Activity</h3>
+          </div>
+          <div id="activityList">
+            <div class="activity-item">
+              <div class="activity-icon" style="background: #dbeafe; color: #2563eb;">
+                <i class="fas fa-briefcase"></i>
+              </div>
+              <div class="activity-content">
+                <h4>Posted a new job: Senior Developer</h4>
+                <p>2 hours ago</p>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon" style="background: #dcfce7; color: #16a34a;">
+                <i class="fas fa-user-plus"></i>
+              </div>
+              <div class="activity-content">
+                <h4>Received 3 new applications</h4>
+                <p>Yesterday</p>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon" style="background: #f3e8ff; color: #9333ea;">
+                <i class="fas fa-brain"></i>
+              </div>
+              <div class="activity-content">
+                <h4>Completed video analysis for 2 candidates</h4>
+                <p>2 days ago</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    const recruiterScript = document.createElement('script');
+    recruiterScript.type = 'module';
+    recruiterScript.src = `js/recruiter-profile.js?v=${Date.now()}`;
+    document.body.appendChild(recruiterScript);
+  </script>
+</body>
+</html>

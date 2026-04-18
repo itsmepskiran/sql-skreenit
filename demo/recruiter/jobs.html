@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Jobs – Demo | Skreenit</title>
+
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <script>
+      loadSharedCSS('core.css');   
+      loadSharedCSS('layout.css'); 
+      loadSharedCSS('components.css');
+      loadSharedCSS('mobile.css');
+    </script>
+
+    <style>
+        .demo-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .demo-banner i { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .exit-demo-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .exit-demo-btn:hover { background: rgba(255,255,255,0.3); color: white; }
+        
+        .jobs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .jobs-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .job-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        
+        .job-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .job-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        
+        .job-card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+        
+        .job-card-meta {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin: 0.25rem 0;
+        }
+        
+        .job-card-meta i {
+            color: #6366f1;
+            margin-right: 0.35rem;
+        }
+        
+        .status-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-paused { background: #fef3c7; color: #92400e; }
+        .status-closed { background: #fee2e2; color: #991b1b; }
+        
+        .job-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .job-stat {
+            text-align: center;
+        }
+        
+        .job-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .job-stat-label {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        
+        .job-card-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .job-card-actions .btn {
+            flex: 1;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .post-job-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .post-job-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Banner -->
+    <div class="demo-banner">
+        <i class="fas fa-play-circle"></i>
+        <span>You're viewing a <strong>Demo</strong> with sample data</span>
+        <a href="../index.html" class="exit-demo-btn">
+            <i class="fas fa-sign-out-alt"></i> Exit Demo
+        </a>
+    </div>
+
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-tachometer-alt"></i><span>Overview</span>
+                </li>
+                <li class="nav-item active" onclick="window.location.href='jobs.html'">
+                    <i class="fas fa-briefcase"></i><span>My Jobs</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='applications.html'">
+                    <i class="fas fa-users"></i><span>Applications</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='analysis.html'">
+                    <i class="fas fa-brain"></i><span>Analysis Reports</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='profile.html'">
+                    <i class="fas fa-user-circle"></i><span>My Profile</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div id="userAvatar" class="avatar-circle">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="user-details">
+                        <span id="recruiterName" class="user-name">Demo Recruiter</span>
+                        <span id="companyId" class="user-role">TechCorp Solutions</span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="logout-btn" title="Exit Demo">
+                    <i class="fas fa-sign-out-alt"></i><span>Exit Demo</span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-content dashb">
+            <div class="dashboard-content">
+                <div class="jobs-header">
+                    <h1>My Job Postings</h1>
+                    <button class="post-job-btn" onclick="showDemoAction()">
+                        <i class="fas fa-plus me-1"></i> Post New Job
+                    </button>
+                </div>
+
+                <div id="jobsList">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Demo Action Modal -->
+    <div class="modal fade" id="demoActionModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <h5 class="modal-title"><i class="fas fa-play-circle me-2"></i>Demo Mode</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <i class="fas fa-info-circle" style="font-size: 3rem; color: #667eea;"></i>
+                    <h5 class="mt-3">Demo Action</h5>
+                    <p class="text-muted">In demo mode, job creation and editing are simulated. In the real application, you can create and manage job postings.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { 
+            DEMO_JOBS, 
+            DEMO_APPLICATIONS,
+            DEMO_USERS,
+            DemoSession,
+            mockDelay 
+        } from '../js/demo-data.js';
+        
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+        
+        // Set logo
+        const logoImg = document.getElementById('logoImg');
+        if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage();
+        });
+        
+        async function initPage() {
+            await mockDelay(300);
+            
+            // Set user info
+            const user = DEMO_USERS.recruiter;
+            document.getElementById('recruiterName').textContent = user.name;
+            document.getElementById('companyId').textContent = user.company_name;
+            
+            renderJobs();
+            setupEventListeners();
+        }
+        
+        function renderJobs() {
+            const container = document.getElementById('jobsList');
+            
+            const formatSalary = (num) => {
+                if (num >= 100000) return `${(num / 100000).toFixed(1)} LPA`;
+                return `₹${num.toLocaleString()}`;
+            };
+            
+            container.innerHTML = DEMO_JOBS.map(job => {
+                const appsCount = DEMO_APPLICATIONS.filter(a => a.job_id === job.id).length;
+                const newAppsCount = DEMO_APPLICATIONS.filter(a => a.job_id === job.id && ['submitted', 'pending'].includes(a.status)).length;
+                const interviewingCount = DEMO_APPLICATIONS.filter(a => a.job_id === job.id && a.status === 'interviewing').length;
+                
+                return `
+                    <div class="job-card">
+                        <div class="job-card-header">
+                            <div>
+                                <h3 class="job-card-title">${job.title}</h3>
+                                <p class="job-card-meta">
+                                    <i class="fas fa-map-marker-alt"></i> ${job.location}
+                                    <span style="margin: 0 0.5rem;">|</span>
+                                    <i class="fas fa-briefcase"></i> ${job.job_type}
+                                    <span style="margin: 0 0.5rem;">|</span>
+                                    <i class="fas fa-building"></i> ${job.work_mode}
+                                </p>
+                            </div>
+                            <span class="status-badge status-${job.status}">${job.status}</span>
+                        </div>
+                        
+                        <div class="job-stats">
+                            <div class="job-stat">
+                                <div class="job-stat-value">${appsCount}</div>
+                                <div class="job-stat-label">Total Applicants</div>
+                            </div>
+                            <div class="job-stat">
+                                <div class="job-stat-value">${newAppsCount}</div>
+                                <div class="job-stat-label">New</div>
+                            </div>
+                            <div class="job-stat">
+                                <div class="job-stat-value">${interviewingCount}</div>
+                                <div class="job-stat-label">Interviewing</div>
+                            </div>
+                            <div class="job-stat">
+                                <div class="job-stat-value">${formatSalary(job.salary_min)} - ${formatSalary(job.salary_max)}</div>
+                                <div class="job-stat-label">Salary Range</div>
+                            </div>
+                            <div class="job-stat">
+                                <div class="job-stat-value">${job.views || 0}</div>
+                                <div class="job-stat-label">Views</div>
+                            </div>
+                            <div class="job-stat">
+                                <div class="job-stat-value">${job.shares || 0}</div>
+                                <div class="job-stat-label">Shares</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            ${job.skills.slice(0, 5).map(skill => `
+                                <span class="badge" style="background: #e0e7ff; color: #4f46e5; margin-right: 0.25rem;">${skill}</span>
+                            `).join('')}
+                        </div>
+                        
+                        <div style="display: flex; gap: 1.5rem; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <div class="job-card-actions">
+                                    <button onclick="window.location.href='applications.html?job_id=${job.id}'" class="btn btn-primary">
+                                        <i class="fas fa-users me-1"></i> View Applicants
+                                    </button>
+                                    <button onclick="showDemoAction()" class="btn btn-outline">
+                                        <i class="fas fa-edit me-1"></i> Edit
+                                    </button>
+                                    <button onclick="showDemoAction()" class="btn btn-outline">
+                                        <i class="fas fa-chart-bar me-1"></i> Analytics
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <img src="${job.qr_code}" alt="Job QR Code" style="width: 80px; height: 80px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <small class="text-muted d-block mt-1">Share QR</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function setupEventListeners() {
+            document.getElementById('logoutBtn')?.addEventListener('click', () => {
+                DemoSession.clear();
+                window.location.href = '../index.html';
+            });
+        }
+        
+        // Global function
+        window.showDemoAction = function() {
+            const modal = new bootstrap.Modal(document.getElementById('demoActionModal'));
+            modal.show();
+        };
+    </script>
+</body>
+</html>

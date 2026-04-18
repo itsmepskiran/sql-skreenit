@@ -1,0 +1,19 @@
+# Robots.txt for Skreenit
+# https://skreenit.com
+
+User-agent: *
+Allow: /
+Disallow: /login/
+Disallow: /dashboard/
+Disallow: /applicant/
+Disallow: /recruiter/
+Disallow: /api/
+Disallow: /support/
+Disallow: /hrms/
+Disallow: /in/
+
+# Sitemap location
+Sitemap: https://skreenit.com/sitemap.xml
+
+# Crawl delay (optional, be polite to servers)
+Crawl-delay: 1

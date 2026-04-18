@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Skreenit Assets</title>
+  <script>
+    (function() {
+      // 1. Determine environment
+      const isLocal = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+      
+      // 2. Set the new Assets base URL
+      const assetsBase = isLocal ? '.' : 'https://assets.skreenit.com'; 
+
+      // 3. Create the Import Map
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      
+      /* NOTE ON PATHS: 
+         If you kept the internal "assets" folder (assets.skreenit.com/assets/js/config.js), 
+         leave this as `${assetsBase}/assets/`. 
+         If you flattened it (assets.skreenit.com/js/config.js), change it to `${assetsBase}/`
+      */
+      im.textContent = JSON.stringify({ 
+          imports: { "@shared/": `${assetsBase}/assets/` } 
+      });
+      
+      document.head.appendChild(im);
+    })();
+  </script>
+</head>
+<body style="background-color: #f8fafc; font-family: sans-serif; text-align: center; padding-top: 50px;">
+  
+  <p style="color: #6b7280;">Redirecting to Skreenit...</p>
+  
+  <script type="module">
+    // 4. Import your config and execute the redirect instantly
+    import { CONFIG } from '@shared/js/config.js';
+    
+    // Fallback URL added just in case CONFIG fails to load
+    const loginUrl = (CONFIG && CONFIG.PAGES && CONFIG.PAGES.LOGIN) ? CONFIG.PAGES.LOGIN : 'https://login.skreenit.com';
+    
+    window.location.replace(loginUrl);
+  </script>
+</body>
+</html>

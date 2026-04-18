@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs | Skreenit - Find Your Dream Career</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="Browse Jobs | Skreenit - Find Your Dream Career">
+    <meta name="description" content="Explore thousands of job opportunities with AI-powered matching. Find your perfect career match with smart video interviews and instant screening.">
+    <meta name="keywords" content="job search, career opportunities, job listings, employment, video interview jobs, remote jobs, tech jobs, job matching, AI job search, find jobs">
+    <meta name="author" content="Skreenit">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://skreenit.com/jobs/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://skreenit.com/jobs/">
+    <meta property="og:title" content="Browse Jobs | Skreenit - Find Your Dream Career">
+    <meta property="og:description" content="Find your dream job with AI-powered matching and video interviews.">
+    <meta property="og:image" content="https://assets.skreenit.com/assets/images/jobs-og-image.png">
+    <meta property="og:site_name" content="Skreenit">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://skreenit.com/jobs/">
+    <meta property="twitter:title" content="Browse Jobs | Skreenit">
+    <meta property="twitter:description" content="Find your dream job with AI-powered matching and video interviews.">
+    <meta property="twitter:image" content="https://assets.skreenit.com/assets/images/jobs-twitter-card.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://assets.skreenit.com/assets/images/favicon-32x32.png">
+    <link rel="apple-touch-icon" href="https://assets.skreenit.com/assets/images/apple-touch-icon.png">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#2563eb">
+    
+    <script>
+      (function() {
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+        const im = document.createElement('script');
+        im.type = 'importmap';
+        im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+        document.head.appendChild(im);
+        window.loadSharedCSS = function(file) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime();
+          document.head.appendChild(link);
+        };
+        const icon = document.createElement('link');
+        icon.rel = 'icon';
+        icon.href = `${assetsBase}/assets/images/favicon-32x32.png`;
+        document.head.appendChild(icon);
+      })();
+    </script>
+    <script>
+      loadSharedCSS('core.css');
+      loadSharedCSS('layout.css');
+      loadSharedCSS('components.css');
+      loadSharedCSS('jobs.css');
+      loadSharedCSS('warning-ribbon.css');
+      loadSharedCSS('mobile.css');
+    </script>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fix Logo
+            const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+            const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+            const logoImg = document.getElementById('logoImg');
+            if(logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+
+            // Fix Header Login/Register Buttons - Use CONFIG.PAGES
+            const headerActions = document.getElementById('headerActions');
+            if(headerActions) {
+                // Check if any token exists in storage
+                const token = localStorage.getItem('sb-access-token') || localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+                
+                if(token) {
+                    headerActions.innerHTML = `<a href="../dashboard/index.html" class="btn btn-primary">Go to Dashboard</a>`;
+                } else {
+                    // Use CONFIG.PAGES for correct paths
+                    const loginPath = isLocal ? '/login/login.html' : 'https://login.skreenit.com/login.html';
+                    const registerPath = isLocal ? '/login/registration.html' : 'https://login.skreenit.com/registration.html';
+                    
+                    headerActions.innerHTML = `
+                        <a href="${loginPath}" class="btn" style="background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); margin-right: 10px;">Sign In</a>
+                        <a href="${registerPath}" class="btn btn-primary">Get Started</a>
+                    `;
+                }
+            }
+        });
+    </script>    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+</head>
+<body class="jobs-page">
+    <header class="header">
+        <div class="header-content">
+            <a href="https://skreenit.com" class="logo-link">
+                <img src="" id="logoImg" alt="Skreenit" style="max-width: 120px;"/>
+            </a>
+
+            <div class="ad-slider-container">
+                <div class="ad-wrapper" id="adWrapper">
+                    <div class="ad-item">🚀 Get noticed faster with an Intro Video!</div>
+                    <div class="ad-item">💎 Premium: Get 1-on-1 career coaching.</div>
+                    <div class="ad-item">🔥 New: 200+ Remote Tech jobs added today.</div>
+                    <div class="ad-item">📱 Download the Skreenit App for instant alerts.</div>
+                </div>
+            </div>
+
+            <div class="header-actions" id="headerActions">
+                </div>
+        </div>
+    </header>
+    <!-- Main Content -->
+    <div class="jobs-page-container">
+        <div class="page-header">
+            <h1><i class="fas fa-briefcase"></i> Find Your Dream Job</h1>
+            <p>Browse opportunities from top companies and apply with ease</p>
+        </div>
+
+        <!-- Filters Sidebar -->
+        <aside class="filters-sidebar">
+            <h3><i class="fas fa-filter"></i> Filters</h3>
+            
+            <div class="filter-group">
+                <label>Position</label>
+                <input type="text" id="filterPosition" placeholder="e.g. Frontend Developer">
+            </div>
+
+            <div class="filter-group">
+                <label>Skills</label>
+                <input type="text" id="filterSkills" placeholder="e.g. React, Node.js">
+            </div>
+
+            <div class="filter-group">
+                <label>Company</label>
+                <input type="text" id="filterCompany" placeholder="e.g. Google">
+            </div>
+
+            <div class="filter-group">
+                <label>Education</label>
+                <select id="filterEducation">
+                    <option value="">All Levels</option>
+                    <option value="high-school">High School</option>
+                    <option value="bachelors">Bachelors</option>
+                    <option value="masters">Masters</option>
+                    <option value="phd">PhD</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Job Type</label>
+                <select id="filterType">
+                    <option value="">All Types</option>
+                    <option value="full-time">Full Time</option>
+                    <option value="part-time">Part Time</option>
+                    <option value="remote">Remote</option>
+                    <option value="hybrid">Hybrid</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Salary Range</label>
+                <select id="filterSalary">
+                    <option value="">Any</option>
+                    <option value="0-5">0–5 LPA</option>
+                    <option value="5-10">5–10 LPA</option>
+                    <option value="10-20">10–20 LPA</option>
+                    <option value="20+">20+ LPA</option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn btn-primary" id="applyFiltersBtn">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <button class="btn btn-outline" id="clearFiltersBtn">
+                    <i class="fas fa-undo"></i> Clear All
+                </button>
+            </div>
+        </aside>
+
+        <!-- Jobs Content -->
+        <div class="jobs-content">
+            <!-- Search Section -->
+            <div class="jobs-search-section">
+                <div class="jobs-search-bar">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search by job title, company, or skills...">
+                    </div>
+                    <button class="btn btn-primary" id="searchBtn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error/Warning Messages -->
+            <div id="errorBox" class="warning-ribbon d-none">
+                <div class="warning-content">
+                    <div class="warning-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="warning-message">
+                        <strong>Job Search Issue</strong>
+                        <p class="warning-details">Please check your connection and try again</p>
+                    </div>
+                    <button type="button" class="warning-close" onclick="hideWarning('errorBox')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Jobs Grid -->
+            <div id="jobsContainer">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading jobs...</p>
+                </div>
+            </div>
+
+            <!-- Inline Login Container -->
+            <div class="inline-login-container" id="inlineLoginContainer" style="display: none;">
+                <div class="inline-login-card">
+                    <div class="inline-login-header">
+                        <div class="inline-login-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div>
+                            <h3>Sign in to Apply</h3>
+                            <p>Sign in to apply for this job and track your applications</p>
+                        </div>
+                        <button class="inline-login-close" id="closeInlineLogin">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="inline-login-form">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="inlineLoginEmail" placeholder="your@email.com" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="inlineLoginPassword" placeholder="Enter your password" class="form-control">
+                        </div>
+                        <button class="btn btn-primary btn-full" id="inlineLoginBtn">
+                            <i class="fas fa-sign-in-alt"></i> Sign In
+                        </button>
+                        <div class="inline-login-footer">
+                            <p>Don't have an account? <a href="#" id="inlineRegisterLink">Create one</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Required Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="auth-modal">
+            <div class="auth-modal-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2>Sign in Required</h2>
+            <p>To apply for this position, please sign in to your Skreenit account or create a new one. It only takes a minute!</p>
+            <div class="auth-modal-actions">
+                <a href="" id="loginRedirectBtn" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </a>
+                <a href="" id="registerRedirectBtn" class="btn btn-secondary">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </a>
+                <button class="btn-close-modal" id="closeModalBtn">
+                    Maybe later
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Intro Video Modal -->
+    <div class="modal-overlay" id="introVideoModal">
+        <div class="auth-modal" style="max-width: 500px;">
+            <div class="auth-modal-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-video"></i>
+            </div>
+            <h2>Add Introduction Video?</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">Stand out to recruiters by adding a 60-90 second video introduction to your application!</p>
+            
+            <!-- Existing Video Info -->
+            <div id="existingVideoInfo" style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; text-align: center;">
+                <p style="font-size: 0.9rem; color: #16a34a; margin: 0;">
+                    <i class="fas fa-check-circle"></i> You have an existing intro video
+                </p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div id="videoActionButtons" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+                <button class="btn btn-primary" id="useExistingVideoBtn" style="display: none;">
+                    <i class="fas fa-check"></i> Yes, Use My Existing Video
+                </button>
+                <button class="btn btn-secondary" id="recordNewVideoBtn">
+                    <i class="fas fa-video"></i> Record/Upload New Video
+                </button>
+                <button class="btn btn-outline" id="skipVideoBtn">
+                    <i class="fas fa-times"></i> No, Apply Without Video
+                </button>
+            </div>
+            
+            <!-- Upload Progress -->
+            <div id="videoUploadProgress" style="display: none;">
+                <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; margin-bottom: 0.5rem;">
+                    <div id="videoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                </div>
+                <p id="videoProgressText" style="font-size: 0.85rem; color: #666; text-align: center;">Submitting application...</p>
+            </div>
+            
+            <button class="btn-close-modal" id="closeVideoModalBtn">
+                Cancel Application
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script type="module" src="js/jobs.js"></script>
+</body>
+</html>

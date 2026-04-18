@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Details – Skreenit</title>
+
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+
+  <script>
+    loadSharedCSS('core.css');    
+    loadSharedCSS('layout.css');  
+    loadSharedCSS('components.css');  
+    loadSharedCSS('special.css'); 
+    loadSharedCSS('mobile.css');
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+         <div class="logo">
+            <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+         </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
+        <li class="nav-item active" id="navJobs"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+        <li class="nav-item" id="navApplications"><i class="fas fa-users"></i><span>Applications</span></li>
+        <li class="nav-item" id="navAnalysis"><i class="fas fa-brain"></i><span>Analysis Reports</span></li>
+        <li class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="user-details">
+             <span id="recruiterName" class="user-name">Loading...</span>
+             <span id="companyId" class="user-role">---</span>
+             <span id="userIdDisplay" class="user-id"></span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+      </div>
+    </nav>
+
+    <main class="main-content dashb">
+      <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="header-left"></div>
+        <div class="header-actions" style="display: flex; align-items: center; gap: 12px;">
+          <button class="icon-btn" id="notificationBtn" style="position: relative; display: none;">
+            <i class="far fa-bell"></i>
+            <span id="notificationBadge" class="notification-badge" style="display: none;"></span>
+          </button>
+        </div>
+      </header>
+      
+      <div class="dashboard-content">
+        
+        <div class="job-header">
+            <div class="job-title-wrapper">
+                <div>
+                    <h1 id="jobTitle">Loading Job...</h1>
+                    <p id="companyName">Skreenit Platform</p>
+                </div>
+                <button id="quickApplyBtn" class="btn btn-outline-primary" style="display:none;">Quick Apply</button>
+            </div>
+            
+            <div class="job-meta-grid">
+                <div class="meta-item"><i class="fas fa-map-marker-alt"></i> <span id="jobLocation">-</span></div>
+                <div class="meta-item"><i class="fas fa-briefcase"></i> <span id="jobType">-</span></div>
+                <div class="meta-item"><i class="fas fa-money-bill-wave"></i> <span id="salaryRange">-</span></div>
+                <div class="meta-item"><i class="far fa-clock"></i> Posted: <span id="postedDate">-</span></div>
+            </div>
+        </div>
+
+        <!-- Job Highlights Section -->
+        <div class="job-highlights" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; padding: 1.25rem; background: var(--bg-light, #f8fafc); border-radius: 12px;">
+            <div class="highlight-item" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-building" style="color: white;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-light, #64748b);">Department</div>
+                    <div id="jobDepartment" style="font-weight: 600; color: var(--text-dark, #1e293b);">-</div>
+                </div>
+            </div>
+            <div class="highlight-item" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user-tag" style="color: white;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-light, #64748b);">Role</div>
+                    <div id="jobRole" style="font-weight: 600; color: var(--text-dark, #1e293b);">-</div>
+                </div>
+            </div>
+            <div class="highlight-item" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-clock" style="color: white;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-light, #64748b);">Employment Type</div>
+                    <div id="employmentType" style="font-weight: 600; color: var(--text-dark, #1e293b);">-</div>
+                </div>
+            </div>
+            <div class="highlight-item" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-users" style="color: white;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-light, #64748b);">Openings</div>
+                    <div id="noOfOpenings" style="font-weight: 600; color: var(--text-dark, #1e293b);">-</div>
+                </div>
+            </div>
+            <div class="highlight-item" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-chart-line" style="color: white;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-light, #64748b);">Experience</div>
+                    <div id="experienceRange" style="font-weight: 600; color: var(--text-dark, #1e293b);">-</div>
+                </div>
+            </div>
+            <div class="highlight-item" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-calendar-alt" style="color: #333;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-light, #64748b);">Notice Period</div>
+                    <div id="noticePeriod" style="font-weight: 600; color: var(--text-dark, #1e293b);">-</div>
+                </div>
+            </div>
+            <div class="highlight-item" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-industry" style="color: white;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-light, #64748b);">Industry</div>
+                    <div id="jobIndustry" style="font-weight: 600; color: var(--text-dark, #1e293b);">-</div>
+                </div>
+            </div>
+            <div class="highlight-item" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-graduation-cap" style="color: white;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-light, #64748b);">Education</div>
+                    <div id="educationQualification" style="font-weight: 600; color: var(--text-dark, #1e293b);">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills Section -->
+        <div class="content-section" id="skillsSection" style="display: none;">
+            <h3><i class="fas fa-tools" style="margin-right: 8px; color: var(--primary-color);"></i>Required Skills</h3>
+            <div id="jobSkills" class="skills-container" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
+        </div>
+
+        <div class="content-section">
+            <h3>Job Description</h3>
+            <div id="jobDescription" class="content-text">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h3><i class="fas fa-tasks" style="margin-right: 8px; color: var(--primary-color);"></i>Key Responsibilities</h3>
+            <div id="jobResponsibilities" class="content-text">
+                <p>No specific responsibilities listed.</p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h3>Requirements</h3>
+            <div id="jobRequirements" class="content-text">
+                <p>No specific requirements listed.</p>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="content-section" id="contactSection" style="display: none;">
+            <h3><i class="fas fa-address-card" style="margin-right: 8px; color: var(--primary-color);"></i>Contact Information</h3>
+            <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                <div id="contactName" style="display: none;">
+                    <span style="color: var(--text-light, #64748b); font-size: 0.85rem;">Contact Person</span>
+                    <div id="contactPersonName" style="font-weight: 600; color: var(--text-dark, #1e293b);"></div>
+                </div>
+                <div id="contactEmailDiv" style="display: none;">
+                    <span style="color: var(--text-light, #64748b); font-size: 0.85rem;">Email</span>
+                    <div><a id="contactPersonEmail" href="#" style="color: var(--primary-color); font-weight: 500;"></a></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="job-action-bar">
+            <button id="backBtn" class="btn-back-ghost">
+                <i class="fas fa-arrow-left"></i> Back to Jobs
+            </button>
+            
+            <button id="applyBtn" class="btn-apply-massive" style="display:none;">
+                Apply Now <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Intro Video Modal for Candidates -->
+  <div class="custom-modal-backdrop" id="introVideoModal" style="display: none;">
+    <div class="custom-modal-card" style="max-width: 500px; text-align: center;">
+        <div class="auth-modal-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+            <i class="fas fa-video" style="font-size: 1.5rem; color: white;"></i>
+        </div>
+        <h2 style="margin-bottom: 0.5rem;">Add Introduction Video?</h2>
+        <p style="color: #666; margin-bottom: 1.5rem;">Stand out to recruiters by adding a 60-90 second video introduction to your application!</p>
+        
+        <!-- Existing Video Info -->
+        <div id="existingVideoInfo" style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 8px;">
+            <p style="font-size: 0.9rem; color: #16a34a; margin: 0;">
+                <i class="fas fa-check-circle"></i> You have an existing intro video
+            </p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div id="videoActionButtons" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+            <button class="btn btn-primary" id="useExistingVideoBtn" style="display: none;">
+                <i class="fas fa-check"></i> Yes, Use My Existing Video
+            </button>
+            <button class="btn btn-secondary" id="recordNewVideoBtn">
+                <i class="fas fa-video"></i> Record/Upload New Video
+            </button>
+            <button class="btn btn-outline" id="skipVideoBtn">
+                <i class="fas fa-times"></i> No, Apply Without Video
+            </button>
+        </div>
+        
+        <!-- Upload Progress -->
+        <div id="videoUploadProgress" style="display: none;">
+            <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; margin-bottom: 0.5rem;">
+                <div id="videoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <p id="videoProgressText" style="font-size: 0.85rem; color: #666; text-align: center;">Submitting application...</p>
+        </div>
+        
+        <button class="btn-close-modal" id="closeVideoModalBtn" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.9rem;">
+            Cancel Application
+        </button>
+    </div>
+  </div>
+
+  <!-- Video Recording Modal (Step 6 from application form) -->
+  <div class="custom-modal-backdrop" id="videoRecordingModal" style="display: none;">
+    <div class="custom-modal-card" style="max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <div class="auth-modal-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                <i class="fas fa-video" style="font-size: 1.5rem; color: white;"></i>
+            </div>
+            <h2 style="margin-bottom: 0.25rem;">Record Introduction Video</h2>
+            <p style="color: #666; font-size: 0.9rem;">Record a 60-90 second video introducing yourself to recruiters</p>
+        </div>
+        
+        <!-- Video Recording Interface -->
+        <div id="videoRecordingContainer" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; background: #f8fafc;">
+            <!-- Recording Interface -->
+            <div id="videoRecorderInterface">
+                <!-- Camera Feed -->
+                <div style="position: relative; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
+                    <video id="recordCameraFeed" autoplay muted playsinline style="width: 100%; max-height: 350px; display: block;"></video>
+                    <video id="recordPlaybackFeed" controls style="width: 100%; max-height: 350px; display: none;"></video>
+                    
+                    <!-- Recording Indicator -->
+                    <div id="recordRecordingIndicator" style="display: none; position: absolute; top: 15px; right: 15px; background: rgba(239, 68, 68, 0.9); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                        <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 6px; animation: pulse 1s infinite;"></i>
+                        <span id="recordTimerDisplay">00:00</span>
+                    </div>
+                </div>
+                
+                <!-- Recording Controls -->
+                <div id="recordRecordingControls" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                    <button type="button" id="startRecordBtn" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.1rem;">
+                        <i class="fas fa-video" style="margin-right: 8px;"></i>Start Recording
+                    </button>
+                    <p class="text-muted" style="font-size: 0.9rem; margin: 0;">
+                        <i class="fas fa-info-circle"></i> Click to start recording your intro video (60-90 seconds)
+                    </p>
+                </div>
+                
+                <!-- Stop Controls (shown while recording) -->
+                <div id="recordStopControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                    <button type="button" id="stopRecordBtn" class="btn btn-danger" style="padding: 14px 40px; font-size: 1.1rem;">
+                        <i class="fas fa-stop-circle" style="margin-right: 8px;"></i>Stop Recording
+                    </button>
+                    <p class="text-muted" style="font-size: 0.9rem; margin: 0; color: #dc2626;">
+                        <i class="fas fa-exclamation-triangle"></i> Recording in progress... Click stop when done
+                    </p>
+                </div>
+                
+                <!-- Review Controls (shown after recording) -->
+                <div id="recordReviewControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="button" id="retakeRecordBtn" class="btn btn-secondary">
+                            <i class="fas fa-redo" style="margin-right: 8px;"></i>Retake
+                        </button>
+                        <button type="button" id="acceptRecordBtn" class="btn btn-success">
+                            <i class="fas fa-check" style="margin-right: 8px;"></i>Use This Video
+                        </button>
+                    </div>
+                    <p class="text-muted" style="font-size: 0.9rem; margin: 0;">
+                        Review your video. Retake if needed, or accept to use it for your application.
+                    </p>
+                </div>
+                
+                <!-- Upload Progress -->
+                <div id="recordUploadProgress" style="display: none; margin-top: 1rem; text-align: center;">
+                    <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; max-width: 400px; margin: 0 auto;">
+                        <div id="recordProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    <p id="recordProgressText" style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.5rem;">Uploading video... 0%</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tips -->
+        <div class="alert alert-info mt-3" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+            <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+            <strong>Tips for a great intro video:</strong>
+            <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0; font-size: 0.9rem;">
+                <li>Keep it between 60-90 seconds</li>
+                <li>Find a quiet, well-lit place</li>
+                <li>Mention your name, experience, and what you're looking for</li>
+                <li>Speak clearly and confidently</li>
+                <li>Dress professionally</li>
+            </ul>
+        </div>
+        
+        <button class="btn-close-modal" id="closeRecordModalBtn" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.9rem; margin-top: 1rem;">
+            <i class="fas fa-arrow-left"></i> Back to Application
+        </button>
+    </div>
+  </div>
+
+  <script type="module" src="js/job-details.js"></script>
+</body>
+</html>

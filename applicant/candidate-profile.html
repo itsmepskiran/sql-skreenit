@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile – Skreenit</title>
+
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+
+  <script>
+    loadSharedCSS('core.css');   
+    loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css');  
+    loadSharedCSS('special.css');
+    loadSharedCSS('mobile.css');
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo"><img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;" /></div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item" id="navDashboard"><i class="fas fa-home"></i><span>Dashboard</span></li>
+        <li class="nav-item" id="navJobs"><i class="fas fa-briefcase"></i><span>Browse Jobs</span></li>
+        <li class="nav-item" id="navApplications"><i class="fas fa-file-alt"></i><span>My Applications</span></li>
+        <li class="nav-item active" id="navProfile"><i class="fas fa-user"></i><span>My Profile</span></li>
+      </ul>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+             <i class="fas fa-user"></i>
+          </div>
+          <div class="user-details">
+            <span id="userName" class="user-name">Loading...</span>
+            <span id="userDesignation" class="user-role">Candidate ID</span>
+            <span id="userIdDisplay" class="user-id"></span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <header class="dashboard-header">
+        <h1>My Profile</h1>
+        <button id="editProfileBtn" class="btn btn-primary"><i class="fas fa-edit me-2"></i> Edit Profile</button>
+      </header>
+
+      <div class="dashboard-content">
+        
+        <div class="profile-card">
+            <div class="profile-avatar" id="viewAvatar" style="position: relative; overflow: hidden;">
+                <span id="avatarInitials">?</span>
+                <img id="profileImage" src="" alt="Profile" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; position: absolute; top: 0; left: 0;">
+                <button id="uploadAvatarBtn" class="btn btn-sm" style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-camera" style="font-size: 0.9rem;"></i>
+                </button>
+                <input type="file" id="avatarUpload" accept="image/*" style="display: none;" />
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name" id="viewName">Loading Name...</h2>
+                <div class="profile-role" id="viewRole">Candidate / Role</div>
+                
+                <div class="profile-meta">
+                    <span><i class="fas fa-id-card"></i> <span id="viewCandidateId">...</span></span>
+                    <span><i class="fas fa-envelope"></i> <span id="viewEmail">...</span></span>
+                    <span><i class="fas fa-phone"></i> <span id="viewPhone">...</span></span>
+                    <span><i class="fas fa-map-marker-alt"></i> <span id="viewLocation">...</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+            <!-- Introduction Video Section -->
+            <div class="profile-section" id="introVideoSection" style="grid-column: 1 / -1; margin-bottom: 1.5rem;">
+                <h3><i class="fas fa-video"></i> Introduction Video</h3>
+                <div id="videoContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Video Card (shown when video exists) -->
+                    <div id="videoCard" class="video-card" style="display: none; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 12px; background: #fff;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-video" style="color: white; font-size: 1.2rem;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 style="margin: 0; font-weight: 600; color: var(--text-dark);">Introduction Video</h6>
+                                        <small class="text-muted">60-90 second introduction</small>
+                                    </div>
+                                </div>
+                                <p class="text-muted" style="margin: 0; font-size: 0.9rem;">Your introduction video is ready to view. Share your story with recruiters.</p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button id="playVideoBtn" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-play"></i> View
+                                </button>
+                                <button id="reuploadVideoBtn" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-upload"></i> Re-Upload
+                                </button>
+                                <button id="deleteVideoBtn" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Video Analysis Section -->
+                        <div id="videoAnalysisSection" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-brain" style="color: white; font-size: 1rem;"></i>
+                                </div>
+                                <div>
+                                    <h6 style="margin: 0; font-weight: 600; color: var(--text-dark);">AI Video Analysis</h6>
+                                    <small class="text-muted">Get insights on your speaking, emotions & confidence</small>
+                                </div>
+                            </div>
+                            
+                            <div id="analysisButtonContainer">
+                                <button id="analyzeVideoBtn" class="btn btn-success btn-sm">
+                                    <i class="fas fa-magic"></i> Get Your Video Analysed
+                                </button>
+                                <p style="font-size: 0.8rem; color: #64748b; margin-top: 8px; margin-bottom: 0;">
+                                    <i class="fas fa-info-circle"></i> Analysis takes 30-60 seconds using AI
+                                </p>
+                            </div>
+                            
+                            <!-- Analysis Loading State -->
+                            <div id="analysisLoading" style="display: none; text-align: center; padding: 1rem;">
+                                <i class="fas fa-spinner fa-spin" style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                                <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Analyzing your video...</p>
+                                <p style="margin: 0; color: #94a3b8; font-size: 0.75rem;">This may take up to a minute</p>
+                            </div>
+                            
+                            <!-- Analysis Results Container -->
+                            <div id="analysisResults" style="display: none;">
+                                <!-- Overall Score Card -->
+                                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; margin-bottom: 1rem;">
+                                    <div id="scoreCircle" style="width: 70px; height: 70px; border-radius: 50%; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                        <span id="overallScore" style="font-size: 1.5rem; font-weight: 700; color: #10b981;">85</span>
+                                        <span style="font-size: 0.6rem; color: #64748b;">SCORE</span>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <h6 id="scoreTitle" style="margin: 0; font-weight: 600; color: #166534;">Great Job!</h6>
+                                        <p id="scoreFeedback" style="margin: 4px 0 0 0; font-size: 0.85rem; color: #166534;">Your video shows confidence and good speaking pace.</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Analysis Metrics Grid -->
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                                    <!-- Speaking Pace -->
+                                    <div style="padding: 1rem; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                            <i class="fas fa-tachometer-alt" style="color: #3b82f6;"></i>
+                                            <span style="font-weight: 600; font-size: 0.9rem; color: #1e293b;">Speaking Pace</span>
+                                        </div>
+                                        <p id="speakingPace" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #3b82f6;">125 WPM</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #64748b;">Ideal range: 120-150 WPM</p>
+                                    </div>
+                                    
+                                    <!-- Duration -->
+                                    <div style="padding: 1rem; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                            <i class="fas fa-clock" style="color: #8b5cf6;"></i>
+                                            <span style="font-weight: 600; font-size: 0.9rem; color: #1e293b;">Duration</span>
+                                        </div>
+                                        <p id="videoDuration" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #8b5cf6;">72 sec</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #64748b;">Target: 60-90 seconds</p>
+                                    </div>
+                                    
+                                    <!-- Confidence -->
+                                    <div style="padding: 1rem; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                            <i class="fas fa-smile" style="color: #f59e0b;"></i>
+                                            <span style="font-weight: 600; font-size: 0.9rem; color: #1e293b;">Confidence</span>
+                                        </div>
+                                        <p id="confidenceScore" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #f59e0b;">78%</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #64748b;">Based on emotions detected</p>
+                                    </div>
+                                    
+                                    <!-- Face Presence -->
+                                    <div style="padding: 1rem; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                            <i class="fas fa-eye" style="color: #10b981;"></i>
+                                            <span style="font-weight: 600; font-size: 0.9rem; color: #1e293b;">Eye Contact</span>
+                                        </div>
+                                        <p id="facePresence" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #10b981;">92%</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #64748b;">Face detected in frames</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Dominant Emotion -->
+                                <div style="padding: 1rem; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 1rem;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <i class="fas fa-theater-masks" style="color: #ec4899;"></i>
+                                        <span style="font-weight: 600; font-size: 0.9rem; color: #1e293b;">Dominant Emotion</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span id="dominantEmotion" style="font-size: 1.1rem; font-weight: 600; color: #ec4899; text-transform: capitalize;">Happy</span>
+                                        <span id="emotionDistribution" style="font-size: 0.8rem; color: #64748b;">(Happy: 45%, Neutral: 30%, Surprised: 15%)</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Transcript Preview -->
+                                <div style="padding: 1rem; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 1rem;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <i class="fas fa-file-alt" style="color: #6366f1;"></i>
+                                        <span style="font-weight: 600; font-size: 0.9rem; color: #1e293b;">Transcript Preview</span>
+                                        <span id="wordCount" style="font-size: 0.75rem; color: #64748b; margin-left: auto;">150 words</span>
+                                    </div>
+                                    <p id="transcriptPreview" style="margin: 0; font-size: 0.85rem; color: #475569; line-height: 1.5; max-height: 100px; overflow-y: auto;">
+                                        "Hi, I'm a software developer with 5 years of experience..."
+                                    </p>
+                                    <div id="fillerWordsAlert" style="display: none; margin-top: 8px; padding: 8px; background: #fef3c7; border-radius: 6px; font-size: 0.8rem; color: #92400e;">
+                                        <i class="fas fa-exclamation-triangle"></i> 
+                                        <span id="fillerWordsCount">5 filler words</span> detected (um, uh, like). Try to reduce these.
+                                    </div>
+                                </div>
+                                
+                                <!-- Communication Skills Section -->
+                                <div id="communicationSkillsSection" style="display: none; padding: 1rem; background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border-radius: 10px; border: 1px solid #e0e7ff; margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-comments" style="color: #1e40af;"></i>
+                                            <span style="font-weight: 600; font-size: 0.95rem; color: #1e293b;">Communication Skills</span>
+                                        </div>
+                                        <span id="commScore" style="background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem;">85/100</span>
+                                    </div>
+                                    
+                                    <!-- Score Grid -->
+                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 0.75rem;">
+                                        <div style="text-align: center; padding: 0.5rem; background: white; border-radius: 6px;">
+                                            <div id="grammarScore" style="font-weight: bold; color: #10b981; font-size: 1.1rem;">90</div>
+                                            <small style="color: #64748b; font-size: 0.7rem;">Grammar</small>
+                                        </div>
+                                        <div style="text-align: center; padding: 0.5rem; background: white; border-radius: 6px;">
+                                            <div id="sentenceScore" style="font-weight: bold; color: #10b981; font-size: 1.1rem;">85</div>
+                                            <small style="color: #64748b; font-size: 0.7rem;">Sentences</small>
+                                        </div>
+                                        <div style="text-align: center; padding: 0.5rem; background: white; border-radius: 6px;">
+                                            <div id="vocabScore" style="font-weight: bold; color: #10b981; font-size: 1.1rem;">80</div>
+                                            <small style="color: #64748b; font-size: 0.7rem;">Vocabulary</small>
+                                        </div>
+                                        <div style="text-align: center; padding: 0.5rem; background: white; border-radius: 6px;">
+                                            <div id="commLevel" style="font-weight: bold; color: #7c3aed; font-size: 0.85rem; text-transform: capitalize;">Advanced</div>
+                                            <small style="color: #64748b; font-size: 0.7rem;">Level</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Strengths & Improvements -->
+                                    <div id="commStrengths" style="margin-bottom: 0.25rem; display: none;">
+                                        <small style="color: #059669;"><i class="fas fa-check-circle me-1"></i><strong>Strengths:</strong> <span id="strengthsText"></span></small>
+                                    </div>
+                                    <div id="commImprovements" style="display: none;">
+                                        <small style="color: #d97706;"><i class="fas fa-lightbulb me-1"></i><strong>Improve:</strong> <span id="improvementsText"></span></small>
+                                    </div>
+                                    
+                                    <!-- Expandable Details -->
+                                    <details style="margin-top: 0.5rem;">
+                                        <summary style="cursor: pointer; color: #334155; font-size: 0.8rem; padding: 0.25rem 0;">
+                                            <i class="fas fa-spell-check me-1"></i><strong>Grammar Details</strong>
+                                        </summary>
+                                        <div id="grammarDetails" style="margin-top: 0.5rem; padding: 0.5rem; background: white; border-radius: 4px; font-size: 0.75rem;"></div>
+                                    </details>
+                                    
+                                    <details style="margin-top: 0.25rem;">
+                                        <summary style="cursor: pointer; color: #334155; font-size: 0.8rem; padding: 0.25rem 0;">
+                                            <i class="fas fa-align-left me-1"></i><strong>Sentence Formation</strong>
+                                        </summary>
+                                        <div id="sentenceDetails" style="margin-top: 0.5rem; padding: 0.5rem; background: white; border-radius: 4px; font-size: 0.75rem;"></div>
+                                    </details>
+                                    
+                                    <details style="margin-top: 0.25rem;">
+                                        <summary style="cursor: pointer; color: #334155; font-size: 0.8rem; padding: 0.25rem 0;">
+                                            <i class="fas fa-book me-1"></i><strong>Vocabulary</strong>
+                                        </summary>
+                                        <div id="vocabDetails" style="margin-top: 0.5rem; padding: 0.5rem; background: white; border-radius: 4px; font-size: 0.75rem;"></div>
+                                    </details>
+                                </div>
+                                
+                                <!-- Re-analyze Button (hidden by default, shown only after new video upload) -->
+                                <div style="margin-top: 1rem; text-align: center;">
+                                    <button id="reanalyzeVideoBtn" class="btn btn-outline btn-sm" style="display: none;">
+                                        <i class="fas fa-redo"></i> Re-analyze Video
+                                    </button>
+                                    <p id="lastAnalyzed" style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px; margin-bottom: 0;">
+                                        Last analyzed: Just now
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- No Video State (shown when no video exists) -->
+                    <div id="noVideoCard" class="no-video-card" style="padding: 1.5rem; border: 2px dashed var(--border-color); border-radius: 12px; background: #f8fafc; text-align: center;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px;">
+                            <div style="width: 48px; height: 48px; background: #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-video" style="color: #64748b; font-size: 1.2rem;"></i>
+                            </div>
+                            <div style="text-align: left;">
+                                <h6 style="margin: 0; font-weight: 600; color: var(--text-dark);">No Introduction Video</h6>
+                                <small class="text-muted">Add a video to make your profile stand out</small>
+                            </div>
+                        </div>
+                        <button id="addVideoBtn" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Add Introduction Video
+                        </button>
+                    </div>
+                </div>
+
+            <div class="profile-section">
+                <h3><i class="fas fa-briefcase"></i> Experience</h3>
+                <div id="viewExperienceList">
+                    <p class="text-muted">No experience listed.</p>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div class="profile-section">
+                    <h3><i class="fas fa-graduation-cap"></i> Education</h3>
+                    <div id="viewEducationList" class="text-muted">No education details added.</div>
+                </div>
+                
+                <div class="profile-section">
+                    <h3><i class="fas fa-tools"></i> Skills</h3>
+                    <div id="viewSkills" class="text-muted">No skills added.</div>
+                </div>
+
+                <div class="profile-section">
+    <h3><i class="fas fa-file-pdf"></i> My Resume</h3>
+    <div id="resumeContainer" class="resume-card" style="display: flex; align-items: center; justify-content: space-between; padding: 1.2rem; border: 1px solid var(--border-color); border-radius: 12px; background: #fff;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="width: 40px; height: 40px; background: #fee2e2; color: #ef4444; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-file-pdf"></i>
+            </div>
+            <div>
+                <p id="resumeFileName" style="margin: 0; font-weight: 600; font-size: 0.95rem;">Resume_Latest.pdf</p>
+                <small id="resumeStatusText" class="text-success" style="font-weight: 500;">
+                    <i class="fas fa-check-circle"></i> File Uploaded
+                </small>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 8px;">
+            <a id="viewResumeBtn" href="#" target="_blank" class="btn btn-secondary btn-sm">
+                <i class="fas fa-eye"></i> View
+            </a>
+            <a id="downloadResumeBtn" href="#" download class="btn btn-primary btn-sm">
+                <i class="fas fa-download"></i> Download
+            </a>
+        </div>
+    </div>
+
+    <div id="noResumeContainer" style="display: none; padding: 1.5rem; text-align: center; border: 2px dashed #e2e8f0; border-radius: 12px;">
+        <p class="text-muted">No resume uploaded yet.</p>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('resumeUpload').click()">
+            Upload Now
+        </button>
+    </div>
+    <input type="file" id="resumeUpload" accept=".pdf,.doc,.docx" style="display: none;" />
+</div>
+            </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  <div class="custom-modal-backdrop" id="resumeViewerModal">
+    <div class="custom-modal-card" style="max-width: 900px; width: 95%; height: 90vh; display: flex; flex-direction: column; padding: 1.5rem; background: #ffffff;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b; display: flex; align-items: center;">
+                <i class="fas fa-file-alt text-primary" style="margin-right: 10px;"></i> 
+                <span id="resumeModalTitle">Document Viewer</span>
+            </h3>
+            <div style="display: flex; gap: 10px;">
+                <button id="modalDownloadBtn" class="btn btn-primary btn-sm" style="padding: 6px 16px;">
+                    <i class="fas fa-download me-1"></i> Download
+                </button>
+                <button onclick="document.getElementById('resumeViewerModal').classList.remove('active')" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 1.2rem; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    &times;
+                </button>
+            </div>
+        </div>
+        
+        <div style="flex: 1; width: 100%; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; position: relative;">
+            
+            <div id="resumeLoading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #64748b; text-align: center;">
+                <i class="fas fa-spinner fa-spin fa-2x mb-2" style="color: var(--primary-color);"></i>
+                <div style="font-weight: 600;">Loading Document...</div>
+                <div style="font-size: 0.8rem; margin-top: 5px;">This may take a few seconds for Word documents.</div>
+            </div>
+            
+            <iframe id="resumeIframe" style="width: 100%; height: 100%; border: none; position: relative; z-index: 2;" onload="document.getElementById('resumeLoading').style.display='none'"></iframe>
+        </div>
+        
+    </div>
+</div>
+
+<!-- Inline Video Recorder Modal -->
+<div class="custom-modal-backdrop" id="videoRecorderModal">
+    <div class="custom-modal-card" style="max-width: 700px; width: 95%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;">
+                <i class="fas fa-video text-primary" style="margin-right: 10px;"></i> 
+                Record Introduction Video
+            </h3>
+            <button id="closeVideoRecorderBtn" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 1.2rem; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                &times;
+            </button>
+        </div>
+        
+        <p style="color: #666; margin-bottom: 1rem; font-size: 0.9rem;">
+            Introduce yourself in 60-90 seconds. Mention your name, experience, and what you're looking for!
+        </p>
+        
+        <!-- Camera Preview -->
+        <div style="position: relative; background: #1a1a1a; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
+            <video id="inlineRecorderVideo" autoplay muted playsinline style="width: 100%; max-height: 350px; display: block;"></video>
+            <div id="inlineRecordingIndicator" style="display: none; position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 5px;"></i> REC
+            </div>
+            <div id="inlineRecordingTimer" style="display: none; position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 8px; font-size: 1rem; font-weight: 600;">
+                00:00 / 01:30
+            </div>
+        </div>
+        
+        <!-- Preview after recording -->
+        <div id="inlineRecordingPreview" style="display: none; margin-bottom: 1rem;">
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Preview your recording:</p>
+            <video id="inlinePreviewVideo" controls style="width: 100%; max-height: 300px; border-radius: 8px;"></video>
+        </div>
+        
+        <!-- Recording Controls -->
+        <div id="inlineRecordingControls" style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-primary" id="inlineStartRecordBtn" style="background: #ef4444; border-color: #ef4444;">
+                <i class="fas fa-circle"></i> Start Recording
+            </button>
+            <button class="btn btn-secondary" id="inlineStopRecordBtn" style="display: none;">
+                <i class="fas fa-stop"></i> Stop Recording
+            </button>
+            <button class="btn btn-outline" id="inlineRetakeBtn" style="display: none;">
+                <i class="fas fa-redo"></i> Retake
+            </button>
+            <button class="btn btn-primary" id="inlineSaveVideoBtn" style="display: none;">
+                <i class="fas fa-check"></i> Save & Continue
+            </button>
+        </div>
+        
+        <!-- Upload Option -->
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; text-align: center;">
+            <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">Or upload a pre-recorded video (Max 50MB):</p>
+            <input type="file" id="inlineUploadVideoFile" accept="video/webm,video/mp4" hidden />
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('inlineUploadVideoFile').click()">
+                <i class="fas fa-upload"></i> Choose Video File
+            </button>
+            <p id="inlineUploadFileName" style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;"></p>
+        </div>
+        
+        <!-- Upload Progress -->
+        <div id="inlineVideoUploadProgress" style="display: none; margin-top: 1rem;">
+            <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; margin-bottom: 0.5rem;">
+                <div id="inlineVideoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <p id="inlineVideoProgressText" style="font-size: 0.85rem; color: #666; text-align: center;">Uploading... 0%</p>
+        </div>
+    </div>
+</div>
+
+<!-- Video Player Modal -->
+<div class="custom-modal-backdrop" id="videoPlayerModal" style="display: none;">
+    <div class="custom-modal-card" style="max-width: 800px; width: 95%; padding: 1.5rem; background: #ffffff;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;">
+                <i class="fas fa-video text-primary" style="margin-right: 10px;"></i> 
+                Introduction Video
+            </h3>
+            <button id="closeVideoPlayerBtn" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 1.2rem; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                &times;
+            </button>
+        </div>
+        
+        <div style="position: relative; background: #1a1a1a; border-radius: 12px; overflow: hidden;">
+            <video id="modalVideoPlayer" controls style="width: 100%; max-height: 450px; display: block;">
+                <source src="" type="video/webm">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+</div>
+
+  <!-- Video Recording Modal -->
+  <div id="videoRecordingModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: white; border-radius: 12px; padding: 2rem; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h4 style="margin: 0; color: var(--text-dark);">
+          <i class="fas fa-video" style="margin-right: 8px; color: var(--primary-color);"></i>
+          Introduction Video
+        </h4>
+        <button id="closeVideoRecordingModal" class="btn btn-sm" style="background: none; border: none; color: #64748b; font-size: 1.5rem; cursor: pointer;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div style="margin-bottom: 1.5rem;">
+        <p style="color: #64748b; margin: 0;">Record a new introduction video.</p>
+        <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #64748b; font-size: 0.9rem;">
+          <li>Content: Professional introduction about yourself</li>
+          <li>Environment: Well-lit, quiet space</li>
+          <li>Position: Look directly at camera</li>
+        </ul>
+      </div>
+      
+      <!-- Video Recording Container -->
+      <div id="profileVideoRecordingContainer" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; background: #f8fafc;">
+        <!-- Initial State -->
+        <div id="profileVideoInitialState" style="text-align: center;">
+          <div style="width: 100%; max-width: 400px; height: 300px; margin: 0 auto 1rem; background: #1a1a1a; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-video" style="color: #64748b; font-size: 3rem;"></i>
+          </div>
+          <button id="profileStartRecordingBtn" class="btn btn-primary btn-lg">
+            <i class="fas fa-video" style="margin-right: 8px;"></i>Start Recording
+          </button>
+          <p class="text-muted" style="font-size: 0.9rem; margin: 0;">
+            <i class="fas fa-info-circle"></i> Click to start recording your intro video
+          </p>
+        </div>
+        
+        <!-- Recording State -->
+        <div id="profileVideoRecordingState" style="display: none;">
+          <video id="profileVideoPreview" autoplay muted style="width: 100%; max-width: 400px; height: 300px; margin: 0 auto 1rem; background: #1a1a1a; border-radius: 12px; display: block;"></video>
+          <div style="text-align: center;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+              <button id="profileStopRecordingBtn" class="btn btn-danger">
+                <i class="fas fa-stop"></i> Stop Recording
+              </button>
+              <div style="display: flex; align-items: center; gap: 8px; color: #ef4444;">
+                <i class="fas fa-circle" style="animation: pulse 1.5s infinite;"></i>
+                <span id="profileRecordingTimer">00:00</span>
+              </div>
+            </div>
+            <p class="text-muted" style="font-size: 0.9rem; margin: 0;">Recording in progress... Speak clearly and look at the camera</p>
+          </div>
+        </div>
+        
+        <!-- Preview State -->
+        <div id="profileVideoPreviewState" style="display: none;">
+          <video id="profileRecordedVideo" controls style="width: 100%; max-width: 400px; height: 300px; margin: 0 auto 1rem; background: #1a1a1a; border-radius: 12px; display: block;"></video>
+          <div style="text-align: center;">
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+              <button id="profileAcceptVideoBtn" class="btn btn-success">
+                <i class="fas fa-check"></i> Accept & Upload
+              </button>
+              <button id="profileRetakeVideoBtn" class="btn btn-outline-primary">
+                <i class="fas fa-redo"></i> Re-record
+              </button>
+            </div>
+            <p class="text-muted" style="font-size: 0.9rem; margin: 0.5rem 0 0 0;">Review your video before uploading</p>
+          </div>
+        </div>
+        
+        <!-- Upload Progress State -->
+        <div id="profileVideoUploadState" style="display: none;">
+          <div style="text-align: center;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+            <p style="color: var(--text-dark); font-weight: 600; margin: 0;">Uploading your video...</p>
+            <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; max-width: 400px; margin: 0.5rem auto;">
+              <div id="profileVideoProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <p id="profileVideoProgressText" style="font-size: 0.9rem; color: var(--text-light); margin: 0;">Uploading video... 0%</p>
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button id="profileCancelRecordingBtn" class="btn btn-outline-secondary">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Cache-busting loader (ensures latest JS is loaded after edits)
+    const candidateProfileScript = document.createElement('script');
+    candidateProfileScript.type = 'module';
+    candidateProfileScript.src = `js/candidate-profile.js?v=${Date.now()}`;
+    document.body.appendChild(candidateProfileScript);
+  </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Landing Page -->
+  <url>
+    <loc>https://skreenit.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <lastmod>2025-01-04</lastmod>
+  </url>
+  
+  <!-- Jobs Page -->
+  <url>
+    <loc>https://jobs.skreenit.com/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2025-01-04</lastmod>
+  </url>
+  
+  <!-- Legal Pages -->
+  <url>
+    <loc>https://legal.skreenit.com/privacy-policy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <lastmod>2025-01-04</lastmod>
+  </url>
+  <url>
+    <loc>https://legal.skreenit.com/terms-conditions</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <lastmod>2025-01-04</lastmod>
+  </url>
+  
+  <!-- Demo Pages -->
+  <url>
+    <loc>https://skreenit.com/demo/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2025-01-04</lastmod>
+  </url>
+</urlset>

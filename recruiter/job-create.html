@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Job – Skreenit</title>
+  
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+
+  <script>
+    loadSharedCSS('core.css'); loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css'); loadSharedCSS('special.css'); 
+    loadSharedCSS('location-components.css');
+    loadSharedCSS('mobile.css');
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+
+<body>
+  <div class="dashboard-container">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+         <div class="logo"><img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/></div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
+        <li class="nav-item active" id="navJobs"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+        <li class="nav-item" id="navApplications"><i class="fas fa-users"></i><span>Applications</span></li>
+        <li class="nav-item" id="navAnalysis"><i class="fas fa-brain"></i><span>Analysis Reports</span></li>
+        <li class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
+      </ul>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle"><i class="fas fa-user-tie"></i></div>
+          <div class="user-details">
+             <span id="recruiterName" class="user-name">Loading...</span>
+             <span id="companyId" class="user-role">---</span>
+             <span id="userIdDisplay" class="user-id"></span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <header class="dashboard-header"><button id="backBtn" class="btn-back-ghost"><i class="fas fa-arrow-left"></i> Back to Dashboard</button></header>
+      <div class="dashboard-content">
+        <div class="section-header" style="margin-bottom: 1.5rem;"><h1 style="font-size: 1.8rem; margin: 0; color: var(--text-dark);">Post a New Job</h1></div>
+
+        <form id="createJobForm" class="form-card">
+          <!-- Basic Job Info -->
+          <div class="form-row">
+              <div class="form-group"><label for="job_title">Job Title *</label><input type="text" id="job_title" required placeholder="e.g., Senior Software Engineer" /></div>
+              <div class="form-group">
+                <label for="department">Department *</label>
+                <select id="department" required>
+                  <option value="" disabled selected>Loading departments...</option>
+                </select>
+              </div>
+          </div>
+          <div class="form-row">
+              <div class="form-group">
+                <label for="role">Role / Designation *</label>
+                <select id="role" required>
+                  <option value="" disabled selected>Loading roles...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="employment_type">Employment Type *</label>
+                <select id="employment_type" required>
+                  <option value="" disabled selected>Loading types...</option>
+                </select>
+              </div>
+          </div>
+          <div class="form-row">
+              <div class="form-group">
+                <label for="job_type">Work Type *</label>
+                <select id="job_type" required>
+                  <option value="" disabled selected>Loading work types...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="no_of_openings">Number of Openings *</label>
+                <input type="number" id="no_of_openings" required min="1" value="1" placeholder="e.g., 3" />
+              </div>
+          </div>
+          
+          <!-- Location -->
+          <h3 style="margin: 1.5rem 0 1rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: var(--primary-color);"></i>Job Location</h3>
+          <div class="form-row">
+              <div class="form-group">
+                <label for="location_country">Country</label>
+                <select id="location_country">
+                  <option value="">Select Country</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="location_state">State</label>
+                <select id="location_state">
+                  <option value="">Select State</option>
+                </select>
+              </div>
+          </div>
+          <div class="form-row">
+              <div class="form-group">
+                <label for="location_city">City *</label>
+                <div id="jobCityPicker"></div>
+              </div>
+              <div class="form-group">
+                <label for="is_remote">
+                  <input type="checkbox" id="is_remote" style="width: auto; margin-right: 8px;" />
+                  This is a remote position (location not required)
+                </label>
+              </div>
+          </div>
+          
+          <!-- Experience & Salary -->
+          <h3 style="margin: 1.5rem 0 1rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-chart-line" style="margin-right: 8px; color: var(--primary-color);"></i>Experience & Salary</h3>
+          <div class="form-row">
+              <div class="form-group">
+                <label for="experience_min">Minimum Experience (Years)</label>
+                <input type="number" id="experience_min" min="0" max="30" placeholder="e.g., 2" />
+              </div>
+              <div class="form-group">
+                <label for="experience_max">Maximum Experience (Years)</label>
+                <input type="number" id="experience_max" min="0" max="30" placeholder="e.g., 5" />
+              </div>
+          </div>
+          <div class="form-row">
+              <div class="form-group">
+                <label for="salary_min">Minimum Salary (Annual)</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="color: var(--text-light);">₹</span>
+                  <input type="number" id="salary_min" min="0" placeholder="e.g., 500000" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="salary_max">Maximum Salary (Annual)</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="color: var(--text-light);">₹</span>
+                  <input type="number" id="salary_max" min="0" placeholder="e.g., 800000" />
+                </div>
+              </div>
+          </div>
+          <div class="form-row">
+              <div class="form-group">
+                <label for="notice_period_days">Notice Period (Days)</label>
+                <select id="notice_period_days">
+                  <option value="">Select Notice Period</option>
+                  <option value="0">Immediate Joiner</option>
+                  <option value="15">15 Days</option>
+                  <option value="30">30 Days</option>
+                  <option value="60">60 Days</option>
+                  <option value="90">90 Days</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="industry">Industry</label>
+                <select id="industry">
+                  <option value="" disabled selected>Loading industries...</option>
+                </select>
+              </div>
+          </div>
+          
+          <!-- Education & Skills -->
+          <h3 style="margin: 1.5rem 0 1rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-graduation-cap" style="margin-right: 8px; color: var(--primary-color);"></i>Education & Skills</h3>
+          <div class="form-row">
+              <div class="form-group">
+                <label for="education_qualification">Education Qualification *</label>
+                <select id="education_qualification" required>
+                  <option value="" disabled selected>Loading education levels...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="skills_required">Required Skills</label>
+                <div class="skills-input-group" style="display: flex; gap: 0.5rem;">
+                  <input type="text" id="skillInput" placeholder="Type skill & Press Enter" style="flex:1;" />
+                  <button type="button" id="addSkillBtn" class="btn btn-secondary btn-sm">Add</button>
+                </div>
+                <div id="skillsContainer" class="skills-tags-container" style="margin-top: 0.5rem;"></div>
+              </div>
+          </div>
+          
+          <!-- Diversity & Inclusion -->
+          <div class="form-group" style="margin: 1rem 0;">
+            <label for="diversity_hiring">
+              <input type="checkbox" id="diversity_hiring" style="width: auto; margin-right: 8px;" />
+              Enable diversity hiring preference for this role
+            </label>
+          </div>
+          
+          <!-- Job Description -->
+          <h3 style="margin: 1.5rem 0 1rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-file-alt" style="margin-right: 8px; color: var(--primary-color);"></i>Job Details</h3>
+          <div class="form-group"><label for="job_description">Job Description *</label><textarea id="job_description" rows="5" required placeholder="Describe the role, team, and what makes this opportunity exciting..."></textarea></div>
+          <div class="form-group"><label for="responsibilities">Key Responsibilities</label><textarea id="responsibilities" rows="4" placeholder="List the key responsibilities for this role..."></textarea></div>
+          <div class="form-group"><label for="requirements">Requirements *</label><textarea id="requirements" rows="4" required placeholder="List the required qualifications and skills..."></textarea></div>
+          
+          <!-- Contact Person -->
+          <h3 style="margin: 1.5rem 0 1rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-user" style="margin-right: 8px; color: var(--primary-color);"></i>Contact Person</h3>
+          <div class="form-row">
+              <div class="form-group">
+                <label for="contact_person_name">Contact Name</label>
+                <input type="text" id="contact_person_name" placeholder="HR or Hiring Manager name" />
+              </div>
+              <div class="form-group">
+                <label for="contact_person_email">Contact Email</label>
+                <input type="email" id="contact_person_email" placeholder="hr@company.com" />
+              </div>
+          </div>
+          
+          <div class="form-actions" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+              <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1.05rem;">
+                  Publish Job <i class="fas fa-paper-plane ms-2"></i>
+              </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <div id="shareJobModal" class="modal">
+    <div class="modal-content text-center" style="position: relative;">
+      <button id="modalXClose" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+      <h3><i class="fas fa-bullhorn text-primary"></i> Job Published Successfully!</h3>
+      <p class="text-muted">Share this QR code or link to start receiving applications.</p>
+      <h4 id="shareJobTitle" class="mt-3"></h4>
+      <div id="qrcode" class="my-4 d-flex justify-content-center"></div>
+      <div class="input-group mb-3">
+        <input type="text" id="copyLinkInput" class="form-control" readonly>
+        <button class="btn btn-outline-secondary" id="copyLinkBtn">Copy Link</button>
+      </div>
+      <div class="d-grid gap-2">
+        <button id="downloadQRBtn" class="btn btn-primary"><i class="fas fa-download me-2"></i> Download QR Code</button>
+        <button id="backToDashBtn" class="btn btn-link">Back to Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/job-create.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Mode - Skreenit</title>
+    
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+    </script>
+  
+    <script>
+      loadSharedCSS('core.css');
+      loadSharedCSS('components.css');
+      loadSharedCSS('auth.css');
+      loadSharedCSS('mobile.css');
+    </script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    
+    <style>
+        .demo-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .demo-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            text-align: center;
+        }
+        
+        .demo-logo {
+            max-width: 180px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .demo-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark, #1e293b);
+            margin-bottom: 0.5rem;
+        }
+        
+        .demo-subtitle {
+            color: #64748b;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .demo-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        
+        .role-selection {
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .role-option {
+            position: relative;
+        }
+        
+        .role-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .role-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .role-option input[type="radio"]:checked + .role-card {
+            border-color: var(--primary-color, #6366f1);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+        }
+        
+        .role-option input[type="radio"]:hover + .role-card {
+            border-color: #a5b4fc;
+            transform: translateY(-2px);
+        }
+        
+        .role-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .role-icon.candidate {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+        
+        .role-icon.recruiter {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        
+        .role-info {
+            text-align: center;
+        }
+        
+        .role-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark, #1e293b);
+            margin-bottom: 0.25rem;
+        }
+        
+        .role-desc {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        .start-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.5);
+        }
+        
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .exit-demo {
+            margin-top: 1.5rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .exit-demo a {
+            color: var(--primary-color, #6366f1);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .exit-demo a:hover {
+            text-decoration: underline;
+        }
+        
+        .features-list {
+            text-align: left;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .features-list h4 {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .features-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .features-list li {
+            padding: 0.5rem 0;
+            color: #475569;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .features-list li i {
+            color: #22c55e;
+        }
+        
+        @media (max-width: 600px) {
+            .demo-card {
+                padding: 2rem;
+            }
+            
+            .demo-title {
+                font-size: 1.5rem;
+            }
+            
+            .role-selection {
+                flex-direction: column;
+            }
+            
+            .role-card {
+                padding: 1rem;
+            }
+            
+            .role-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-card">
+            <img src="" id="logoImg" alt="Skreenit" class="demo-logo" />
+            <span class="demo-badge"><i class="fas fa-play-circle"></i> Demo Mode</span>
+            
+            <h1 class="demo-title">Experience Skreenit</h1>
+            <p class="demo-subtitle">Select a role to explore the platform with realistic demo data</p>
+            
+            <form id="roleForm" class="role-selection">
+                <label class="role-option">
+                    <input type="radio" name="role" value="candidate" required>
+                    <div class="role-card">
+                        <div class="role-icon candidate">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="role-info">
+                            <div class="role-name">Candidate</div>
+                            <div class="role-desc">Browse jobs, apply, and attend video interviews</div>
+                        </div>
+                    </div>
+                </label>
+                
+                <label class="role-option">
+                    <input type="radio" name="role" value="recruiter">
+                    <div class="role-card">
+                        <div class="role-icon recruiter">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="role-info">
+                            <div class="role-name">Recruiter</div>
+                            <div class="role-desc">Post jobs, review applications, and analyze candidates</div>
+                        </div>
+                    </div>
+                </label>
+            </form>
+            
+            <button id="startDemoBtn" class="start-btn" disabled>
+                <i class="fas fa-rocket"></i> Start Demo Experience
+            </button>
+            
+            <div class="features-list">
+                <h4>What you'll experience</h4>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> Interactive dashboard with mock data</li>
+                    <li><i class="fas fa-check-circle"></i> Video interview simulation</li>
+                    <li><i class="fas fa-check-circle"></i> Application tracking workflows</li>
+                    <li><i class="fas fa-check-circle"></i> AI-powered candidate analysis</li>
+                </ul>
+            </div>
+            
+            <p class="exit-demo">
+                <a href="../index.html"><i class="fas fa-arrow-left"></i> Back to Home</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+        
+        // Set logo
+        const logoImg = document.getElementById('logoImg');
+        if (logoImg) {
+            logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+        }
+        
+        // Demo Session Manager (inline)
+        const DemoSession = {
+            getRole() {
+                return sessionStorage.getItem('demo_role') || null;
+            },
+            setRole(role) {
+                sessionStorage.setItem('demo_role', role);
+            },
+            clear() {
+                sessionStorage.removeItem('demo_role');
+            },
+            isActive() {
+                return !!sessionStorage.getItem('demo_role');
+            }
+        };
+        
+        const startBtn = document.getElementById('startDemoBtn');
+        const radioInputs = document.querySelectorAll('input[name="role"]');
+        
+        // Enable/disable start button based on selection
+        radioInputs.forEach(input => {
+            input.addEventListener('change', () => {
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="fas fa-rocket"></i> Start Demo Experience';
+            });
+        });
+        
+        // Handle button click
+        startBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            const selectedRole = document.querySelector('input[name="role"]:checked');
+            if (!selectedRole) {
+                alert('Please select a role to continue');
+                return;
+            }
+            
+            const role = selectedRole.value;
+            DemoSession.setRole(role);
+            
+            // Redirect to appropriate dashboard
+            if (role === 'candidate') {
+                window.location.href = './candidate/dashboard.html';
+            } else {
+                window.location.href = './recruiter/dashboard.html';
+            }
+        });
+        
+        // Check if already in demo session
+        if (DemoSession.isActive()) {
+            const role = DemoSession.getRole();
+            const existingRadio = document.querySelector(`input[value="${role}"]`);
+            if (existingRadio) {
+                existingRadio.checked = true;
+                startBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

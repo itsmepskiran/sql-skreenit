@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Browse Jobs – Demo | Skreenit</title>
+
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <script>
+      loadSharedCSS('core.css');   
+      loadSharedCSS('layout.css'); 
+      loadSharedCSS('components.css'); 
+      loadSharedCSS('special.css');
+      loadSharedCSS('mobile.css');
+    </script>
+
+    <style>
+        .demo-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .demo-banner i { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .exit-demo-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .exit-demo-btn:hover { background: rgba(255,255,255,0.3); color: white; }
+        
+        .jobs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .jobs-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .jobs-count {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+        
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+        
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #475569;
+            background: white;
+            cursor: pointer;
+            min-width: 150px;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+        
+        .job-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        
+        .job-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .job-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        
+        .job-card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+        
+        .job-card-company {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin: 0.25rem 0 0 0;
+        }
+        
+        .job-type-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+        
+        .job-card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .job-card-meta i {
+            color: #6366f1;
+            margin-right: 0.35rem;
+        }
+        
+        .job-card-salary {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        
+        .job-card-salary-label {
+            font-size: 0.75rem;
+            color: #166534;
+        }
+        
+        .job-card-salary-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #15803d;
+        }
+        
+        .job-card-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .skill-badge {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+        }
+        
+        .job-card-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .job-card-actions .btn {
+            flex: 1;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+        
+        .no-results i {
+            font-size: 3rem;
+            color: #cbd5e0;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Banner -->
+    <div class="demo-banner">
+        <i class="fas fa-play-circle"></i>
+        <span>You're viewing a <strong>Demo</strong> with sample data</span>
+        <a href="../index.html" class="exit-demo-btn">
+            <i class="fas fa-sign-out-alt"></i> Exit Demo
+        </a>
+    </div>
+
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-home"></i><span>Dashboard</span>
+                </li>
+                <li class="nav-item active" onclick="window.location.href='jobs.html'">
+                    <i class="fas fa-briefcase"></i><span>Browse Jobs</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-file-alt"></i><span>My Applications</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='profile.html'">
+                    <i class="fas fa-user"></i><span>My Profile</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div id="userAvatar" class="avatar-circle">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <span id="userName" class="user-name">Demo User</span>
+                        <span id="candidateRole" class="user-role">Candidate</span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="logout-btn" title="Exit Demo">
+                    <i class="fas fa-sign-out-alt"></i><span>Exit Demo</span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-content dashb">
+            <div class="dashboard-content">
+                <div class="jobs-header">
+                    <h1>Browse Jobs</h1>
+                    <span class="jobs-count" id="jobsCount">Loading...</span>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search by title, skills, location...">
+                    
+                    <select id="locationFilter" class="filter-select">
+                        <option value="all">All Locations</option>
+                        <option value="Hyderabad">Hyderabad</option>
+                        <option value="Bangalore">Bangalore</option>
+                        <option value="Remote">Remote</option>
+                    </select>
+                    
+                    <select id="typeFilter" class="filter-select">
+                        <option value="all">All Types</option>
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Contract">Contract</option>
+                    </select>
+                </div>
+
+                <!-- Jobs List -->
+                <div id="jobsList">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { 
+            DEMO_JOBS, 
+            DEMO_CANDIDATE_APPLICATIONS,
+            DEMO_USERS,
+            DemoSession,
+            DemoApplicationManager,
+            mockDelay 
+        } from '../js/demo-data.js';
+        
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+        
+        // Set logo
+        const logoImg = document.getElementById('logoImg');
+        if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage();
+        });
+        
+        async function initPage() {
+            await mockDelay(300);
+            
+            // Set user info
+            const user = DEMO_USERS.candidate;
+            document.getElementById('userName').textContent = user.name;
+            
+            renderJobs();
+            setupEventListeners();
+        }
+        
+        function hasApplied(jobId) {
+            // Check both existing applications and new ones made during demo
+            const existingApps = DEMO_CANDIDATE_APPLICATIONS.filter(a => a.job_id === jobId);
+            return DemoApplicationManager.hasApplied(jobId) || existingApps.length > 0;
+        }
+        
+        function renderJobs() {
+            const container = document.getElementById('jobsList');
+            
+            // Get filter values
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const locationFilter = document.getElementById('locationFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            
+            // Filter jobs
+            let jobs = DEMO_JOBS.filter(job => job.status === 'active');
+            
+            if (searchQuery) {
+                jobs = jobs.filter(job => 
+                    job.title.toLowerCase().includes(searchQuery) ||
+                    job.location.toLowerCase().includes(searchQuery) ||
+                    job.skills.some(s => s.toLowerCase().includes(searchQuery))
+                );
+            }
+            
+            if (locationFilter !== 'all') {
+                jobs = jobs.filter(job => job.location.includes(locationFilter));
+            }
+            
+            if (typeFilter !== 'all') {
+                jobs = jobs.filter(job => job.job_type === typeFilter);
+            }
+            
+            // Update count
+            document.getElementById('jobsCount').textContent = `${jobs.length} jobs found`;
+            
+            if (!jobs.length) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <h4>No jobs found</h4>
+                        <p>Try adjusting your search or filters</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const formatSalary = (num) => {
+                if (num >= 100000) return `${(num / 100000).toFixed(1)} LPA`;
+                return `₹${num.toLocaleString()}`;
+            };
+            
+            container.innerHTML = jobs.map(job => {
+                const isApplied = hasApplied(job.id);
+                
+                return `
+                    <div class="job-card">
+                        <div class="job-card-header">
+                            <div>
+                                <h3 class="job-card-title">${job.title}</h3>
+                                <p class="job-card-company">${job.company_name}</p>
+                            </div>
+                            <span class="job-type-badge">${job.work_mode}</span>
+                        </div>
+                        
+                        <div class="job-card-meta">
+                            <span><i class="fas fa-map-marker-alt"></i> ${job.location}</span>
+                            <span><i class="fas fa-briefcase"></i> ${job.job_type}</span>
+                            <span><i class="fas fa-clock"></i> ${job.experience_min}-${job.experience_max} yrs</span>
+                        </div>
+                        
+                        <div class="job-card-salary">
+                            <div class="job-card-salary-label">Salary Range</div>
+                            <div class="job-card-salary-value">${formatSalary(job.salary_min)} - ${formatSalary(job.salary_max)}</div>
+                        </div>
+                        
+                        <div class="job-card-skills">
+                            ${job.skills.map(skill => `<span class="skill-badge">${skill}</span>`).join('')}
+                        </div>
+                        
+                        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">${job.description.substring(0, 150)}...</p>
+                        
+                        <div class="job-card-actions">
+                            <a href="job-details.html?job_id=${job.id}" class="btn btn-outline">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            ${isApplied ? `
+                                <button class="btn btn-success" disabled style="opacity: 0.7;">
+                                    <i class="fas fa-check"></i> Applied
+                                </button>
+                            ` : `
+                                <button onclick="applyToJob('${job.id}', '${job.title.replace(/'/g, "\\'")}', '${job.company_name}', '${job.location}')" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Apply Now
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function setupEventListeners() {
+            // Filters
+            document.getElementById('searchInput')?.addEventListener('input', renderJobs);
+            document.getElementById('locationFilter')?.addEventListener('change', renderJobs);
+            document.getElementById('typeFilter')?.addEventListener('change', renderJobs);
+            
+            // Logout
+            document.getElementById('logoutBtn')?.addEventListener('click', () => {
+                DemoSession.clear();
+                DemoApplicationManager.clear();
+                window.location.href = '../index.html';
+            });
+        }
+        
+        // Global function for applying to jobs
+        window.applyToJob = function(jobId, jobTitle, companyName, location) {
+            // Add application
+            const newApp = DemoApplicationManager.addApplication(jobId, jobTitle, companyName, location);
+            
+            // Show success message
+            const container = document.getElementById('jobsList');
+            const successDiv = document.createElement('div');
+            successDiv.className = 'alert alert-success alert-dismissible fade show';
+            successDiv.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 10000; max-width: 350px;';
+            successDiv.innerHTML = `
+                <strong><i class="fas fa-check-circle me-2"></i>Application Submitted!</strong><br>
+                <small>You have successfully applied for ${jobTitle}</small>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(successDiv);
+            
+            // Re-render jobs
+            setTimeout(() => {
+                renderJobs();
+            }, 100);
+            
+            // Remove alert after 3 seconds
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        };
+    </script>
+</body>
+</html>

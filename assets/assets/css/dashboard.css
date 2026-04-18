@@ -1,0 +1,470 @@
+/* =========================================
+   5. DASHBOARD.CSS - Widgets & Page Views
+   ========================================= */
+
+/* --- Stats Grid (for generic dashboard stats) --- */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.stats-grid .stat-card {
+    background: white; padding: 1.5rem; border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;
+    display: flex; align-items: center; gap: 1rem;
+}
+.stats-grid .stat-icon {
+    width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem; color: white; flex-shrink: 0;
+}
+.stats-grid .stat-info h3 { font-size: 1.5rem; margin-bottom: 0; color: #1e293b; }
+.stats-grid .stat-info p { color: #64748b; font-size: 0.9rem; margin: 0; }
+
+/* --- Cards (Jobs / Candidates) --- */
+.grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+.card {
+    background: white; border-radius: var(--radius-md); padding: 1.5rem;
+    box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+    transition: transform 0.2s;
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+/* --- Application List View (Rows) --- */
+.list-container { background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color); overflow: hidden; }
+.list-header {
+    display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 50px;
+    padding: 1rem; background: #f9fafb; font-weight: 600; font-size: 0.85rem; color: var(--text-light); border-bottom: 1px solid var(--border-color);
+}
+.list-item {
+    display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 50px;
+    padding: 1rem; border-bottom: 1px solid var(--border-color); align-items: center;
+    transition: background 0.2s; cursor: pointer;
+}
+.list-item:hover { background: #f8fafc; }
+
+/* --- Interview Room --- */
+.interview-container { display: flex; gap: 1.5rem; height: calc(100vh - 120px); }
+.question-panel { flex: 1; background: white; padding: 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+.video-panel { flex: 2; background: black; border-radius: var(--radius-md); position: relative; overflow: hidden; }
+.video-panel video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.video-controls { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; gap: 1rem; }
+.record-btn {
+    width: 60px; height: 60px; border-radius: 50%; background: #e53e3e; border: 4px solid white; cursor: pointer;
+}
+.record-btn.recording { animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+/* --- Profile Styles --- */
+.profile-header-card {
+    background: white; padding: 2rem; border-radius: var(--radius-md);
+    display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem;
+}
+.profile-avatar-large { width: 80px; height: 80px; border-radius: 50%; background: var(--light-gray); }
+
+/* --- Search Bar --- */
+.search-container-modern { display: flex; gap: 0.5rem; background: white; padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); width: 100%; max-width: 400px; }
+.search-container-modern input { border: none; outline: none; flex: 1; padding: 0.5rem; }
+/* Modern Search Container */
+.search-container-modern {
+    display: flex;
+    justify-content: flex-end;
+    flex: 1;
+    margin-bottom: 1.5rem;
+}
+.search-input-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 350px;
+}
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+.search-input-wrapper input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    background-color: #ffffff;
+    transition: all 0.3s ease;
+    outline: none;
+    box-shadow: var(--shadow-sm);
+}
+.search-input-wrapper input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    max-width: 400px;
+}
+.badge-success {
+    background: #c6f6d5;
+    color: #22543d;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+/* --- Dashboard Recent Lists Fix --- */
+.dashboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 10px 0;
+}
+
+/* Ensure individual job cards inside the dashboard list don't over-expand */
+#recentJobsList .card {
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+#recentJobsList .card:hover {
+    border-left-color: var(--primary-color);
+    background-color: #f8fafc;
+}
+
+/* Fix for Desktop activity grid alignment */
+.activity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two equal columns on desktop */
+    gap: 24px;
+    margin-top: 2rem 1.5rem;
+}
+.activity-card.card {
+    transition: transform 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 16px;
+}
+.section-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-dark);
+}
+.view-all-link {
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.view-all-link:hover {
+    text-decoration: underline;
+}
+@media (max-width: 992px) {
+    .dashboard-activity-wrapper .row {
+        flex-direction: column !important;
+    }
+    .activity-column {
+        width: 100% !important;
+    }
+}
+/* Specific spacing for the activity section */
+.activity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px; /* Large gap between the two cards */
+    margin-top: 2rem;
+}
+
+/* Specific styling for dashboard-specific cards to avoid global overlap */
+.activity-grid .activity-card {
+    padding: 25px !important;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    border: 1px solid #edf2f7;
+}
+
+/* Ensure list items don't feel "cramped" */
+.dashboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+}
+.dashboard-activity-wrapper {
+    max-width: 100%;
+    margin: 2rem auto;
+    padding: 0 20px;
+}
+@media (max-width: 1024px) {
+    .activity-grid {
+        grid-template-columns: 1fr; /* Stack on mobile/tablet */
+        gap: 20px;
+    }
+}
+
+/* =========================================
+   Application List Page Styles
+   ========================================= */
+
+/* --- Stats Row (Application List Page) --- */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stats-row .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    border: 1px solid #f1f5f9;
+}
+
+.stats-row .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.stats-row .stat-icon.bg-blue { background: #dbeafe; color: #2563eb; }
+.stats-row .stat-icon.bg-green { background: #dcfce7; color: #16a34a; }
+.stats-row .stat-icon.bg-purple { background: #f3e8ff; color: #9333ea; }
+.stats-row .stat-icon.bg-orange { background: #fef3c7; color: #d97706; }
+
+.stats-row .stat-info h4 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.stats-row .stat-info p {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* --- Filter Bar --- */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-select {
+    padding: 0.6rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #475569;
+    background: white;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.filter-bar .search-input {
+    padding: 0.6rem 1rem 0.6rem 2.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    width: 250px;
+    transition: all 0.2s;
+}
+
+.filter-bar .search-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-wrapper {
+    position: relative;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+/* --- Candidate Card Grid Layout --- */
+.candidate-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+    display: grid;
+    grid-template-columns: 40px 200px 180px 100px 120px 80px auto;
+    align-items: center;
+    gap: 1rem;
+}
+
+.candidate-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-color: #c7d2fe;
+    transform: translateY(-1px);
+}
+
+/* --- Application List Header (scoped) --- */
+#listHeader.list-header {
+    display: grid;
+    grid-template-columns: 40px 200px 180px 100px 120px 80px auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- Candidate Info --- */
+.candidate-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.candidate-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.candidate-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.candidate-meta {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.candidate-job {
+    font-weight: 500;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+/* --- Status Badges --- */
+.status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-submitted { background: #fef3c7; color: #92400e; }
+.status-interviewing { background: #dbeafe; color: #1e40af; }
+.status-responses_submitted { background: #d1fae5; color: #065f46; }
+.status-analysis_ready { background: #dcfce7; color: #166534; }
+.status-hired { background: #dbeafe; color: #1e40af; }
+.status-rejected { background: #fee2e2; color: #991b1b; }
+
+/* --- Match Score --- */
+.match-score {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    text-align: center;
+    min-width: 60px;
+}
+
+.match-score-value {
+    font-weight: 700;
+    color: #166534;
+    font-size: 1rem;
+}
+
+.match-score-label {
+    font-size: 0.65rem;
+    color: #15803d;
+    text-transform: uppercase;
+}
+
+/* --- Action Buttons --- */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+/* --- Selection Toolbar --- */
+.selection-toolbar {
+    display: none;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid #bfdbfe;
+}
+
+.selection-toolbar.active {
+    display: flex;
+}
+
+.bulk-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}

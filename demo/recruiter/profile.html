@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile – Demo | Skreenit</title>
+
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <script>
+      loadSharedCSS('core.css');   
+      loadSharedCSS('layout.css'); 
+      loadSharedCSS('components.css');
+      loadSharedCSS('mobile.css');
+    </script>
+
+    <style>
+        .demo-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .demo-banner i { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .exit-demo-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .exit-demo-btn:hover { background: rgba(255,255,255,0.3); color: white; }
+        
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .profile-name {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .profile-role {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin: 0.25rem 0;
+        }
+        
+        .profile-company {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .completion-bar {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+        
+        .completion-fill {
+            background: #22c55e;
+            height: 100%;
+            border-radius: 10px;
+        }
+        
+        .profile-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .section-title i {
+            color: #6366f1;
+        }
+        
+        .company-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .info-item {
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .info-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            font-size: 0.95rem;
+            color: #1e293b;
+            font-weight: 500;
+        }
+        
+        .stat-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #6366f1;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        .specialization-tag {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #e0e7ff;
+            color: #4f46e5;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            margin: 0.25rem;
+        }
+        
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: #f0fdf4;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .achievement-item i {
+            color: #22c55e;
+            font-size: 1.25rem;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .activity-icon.job { background: #dbeafe; color: #2563eb; }
+        .activity-icon.hire { background: #dcfce7; color: #16a34a; }
+        .activity-icon.interview { background: #fef3c7; color: #d97706; }
+        
+        .certification-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .certification-badge i {
+            font-size: 1.5rem;
+            color: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Banner -->
+    <div class="demo-banner">
+        <i class="fas fa-play-circle"></i>
+        <span>You're viewing a <strong>Demo</strong> with sample data</span>
+        <a href="../index.html" class="exit-demo-btn">
+            <i class="fas fa-sign-out-alt"></i> Exit Demo
+        </a>
+    </div>
+
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-tachometer-alt"></i><span>Overview</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='jobs.html'">
+                    <i class="fas fa-briefcase"></i><span>My Jobs</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='applications.html'">
+                    <i class="fas fa-users"></i><span>Applications</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='analysis.html'">
+                    <i class="fas fa-brain"></i><span>Analysis Reports</span>
+                </li>
+                <li class="nav-item active" onclick="window.location.href='profile.html'">
+                    <i class="fas fa-user-circle"></i><span>My Profile</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div id="userAvatar" class="avatar-circle">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="user-details">
+                        <span id="recruiterName" class="user-name">Demo Recruiter</span>
+                        <span id="companyId" class="user-role">TechCorp Solutions</span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="logout-btn" title="Exit Demo">
+                    <i class="fas fa-sign-out-alt"></i><span>Exit Demo</span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-content dashb">
+            <div class="dashboard-content">
+                <!-- Profile Header -->
+                <div class="profile-header" id="profileHeader">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <h1 class="profile-name" id="profileName">Priya Patel</h1>
+                            <p class="profile-role" id="profileRole">Senior HR Manager</p>
+                            <p class="profile-company" id="profileDepartment">Human Resources • TechCorp Solutions</p>
+                            <div class="completion-bar" style="max-width: 300px;">
+                                <div class="completion-fill" id="completionFill" style="width: 92%;"></div>
+                            </div>
+                            <small style="opacity: 0.8;" id="completionText">Profile 92% complete</small>
+                        </div>
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                            <button class="btn btn-light" onclick="showDemoAction()">
+                                <i class="fas fa-edit me-1"></i> Edit Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="row mb-4" id="statsRow">
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statJobsPosted">5</div>
+                            <div class="stat-label">Jobs Posted</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statTotalHires">23</div>
+                            <div class="stat-label">Total Hires</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statAvgTime">14</div>
+                            <div class="stat-label">Avg Days to Hire</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statExperience">8</div>
+                            <div class="stat-label">Years Experience</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Company Info -->
+                <div class="profile-section">
+                    <h3 class="section-title"><i class="fas fa-building"></i> Company Information</h3>
+                    <div class="row">
+                        <div class="col-md-2 text-center mb-3">
+                            <img id="companyLogo" class="company-logo" alt="Company Logo">
+                        </div>
+                        <div class="col-md-10">
+                            <h4 id="companyName" style="margin: 0 0 0.5rem 0; color: #1e293b;">TechCorp Solutions</h4>
+                            <p id="companyDescription" class="text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">
+                                TechCorp Solutions is a leading IT services company specializing in digital transformation, cloud solutions, and enterprise software development.
+                            </p>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <div class="info-label">Industry</div>
+                                    <div class="info-value" id="companyIndustry">Information Technology</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Company Size</div>
+                                    <div class="info-value" id="companySize">500-1000 employees</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Founded</div>
+                                    <div class="info-value" id="companyFounded">2015</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Location</div>
+                                    <div class="info-value" id="companyLocation">Hyderabad, India</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Website</div>
+                                    <div class="info-value"><a href="#" id="companyWebsite" target="_blank">techcorp.com</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="profile-section">
+                    <h3 class="section-title"><i class="fas fa-address-card"></i> Contact Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-envelope me-1"></i> Email</div>
+                            <div class="info-value" id="profileEmail">priya.patel@techcorp.com</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-phone me-1"></i> Phone</div>
+                            <div class="info-value" id="profilePhone">+91 9876543220</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-map-marker-alt me-1"></i> Location</div>
+                            <div class="info-value" id="profileLocation">Hyderabad, India</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label"><i class="fab fa-linkedin me-1"></i> LinkedIn</div>
+                            <div class="info-value"><a href="#" id="profileLinkedin" target="_blank">priya-patel-hr</a></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Specializations -->
+                <div class="profile-section">
+                    <h3 class="section-title"><i class="fas fa-bullseye"></i> Hiring Specializations</h3>
+                    <div id="specializations">
+                        <span class="specialization-tag">Technology Hiring</span>
+                        <span class="specialization-tag">Product Management</span>
+                        <span class="specialization-tag">Leadership Roles</span>
+                        <span class="specialization-tag">Campus Recruitment</span>
+                    </div>
+                </div>
+
+                <!-- Certifications -->
+                <div class="profile-section">
+                    <h3 class="section-title"><i class="fas fa-certificate"></i> Certifications</h3>
+                    <div id="certifications">
+                        <div class="certification-badge">
+                            <i class="fab fa-linkedin"></i>
+                            <div>
+                                <div style="font-weight: 600; color: #1e293b;">LinkedIn Recruiter Certified</div>
+                                <small class="text-muted">LinkedIn • 2024</small>
+                            </div>
+                        </div>
+                        <div class="certification-badge">
+                            <i class="fas fa-award"></i>
+                            <div>
+                                <div style="font-weight: 600; color: #1e293b;">SHRM-CP</div>
+                                <small class="text-muted">SHRM • 2023</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Achievements -->
+                <div class="profile-section">
+                    <h3 class="section-title"><i class="fas fa-trophy"></i> Achievements</h3>
+                    <div id="achievements">
+                        <div class="achievement-item">
+                            <i class="fas fa-users"></i>
+                            <span>Hired 50+ engineers in 2024</span>
+                        </div>
+                        <div class="achievement-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Reduced time-to-hire by 30%</span>
+                        </div>
+                        <div class="achievement-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Built campus recruitment program from scratch</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="profile-section">
+                    <h3 class="section-title"><i class="fas fa-history"></i> Recent Activity</h3>
+                    <div id="recentActivity">
+                        <div class="activity-item">
+                            <div class="activity-icon job">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500; color: #1e293b;">Job Posted</div>
+                                <small class="text-muted">Senior Frontend Developer • Mar 1, 2025</small>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon hire">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500; color: #1e293b;">Candidate Hired</div>
+                                <small class="text-muted">Backend Engineer - Vikram Singh • Feb 28, 2025</small>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon interview">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500; color: #1e293b;">Interview Completed</div>
+                                <small class="text-muted">Product Manager - Arjun Nair • Mar 13, 2025</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <i class="fas fa-info-circle" style="font-size: 3rem; color: #667eea;"></i>
+                    <h5 class="mt-3">Demo Mode</h5>
+                    <p class="text-muted">Profile editing is simulated in demo mode. In the real application, you can update all your profile information.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { 
+            DEMO_USERS, 
+            DEMO_RECRUITER_PROFILE,
+            DemoSession,
+            mockDelay 
+        } from '../js/demo-data.js';
+        
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+        
+        // Set logo
+        const logoImg = document.getElementById('logoImg');
+        if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage();
+        });
+        
+        async function initPage() {
+            await mockDelay(300);
+            
+            const profile = DEMO_RECRUITER_PROFILE || DEMO_USERS.recruiter;
+            
+            // Set sidebar info
+            document.getElementById('recruiterName').textContent = profile.name;
+            document.getElementById('companyId').textContent = profile.company_name;
+            
+            // Profile header
+            document.getElementById('profileName').textContent = profile.name;
+            document.getElementById('profileRole').textContent = profile.role || 'Senior HR Manager';
+            document.getElementById('profileDepartment').textContent = `${profile.department || 'Human Resources'} • ${profile.company_name}`;
+            document.getElementById('completionFill').style.width = `${profile.profile_completion || 92}%`;
+            document.getElementById('completionText').textContent = `Profile ${profile.profile_completion || 92}% complete`;
+            
+            // Stats
+            document.getElementById('statJobsPosted').textContent = profile.jobs_posted || 5;
+            document.getElementById('statTotalHires').textContent = profile.total_hires || 23;
+            document.getElementById('statAvgTime').textContent = profile.avg_time_to_hire?.replace(' days', '') || '14';
+            document.getElementById('statExperience').textContent = profile.experience_years || 8;
+            
+            // Company info
+            document.getElementById('companyLogo').src = profile.company_logo || 'https://via.placeholder.com/80x80/667eea/ffffff?text=TC';
+            document.getElementById('companyName').textContent = profile.company_name;
+            document.getElementById('companyDescription').textContent = profile.company_description || '';
+            document.getElementById('companyIndustry').textContent = profile.company_industry || 'Information Technology';
+            document.getElementById('companySize').textContent = profile.company_size || '500-1000 employees';
+            document.getElementById('companyFounded').textContent = profile.company_founded || '2015';
+            document.getElementById('companyLocation').textContent = profile.company_location || 'Hyderabad, India';
+            document.getElementById('companyWebsite').textContent = profile.company_website?.replace('https://', '') || 'techcorp.com';
+            document.getElementById('companyWebsite').href = profile.company_website || '#';
+            
+            // Contact info
+            document.getElementById('profileEmail').textContent = profile.email;
+            document.getElementById('profilePhone').textContent = profile.phone || '+91 9876543220';
+            document.getElementById('profileLocation').textContent = profile.location || 'Hyderabad, India';
+            document.getElementById('profileLinkedin').textContent = profile.linkedin?.replace('https://linkedin.com/in/', '') || 'priya-patel-hr';
+            document.getElementById('profileLinkedin').href = profile.linkedin || '#';
+            
+            // Specializations
+            if (profile.specializations) {
+                document.getElementById('specializations').innerHTML = profile.specializations.map(s => 
+                    `<span class="specialization-tag">${s}</span>`
+                ).join('');
+            }
+            
+            // Certifications
+            if (profile.certifications) {
+                document.getElementById('certifications').innerHTML = profile.certifications.map(c => `
+                    <div class="certification-badge">
+                        <i class="fas fa-certificate"></i>
+                        <div>
+                            <div style="font-weight: 600; color: #1e293b;">${c.name}</div>
+                            <small class="text-muted">${c.issuer} • ${c.year}</small>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Achievements
+            if (profile.achievements) {
+                document.getElementById('achievements').innerHTML = profile.achievements.map(a => `
+                    <div class="achievement-item">
+                        <i class="fas fa-star"></i>
+                        <span>${a}</span>
+                    </div>
+                `).join('');
+            }
+            
+            // Recent Activity
+            if (profile.recent_activity) {
+                const activityIcons = {
+                    job_posted: { icon: 'briefcase', class: 'job' },
+                    candidate_hired: { icon: 'user-check', class: 'hire' },
+                    interview_completed: { icon: 'video', class: 'interview' }
+                };
+                
+                document.getElementById('recentActivity').innerHTML = profile.recent_activity.map(a => {
+                    const config = activityIcons[a.type] || { icon: 'circle', class: 'job' };
+                    return `
+                        <div class="activity-item">
+                            <div class="activity-icon ${config.class}">
+                                <i class="fas fa-${config.icon}"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500; color: #1e293b;">${a.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                                <small class="text-muted">${a.title} • ${formatDate(a.date)}</small>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            setupEventListeners();
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+        
+        function setupEventListeners() {
+            document.getElementById('logoutBtn')?.addEventListener('click', () => {
+                DemoSession.clear();
+                window.location.href = '../index.html';
+            });
+        }
+        
+        // Global function
+        window.showDemoAction = function() {
+            const modal = new bootstrap.Modal(document.getElementById('editModal'));
+            modal.show();
+        };
+    </script>
+</body>
+</html>

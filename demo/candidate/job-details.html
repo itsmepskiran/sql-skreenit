@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Details – Demo | Skreenit</title>
+
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <script>
+      loadSharedCSS('core.css');   
+      loadSharedCSS('layout.css'); 
+      loadSharedCSS('components.css'); 
+      loadSharedCSS('special.css');
+      loadSharedCSS('mobile.css');
+    </script>
+
+    <style>
+        .demo-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .demo-banner i { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .exit-demo-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .exit-demo-btn:hover { background: rgba(255,255,255,0.3); color: white; }
+        
+        .job-detail-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .job-header {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .job-title { font-size: 1.75rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
+        .job-company { font-size: 1.1rem; color: #64748b; margin-bottom: 1rem; }
+        
+        .job-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .job-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #475569;
+        }
+        
+        .job-meta-item i { color: #6366f1; }
+        
+        .job-salary {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .job-salary-label { font-size: 0.85rem; color: #166534; margin-bottom: 0.25rem; }
+        .job-salary-value { font-size: 1.25rem; font-weight: 700; color: #15803d; }
+        
+        .job-skills { margin-bottom: 1.5rem; }
+        .job-skills h4 { font-size: 0.9rem; color: #64748b; margin-bottom: 0.75rem; text-transform: uppercase; }
+        
+        .skill-tag {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #4f46e5;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .job-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .job-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .job-section h3 i { color: #6366f1; }
+        
+        .job-section p { color: #475569; line-height: 1.7; }
+        
+        .requirements-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .requirements-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            color: #475569;
+        }
+        
+        .requirements-list li:last-child { border-bottom: none; }
+        .requirements-list li i { color: #22c55e; margin-top: 0.25rem; }
+        
+        .apply-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+        
+        .apply-section h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .apply-section p { opacity: 0.9; margin-bottom: 1.5rem; }
+        
+        .apply-btn {
+            background: white;
+            color: #6366f1;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .apply-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        .back-btn:hover { color: #6366f1; }
+        
+        @media (max-width: 600px) {
+            .job-header { padding: 1.5rem; }
+            .job-title { font-size: 1.5rem; }
+            .job-meta { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Banner -->
+    <div class="demo-banner">
+        <i class="fas fa-play-circle"></i>
+        <span>You're viewing a <strong>Demo</strong> with sample data</span>
+        <a href="../index.html" class="exit-demo-btn">
+            <i class="fas fa-sign-out-alt"></i> Exit Demo
+        </a>
+    </div>
+
+    <div class="job-detail-container">
+        <a href="dashboard.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        
+        <div class="job-header">
+            <h1 class="job-title" id="jobTitle">Loading...</h1>
+            <p class="job-company" id="jobCompany">Loading...</p>
+            
+            <div class="job-meta" id="jobMeta"></div>
+            
+            <div class="job-salary" id="jobSalary">
+                <div class="job-salary-label">Salary Range</div>
+                <div class="job-salary-value">Loading...</div>
+            </div>
+            
+            <div class="job-skills">
+                <h4>Required Skills</h4>
+                <div id="jobSkills"></div>
+            </div>
+        </div>
+        
+        <div class="job-section">
+            <h3><i class="fas fa-file-alt"></i> Job Description</h3>
+            <p id="jobDescription">Loading...</p>
+        </div>
+        
+        <div class="job-section">
+            <h3><i class="fas fa-list-check"></i> Requirements</h3>
+            <ul class="requirements-list" id="jobRequirements"></ul>
+        </div>
+        
+        <div class="apply-section" id="applySection">
+            <h3>Ready to Apply?</h3>
+            <p>Submit your application and start your journey with us</p>
+            <button class="apply-btn" id="applyBtn" onclick="applyForJob()">
+                <i class="fas fa-paper-plane me-2"></i> Apply Now
+            </button>
+        </div>
+        
+        <div class="apply-section" id="appliedSection" style="display: none; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
+            <h3><i class="fas fa-check-circle me-2"></i> Application Submitted!</h3>
+            <p>Your application has been submitted successfully. Track your application status from your dashboard.</p>
+            <a href="dashboard.html" class="apply-btn" style="color: #22c55e;">
+                <i class="fas fa-home me-2"></i> Go to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Demo Apply Modal -->
+    <div class="modal fade" id="demoApplyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <h5 class="modal-title"><i class="fas fa-play-circle me-2"></i>Demo Mode</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <i class="fas fa-check-circle" style="font-size: 4rem; color: #22c55e;"></i>
+                    <h4 class="mt-3">Application Submitted!</h4>
+                    <p class="text-muted">In demo mode, your application is simulated. In the real application, you would complete your profile and submit a video interview.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="dashboard.html" class="btn btn-primary">View Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { DEMO_JOBS, DEMO_CANDIDATE_APPLICATIONS, DemoSession, mockDelay } from '../js/demo-data.js';
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const jobId = urlParams.get('job_id');
+        const shouldApply = urlParams.get('apply') === 'true';
+        
+        // Find job
+        const job = DEMO_JOBS.find(j => j.id === jobId);
+        
+        if (!job) {
+            document.querySelector('.job-detail-container').innerHTML = `
+                <div class="job-section text-center py-5">
+                    <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #ef4444;"></i>
+                    <h3 class="mt-3">Job Not Found</h3>
+                    <p class="text-muted">This job doesn't exist in demo data.</p>
+                    <a href="dashboard.html" class="btn btn-primary mt-3">Back to Dashboard</a>
+                </div>
+            `;
+        } else {
+            // Check if already applied
+            const alreadyApplied = DEMO_CANDIDATE_APPLICATIONS.some(a => a.job_id === jobId);
+            
+            // Populate job details
+            document.getElementById('jobTitle').textContent = job.title;
+            document.getElementById('jobCompany').textContent = job.company_name;
+            
+            document.getElementById('jobMeta').innerHTML = `
+                <div class="job-meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${job.location}</span>
+                </div>
+                <div class="job-meta-item">
+                    <i class="fas fa-briefcase"></i>
+                    <span>${job.job_type}</span>
+                </div>
+                <div class="job-meta-item">
+                    <i class="fas fa-building"></i>
+                    <span>${job.work_mode}</span>
+                </div>
+                <div class="job-meta-item">
+                    <i class="fas fa-clock"></i>
+                    <span>${job.experience_min}-${job.experience_max} years experience</span>
+                </div>
+            `;
+            
+            const formatSalary = (num) => {
+                if (num >= 100000) return `${(num / 100000).toFixed(1)} LPA`;
+                return `₹${num.toLocaleString()}`;
+            };
+            
+            document.getElementById('jobSalary').innerHTML = `
+                <div class="job-salary-label">Salary Range</div>
+                <div class="job-salary-value">${formatSalary(job.salary_min)} - ${formatSalary(job.salary_max)}</div>
+            `;
+            
+            document.getElementById('jobSkills').innerHTML = job.skills
+                .map(skill => `<span class="skill-tag">${skill}</span>`)
+                .join('');
+            
+            document.getElementById('jobDescription').textContent = job.description;
+            
+            document.getElementById('jobRequirements').innerHTML = job.requirements
+                .map(req => `<li><i class="fas fa-check"></i> ${req}</li>`)
+                .join('');
+            
+            // Show/hide apply section based on application status
+            if (alreadyApplied) {
+                document.getElementById('applySection').style.display = 'none';
+                document.getElementById('appliedSection').style.display = 'block';
+            }
+            
+            // Auto-trigger apply if requested
+            if (shouldApply && !alreadyApplied) {
+                setTimeout(() => applyForJob(), 500);
+            }
+        }
+        
+        // Global apply function
+        window.applyForJob = function() {
+            const modal = new bootstrap.Modal(document.getElementById('demoApplyModal'));
+            modal.show();
+            
+            // Update UI to show applied state
+            document.getElementById('applySection').style.display = 'none';
+            document.getElementById('appliedSection').style.display = 'block';
+        };
+    </script>
+</body>
+</html>

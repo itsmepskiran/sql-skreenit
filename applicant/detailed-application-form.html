@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Complete Your Profile – Skreenit</title>
+
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      // CACHE BUSTER
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+
+  <script>
+    loadSharedCSS('core.css'); loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css'); loadSharedCSS('special.css'); 
+    loadSharedCSS('location-components.css');
+    loadSharedCSS('warning-ribbon.css');
+    loadSharedCSS('mobile.css');
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+         <div class="logo">
+            <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+         </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item" id="navDashboard"><i class="fas fa-home"></i><span>Dashboard</span></li>
+        <li class="nav-item" id="navJobs"><i class="fas fa-briefcase"></i><span>Browse Jobs</span></li>
+        <li class="nav-item" id="navApplications"><i class="fas fa-file-alt"></i><span>My Applications</span></li>
+        <li class="nav-item active" id="navProfile"><i class="fas fa-user"></i><span>My Profile</span></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+             <i class="fas fa-user"></i>
+          </div>
+          <div class="user-details">
+            <span id="userName" class="user-name">Loading...</span>
+            <span id="userDesignation" class="user-role">Candidate ID</span>
+            <span id="userIdDisplay" class="user-id"></span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <header class="dashboard-header">
+        <h1>Complete Your Profile</h1>
+      </header>
+
+      <!-- Error/Warning Messages -->
+      <div id="errorBox" class="warning-ribbon d-none">
+          <div class="warning-content">
+              <div class="warning-icon">
+                  <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="warning-message">
+                  <strong>Profile Update Issue</strong>
+                  <p class="warning-details">Please check the form and try again</p>
+              </div>
+              <button type="button" class="warning-close" onclick="hideWarning('errorBox')">
+                  <i class="fas fa-times"></i>
+              </button>
+          </div>
+      </div>
+
+      <div class="dashboard-content">
+        <div class="form-card">
+            
+            <div class="stepper-wrapper">
+                <div class="step-item active" data-step="1">
+                    <div class="step-circle"><i class="fas fa-user"></i></div>
+                    <div class="step-label">Personal</div>
+                </div>
+                <div class="step-item" data-step="2">
+                    <div class="step-circle"><i class="fas fa-briefcase"></i></div>
+                    <div class="step-label">Professional</div>
+                </div>
+                <div class="step-item" data-step="3">
+                    <div class="step-circle"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="step-label">Education</div>
+                </div>
+                <div class="step-item" data-step="4">
+                    <div class="step-circle"><i class="fas fa-code"></i></div>
+                    <div class="step-label">Skills</div>
+                </div>
+                <div class="step-item" data-step="5">
+                    <div class="step-circle"><i class="fas fa-history"></i></div>
+                    <div class="step-label">Experience</div>
+                </div>
+                <div class="step-item" data-step="6">
+                    <div class="step-circle"><i class="fas fa-file-upload"></i></div>
+                    <div class="step-label">Documents</div>
+                </div>
+                <div class="step-item" data-step="7">
+                    <div class="step-circle"><i class="fas fa-check-circle"></i></div>
+                    <div class="step-label">Submit</div>
+                </div>
+            </div>
+
+            <form id="applicationForm">
+                
+                <section class="form-section active" id="step1">
+                    <h2 class="section-title">Personal Information</h2>
+                    
+                    <!-- Profile Image Upload -->
+                    <div class="form-group" style="text-align: center; margin-bottom: 2rem;">
+                        <label style="display: block; margin-bottom: 0.75rem; font-weight: 600;">Profile Photo</label>
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+                            <div id="profileImagePreview" style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-size: 2.5rem; font-weight: 600; overflow: hidden; position: relative;">
+                                <span id="avatarInitialsPreview">?</span>
+                                <img id="profileImageTag" src="" alt="Profile" style="display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;">
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                <input type="file" id="profileImageFile" name="profile_image" accept="image/jpeg,image/png,image/jpg" hidden />
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('profileImageFile').click()">
+                                    <i class="fas fa-camera"></i> Choose Photo
+                                </button>
+                                <p id="profileImageFileName" style="font-size: 0.8rem; color: var(--text-light); margin: 0;"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Basic Info -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name*</label>
+                            <input type="text" name="full_name" required readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Email ID*</label>
+                            <input type="email" name="email" required readonly />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Mobile Number*</label>
+                            <input type="tel" name="phone" required placeholder="+91 XXXXX XXXXX" />
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth*</label>
+                            <input type="date" name="date_of_birth" required />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Gender*</label>
+                            <select name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                                <option value="prefer_not_to_say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Marital Status</label>
+                            <select name="marital_status">
+                                <option value="">Select Status</option>
+                                <option value="single">Single</option>
+                                <option value="married">Married</option>
+                                <option value="divorced">Divorced</option>
+                                <option value="widowed">Widowed</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Address -->
+                    <h3 style="margin: 1.5rem 0 1rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: var(--primary-color);"></i>Current Address</h3>
+                    <div class="form-group">
+                        <label>Address Line</label>
+                        <textarea name="current_address" rows="2" placeholder="Street, Area, Landmark"></textarea>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>City</label>
+                            <div id="currentCityPicker"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>State</label>
+                            <select name="current_state" id="currentStateSelect">
+                                <option value="">Select State</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Country</label>
+                            <select name="current_country" id="currentCountrySelect">
+                                <option value="">Select Country</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Permanent Address -->
+                    <h3 style="margin: 1.5rem 0 1rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-home" style="margin-right: 8px; color: var(--primary-color);"></i>Permanent Address</h3>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="sameAsCurrent" onchange="copyCurrentAddress()" style="width: auto;" />
+                            <span>Same as Current Address</span>
+                        </label>
+                    </div>
+                    <div id="permanentAddressSection">
+                        <div class="form-group">
+                            <label>Address Line</label>
+                            <textarea name="permanent_address" rows="2" placeholder="Street, Area, Landmark"></textarea>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>City</label>
+                                <div id="permanentCityPicker"></div>
+                            </div>
+                            <div class="form-group">
+                                <label>State</label>
+                                <select name="permanent_state" id="permanentStateSelect">
+                                    <option value="">Select State</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Country</label>
+                                <select name="permanent_country" id="permanentCountrySelect">
+                                    <option value="">Select Country</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section" id="step2">
+                    <h2 class="section-title">Professional Details</h2>
+                    
+                    <!-- Salary & Notice Period -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Last Drawn Salary (Annual)</label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: var(--text-light);">₹</span>
+                                <input type="number" name="current_salary" placeholder="e.g., 500000" min="0" />
+                                <span style="color: var(--text-light); font-size: 0.85rem;">per annum</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Expected Salary (Annual)*</label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: var(--text-light);">₹</span>
+                                <input type="number" name="expected_salary" placeholder="e.g., 700000" min="0" required />
+                                <span style="color: var(--text-light); font-size: 0.85rem;">per annum</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Notice Period*</label>
+                            <select name="notice_period_days" required>
+                                <option value="">Select Notice Period</option>
+                                <option value="0">Immediate Joiner</option>
+                                <option value="15">15 Days</option>
+                                <option value="30">30 Days</option>
+                                <option value="60">60 Days</option>
+                                <option value="90">90 Days</option>
+                                <option value="120">120+ Days</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Highest Educational Qualification*</label>
+                            <select name="highest_qualification" required>
+                                <option value="">Select Qualification</option>
+                                <option value="high-school">High School (10th)</option>
+                                <option value="pre-university">Pre-University (12th/PUC)</option>
+                                <option value="diploma">Diploma</option>
+                                <option value="bachelors">Bachelor's Degree</option>
+                                <option value="masters">Master's Degree/PG</option>
+                                <option value="phd">PhD/Doctorate</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Social Connect -->
+                    <h3 style="margin: 1.5rem 0 0.75rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-share-alt" style="margin-right: 8px; color: var(--primary-color);"></i>Social Connect</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>LinkedIn URL</label>
+                            <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/username" />
+                        </div>
+                        <div class="form-group">
+                            <label>Portfolio / Personal Website</label>
+                            <input type="url" name="portfolio_url" placeholder="https://yourwebsite.com" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Personal Projects (GitHub/GitLab/Bitbucket)</label>
+                            <textarea name="personal_projects" rows="2" placeholder="Share links to your notable projects"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Personal Blogs / Technical Articles</label>
+                            <textarea name="personal_blogs" rows="2" placeholder="Share links to your blogs or articles"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Professional Summary -->
+                    <div class="form-group">
+                        <label>Professional Summary</label>
+                        <textarea name="summary" rows="4" placeholder="Brief overview of your experience, skills, and career objectives..."></textarea>
+                    </div>
+                </section>
+
+                <section class="form-section" id="step3">
+                    <h2 class="section-title">Education Details</h2>
+                    
+                    <!-- Schooling (10th) -->
+                    <h3 style="margin: 1rem 0 0.75rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-school" style="margin-right: 8px; color: var(--primary-color);"></i>Schooling (10th / SSC)</h3>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>School Name</label>
+                            <input type="text" name="schooling" placeholder="School name" />
+                        </div>
+                        <div class="form-group">
+                            <label>Year of Pass</label>
+                            <input type="number" name="schooling_year" placeholder="YYYY" min="1950" max="2030" />
+                        </div>
+                        <div class="form-group">
+                            <label>% or CGPA</label>
+                            <input type="text" name="schooling_percentage" placeholder="e.g., 85% or 9.0 CGPA" />
+                        </div>
+                    </div>
+                    
+                    <!-- Pre-University (12th/PUC) -->
+                    <h3 style="margin: 1.5rem 0 0.75rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-graduation-cap" style="margin-right: 8px; color: var(--primary-color);"></i>Pre-University (12th / PUC / Diploma)</h3>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>College Name</label>
+                            <input type="text" name="pre_university" placeholder="College name" />
+                        </div>
+                        <div class="form-group">
+                            <label>Year of Pass</label>
+                            <input type="number" name="pre_university_year" placeholder="YYYY" min="1950" max="2030" />
+                        </div>
+                        <div class="form-group">
+                            <label>% or CGPA</label>
+                            <input type="text" name="pre_university_percentage" placeholder="e.g., 85% or 9.0 CGPA" />
+                        </div>
+                    </div>
+                    
+                    <!-- Graduation -->
+                    <h3 style="margin: 1.5rem 0 0.75rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-university" style="margin-right: 8px; color: var(--primary-color);"></i>Graduation (Bachelor's Degree)</h3>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>College/University</label>
+                            <input type="text" name="graduation" placeholder="College/University name" />
+                        </div>
+                        <div class="form-group">
+                            <label>Year of Pass</label>
+                            <input type="number" name="graduation_year" placeholder="YYYY" min="1950" max="2030" />
+                        </div>
+                        <div class="form-group">
+                            <label>% or CGPA</label>
+                            <input type="text" name="graduation_percentage" placeholder="e.g., 85% or 9.0 CGPA" />
+                        </div>
+                    </div>
+                    
+                    <!-- Post Graduation -->
+                    <h3 style="margin: 1.5rem 0 0.75rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-user-graduate" style="margin-right: 8px; color: var(--primary-color);"></i>Post Graduation (Master's Degree)</h3>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>College/University</label>
+                            <input type="text" name="post_graduation" placeholder="College/University name" />
+                        </div>
+                        <div class="form-group">
+                            <label>Year of Pass</label>
+                            <input type="number" name="post_graduation_year" placeholder="YYYY" min="1950" max="2030" />
+                        </div>
+                        <div class="form-group">
+                            <label>% or CGPA</label>
+                            <input type="text" name="post_graduation_percentage" placeholder="e.g., 85% or 9.0 CGPA" />
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Education -->
+                    <div class="section-header" style="margin-top: 1.5rem;">
+                        <h4 style="margin: 0; font-size: 1rem;">Additional Degrees / Certifications</h4>
+                        <button type="button" class="btn-outline-primary btn-sm" id="addEducation"><i class="fas fa-plus"></i> Add</button>
+                    </div>
+                    <div id="educationContainer"></div>
+                </section>
+
+                <section class="form-section" id="step4">
+                    <h2 class="section-title">Skills & Languages</h2>
+                    
+                    <!-- Spoken Languages -->
+                    <div class="form-group">
+                        <label>Languages Known*</label>
+                        <div class="languages-input-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                            <label style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: var(--bg-light); border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" name="languages" value="english" checked /> English
+                            </label>
+                            <label style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: var(--bg-light); border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" name="languages" value="hindi" /> Hindi
+                            </label>
+                            <label style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: var(--bg-light); border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" name="languages" value="kannada" /> Kannada
+                            </label>
+                            <label style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: var(--bg-light); border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" name="languages" value="tamil" /> Tamil
+                            </label>
+                            <label style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: var(--bg-light); border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" name="languages" value="telugu" /> Telugu
+                            </label>
+                            <label style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: var(--bg-light); border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+                                <input type="checkbox" name="languages" value="marathi" /> Marathi
+                            </label>
+                        </div>
+                        <input type="text" id="otherLanguageInput" placeholder="Other languages (comma separated)" style="margin-top: 0.5rem;" />
+                    </div>
+                    
+                    <!-- Technical Skills -->
+                    <div class="form-group">
+                        <label>Technical Skills*</label>
+                        <div class="skills-input-group">
+                            <input type="text" id="skillInput" class="form-control" placeholder="Type skill & Press Enter" style="flex:1;" />
+                            <button type="button" id="addSkillBtn" class="btn btn-secondary">Add</button>
+                        </div>
+                        <div class="skills-tags-container" id="skillsContainer"></div>
+                    </div>
+                    
+                    <!-- Certifications -->
+                    <h3 style="margin: 1.5rem 0 0.75rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-certificate" style="margin-right: 8px; color: var(--primary-color);"></i>Certifications</h3>
+                    <div id="certificationsContainer">
+                        <div class="certification-item" style="display: grid; grid-template-columns: 1fr 1fr 100px auto; gap: 1rem; margin-bottom: 1rem;">
+                            <input type="text" name="cert_name_1" placeholder="Certification Name" />
+                            <input type="text" name="cert_issuer_1" placeholder="Issuing Organization" />
+                            <input type="number" name="cert_year_1" placeholder="Year" min="2000" max="2030" />
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="addCertification"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section" id="step5">
+                    <h2 class="section-title">Work Experience</h2>
+                    
+                    <!-- Current/Latest Experience -->
+                    <h3 style="margin: 1rem 0 0.75rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-briefcase" style="margin-right: 8px; color: var(--primary-color);"></i>Current / Latest Experience</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Company Name*</label>
+                            <input type="text" name="current_company" required placeholder="Current/Latest company" />
+                        </div>
+                        <div class="form-group">
+                            <label>Designation*</label>
+                            <input type="text" name="current_designation" required placeholder="Your role/title" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date of Joining*</label>
+                            <input type="date" name="current_doj" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Leaving</label>
+                            <input type="date" name="current_dol" />
+                            <small style="color: var(--text-muted); font-size: 0.75rem;">Leave blank if currently working</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Previous Experience -->
+                    <div class="section-header" style="margin-top: 1.5rem;">
+                        <h4 style="margin: 0; font-size: 1rem;">Previous Experience</h4>
+                        <button type="button" class="btn-outline-primary btn-sm" id="addExperience"><i class="fas fa-plus"></i> Add Previous</button>
+                    </div>
+                    <div id="experienceContainer"></div>
+                </section>
+
+                <section class="form-section" id="step6">
+                    <h2 class="section-title">Documents</h2>
+                    
+                    <!-- Resume Upload -->
+                    <div class="upload-area" id="resumeUpload">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h3>Upload Resume*</h3>
+                        <p class="text-muted mb-3">PDF, DOCX (Max 5MB)</p>
+                        <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx" hidden />
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('resumeFile').click()">Choose File</button>
+                        <div class="file-name mt-3 fw-bold" id="resumeFileName"></div>
+                    </div>
+                </section>
+
+                <section class="form-section" id="step7">
+                    <h2 class="section-title">Introduction Video & Submit</h2>
+                    
+                    <!-- Intro Video -->
+                    <h3 style="margin: 0 0 1rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-video" style="margin-right: 8px; color: var(--primary-color);"></i>Introduction Video*</h3>
+                    <p class="text-muted mb-3">Record a 60-90 second video introducing yourself. This helps recruiters know you better!</p>
+                    
+                    <div id="videoRecordingContainer" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; background: #f8fafc;">
+                        <div id="videoRecorderInterface">
+                            <div style="position: relative; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
+                                <video id="introCameraFeed" autoplay muted playsinline style="width: 100%; max-height: 350px; display: block;"></video>
+                                <video id="introPlaybackFeed" controls style="width: 100%; max-height: 350px; display: none;"></video>
+                                <div id="recordingIndicator" style="display: none; position: absolute; top: 15px; right: 15px; background: rgba(239, 68, 68, 0.9); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                                    <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 6px; animation: pulse 1s infinite;"></i>
+                                    <span id="introTimerDisplay">00:00</span>
+                                </div>
+                            </div>
+                            <div id="introRecordingControls" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                                <button type="button" id="startIntroRecordingBtn" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.1rem;">
+                                    <i class="fas fa-video" style="margin-right: 8px;"></i>Start Recording
+                                </button>
+                            </div>
+                            <div id="introStopControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                                <button type="button" id="stopIntroRecordingBtn" class="btn btn-danger" style="padding: 14px 40px; font-size: 1.1rem;">
+                                    <i class="fas fa-stop-circle" style="margin-right: 8px;"></i>Stop Recording
+                                </button>
+                            </div>
+                            <div id="introReviewControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                                <div style="display: flex; gap: 1rem;">
+                                    <button type="button" id="retakeIntroVideoBtn" class="btn btn-secondary"><i class="fas fa-redo" style="margin-right: 8px;"></i>Retake</button>
+                                    <button type="button" id="acceptIntroVideoBtn" class="btn btn-success"><i class="fas fa-check" style="margin-right: 8px;"></i>Accept Video</button>
+                                </div>
+                            </div>
+                            <div id="introVideoAccepted" style="display: none; text-align: center; padding: 1rem;">
+                                <div style="background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                                    <i class="fas fa-check-circle" style="color: #16a34a; font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                    <p style="color: #166534; margin: 0; font-weight: 600;">Video recorded successfully!</p>
+                                    <p style="color: #166534; margin: 0.25rem 0 0 0; font-size: 0.9rem;">Duration: <span id="acceptedVideoDuration">--</span></p>
+                                </div>
+                                <div style="display: flex; gap: 1rem; justify-content: center;">
+                                    <button type="button" id="viewIntroVideoBtn" class="btn btn-outline-primary"><i class="fas fa-play-circle" style="margin-right: 8px;"></i>View Video</button>
+                                    <button type="button" id="reRecordIntroVideoBtn" class="btn btn-outline-secondary"><i class="fas fa-redo" style="margin-right: 8px;"></i>Re-record Video</button>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="introVideoRecordedBlob" name="intro_video_recorded" />
+                    </div>
+                    <input type="file" id="introVideoFile" name="intro_video" accept="video/webm" hidden />
+                    
+                    <!-- Disclaimer -->
+                    <div class="alert alert-info" style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 1rem; margin: 2rem 0 1.5rem;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <input type="checkbox" id="disclaimerAgree" required style="margin-top: 4px;" />
+                            <label for="disclaimerAgree" style="font-size: 0.9rem; color: #92400e; cursor: pointer;">
+                                <strong>Declaration:</strong> I hereby declare that all the information provided above is true and accurate to the best of my knowledge. I understand that any false information may result in disqualification of my application or termination of employment if hired.
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="prevBtn">Previous</button>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" class="btn btn-primary" id="nextBtn">Next Step</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn" style="display: none;">Submit Application</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <div class="custom-modal-backdrop" id="successModal">
+    <div class="custom-modal-card">
+      <div class="success-check-circle"><i class="fas fa-check"></i></div>
+      <h2 class="mb-4">Profile Completed!</h2>
+      <button class="btn btn-primary w-100" id="goToProfileBtn">Back to Profile</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/application-form.js"></script>
+</body>
+</html>

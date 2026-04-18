@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recruiter Dashboard – Skreenit</title>
+  
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      // CACHE-BUSTER LOADER
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+  <script>
+    loadSharedCSS('core.css');   
+    loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css'); // Swapped forms.css to components.css
+    loadSharedCSS('mobile.css');
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+         <div class="logo">
+            <img src="" id="logoImg" alt="Skreenit" class="logo-max-width"/>
+         </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item active" data-nav="DASHBOARD_RECRUITER"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
+        <li class="nav-item" data-nav="MY_JOBS"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+        <li class="nav-item" data-nav="APPLICATION_LIST"><i class="fas fa-users"></i><span>Applications</span></li>
+        <li class="nav-item" data-nav="ANALYSIS"><i class="fas fa-brain"></i><span>Analysis Reports</span></li>
+        <li class="nav-item" data-nav="RECRUITER_PROFILE"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="user-details">
+             <span id="recruiterName" class="user-name">Loading...</span>
+             <span id="companyId" class="user-role">Company ID: ---</span>
+             <span id="userIdDisplay" class="user-id"></span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+      </div>
+    </nav>
+    <main class="main-content dashb">
+      <header class="dashboard-header header-justify-end">
+        <div class="header-actions">
+          <button class="icon-btn pos-relative" id="notificationBtn">
+            <i class="far fa-bell"></i>
+            <span id="notificationBadge" class="notification-badge hidden"></span>
+          </button>
+          <button class="btn btn-primary" id="postJobBtn" data-nav="JOB_CREATE"><i class="fas fa-plus"></i> Post Job</button>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        
+        <div class="stats-grid">
+          <div class="stat-card" id="btnActiveJobs">
+            <div class="stat-icon bg-blue"><i class="fas fa-briefcase"></i></div>
+            <div class="stat-info">
+              <h3 id="statActiveJobs">0</h3><p>Active Jobs</p>
+            </div>
+          </div>
+          
+          <div class="stat-card" id="btnCandidates">
+            <div class="stat-icon bg-green"><i class="fas fa-users"></i></div>
+            <div class="stat-info">
+              <h3 id="statTotalCandidates">0</h3><p>Candidates</p>
+            </div>
+          </div>
+          
+          <div class="stat-card" id="btnNewApps">
+            <div class="stat-icon bg-purple"><i class="fas fa-file-alt"></i></div>
+            <div class="stat-info">
+              <h3 id="statNewApplications">0</h3><p>New Applications</p>
+            </div>
+          </div>
+          <div class="stat-card" id="btnInterviews">
+            <div class="stat-icon bg-orange"><i class="fas fa-video"></i></div>
+            <div class="stat-info">
+              <h3 id="statInterviews">0</h3><p>Interviews</p>
+            </div>
+          </div>
+          <div class="stat-card stat-card-clickable" id="btnAnalysis" data-nav="ANALYSIS">
+            <div class="stat-icon stat-icon-gradient"><i class="fas fa-brain"></i></div>
+            <div class="stat-info">
+              <h3 id="statAnalysis">0</h3><p>Analysis Reports</p>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-activity-wrapper">
+        <div class="row activity-row">
+        
+        <div class="activity-column">
+            <div class="activity-card card">
+                <div class="section-header activity-card-header">
+                    <h3 class="activity-card-title"><i class="fas fa-briefcase me-2 text-primary"></i>Recent Jobs</h3>
+                    <a href="#" data-nav="MY_JOBS" class="activity-card-link">View All</a>
+                </div>
+                <div class="dashboard-list activity-list" id="recentJobsList">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+        <div class="activity-column">
+            <div class="activity-card card">
+                <div class="section-header activity-card-header">
+                    <h3 class="activity-card-title"><i class="fas fa-file-alt me-2 text-primary"></i>Recent Applications</h3>
+                    <a href="#" data-nav="APPLICATION_LIST" class="activity-card-link">View All</a>
+                </div>
+                <div class="dashboard-list activity-list" id="recentAppsList">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+        <div class="activity-column">
+            <div class="activity-card card">
+                <div class="section-header activity-card-header">
+                    <h3 class="activity-card-title"><i class="fas fa-brain me-2 text-primary"></i>Video Analysis Reports</h3>
+                </div>
+                <div class="dashboard-list activity-list" id="analysisReportsList">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+    </main>
+  </div>
+
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg modal-rounded">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="responseModalLabel">Candidate Interview Responses</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="responseModalBody">
+                </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+  <script type="module">
+    import { CONFIG } from '@shared/js/config.js';
+    CONFIG.initNavigation();
+    
+    // Cache-busting loader for recruiter dashboard JS
+    const recruiterDashboardScript = document.createElement('script');
+    recruiterDashboardScript.type = 'module';
+    recruiterDashboardScript.src = `js/recruiter-dashboard.js?v=${Date.now()}`;
+    document.body.appendChild(recruiterDashboardScript);
+  </script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+/* =========================================
+   4. AUTH.CSS - Login & Register Pages
+   ========================================= */
+
+.auth-page-body {
+    background: var(--gradient-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    position: relative;
+}
+
+/* Background Decorations */
+.floating-elements { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.floating-circle {
+    position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.1);
+    animation: float 6s ease-in-out infinite;
+}
+.floating-circle:nth-child(1) { width: 100px; height: 100px; top: 10%; left: 10%; }
+.floating-circle:nth-child(2) { width: 60px; height: 60px; bottom: 20%; right: 10%; animation-delay: 2s; }
+
+/* Auth Card */
+.auth-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    width: calc(100% - 2rem);
+    max-width: 480px;
+    margin: 2rem auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid rgba(255,255,255,0.5);
+    overflow: hidden;
+    z-index: 10;
+    position: relative;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.auth-header { padding: 2rem 2rem 1rem; text-align: center; background: #fff; border-bottom: 1px solid var(--border-color); }
+.auth-body { padding: 2rem; }
+
+/* Role Selection (Radio Cards) */
+.role-selection { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+.role-card {
+    flex: 1; padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-sm);
+    text-align: center; cursor: pointer; transition: all 0.2s; background: white;
+}
+.role-card:hover { border-color: var(--primary-light); }
+.role-card.active { border-color: var(--primary-color); background: rgba(79, 70, 229, 0.05); }
+.role-card input { display: none; }
+.role-icon { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 0.5rem; display: block; }
+
+.auth-actions { display: flex; justify-content: space-between; margin-top: 1.5rem; font-size: 0.9rem; }
+.auth-actions a { color: var(--primary-color); text-decoration: none; }
+.auth-actions a:hover { text-decoration: underline; }
+/* Auth Form Footer */
+.auth-form-footer {
+    margin: 15px 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-light);
+}
+.auth-form-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+.auth-form-footer a:hover { text-decoration: underline; }
+
+/* --- Brand Image Header Styles --- */
+/* --- Brand Image Header Styles --- */
+.auth-header.has-image {
+    padding: 0; 
+    border-bottom: 1px solid var(--border-color);
+    background: white;
+}
+
+.auth-header-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+}
+
+/* Re-centers the Welcome text just below the image */
+.auth-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.auth-title h1 {
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+.auth-title p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Spam Warning Styles */
+.spam-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.spam-warning-icon {
+    color: #856404;
+    font-size: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.spam-warning-content h4 {
+    color: #856404;
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.spam-warning-content p {
+    color: #856404;
+    margin: 6px 0;
+    line-height: 1.4;
+}
+
+.spam-warning-content code {
+    background: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    
+    .confirmation-title {
+        font-size: 24px;
+    }
+    
+    .confirmation-btn {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+    
+    .spam-warning {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .spam-warning-icon {
+        align-self: center;
+    }
+}
+
+/* =========================================
+   Top Left Logo Positioning
+   ========================================= */
+.logo-link {
+    position: fixed;
+    top: 25px;
+    left: 30px;
+    z-index: 100;
+    transition: transform 0.3s ease;
+}
+
+.logo-link:hover {
+    transform: scale(1.05);
+}
+
+.logo-link img {
+    height: 60px; /* Slightly larger for the login screen */
+    width: 60px;  /* Force width = height for a circle */
+    object-fit: cover; 
+    border-radius: 50% !important; /* Restore the perfect circle - important to override */
+    border: 2px solid #e0e7ff; /* Optional: adds a nice subtle border */
+    background: white;
+}
+
+/* Hide the logo on very small mobile screens so it doesn't overlap the form */
+@media (max-width: 480px) {
+    .auth-body{padding: 1.5rem;}
+    .auth-page-body{padding: 1rem 0.5rem;}
+    .auth-wrapper{margin: 1rem auto; padding: 1.5rem;}
+    .logo-link {
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%); /* Centers it on mobile */
+    }
+    .logo-link:hover {
+        transform: translateX(-50%) scale(1.05);
+    }
+}
+
+/* Success Messages */
+.success-messages {
+    text-align: center;
+    padding: 20px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.success-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+    padding: 10px;
+    color: #10b981;
+    font-size: 14px;
+}
+
+.success-message i {
+    font-size: 16px;
+    color: #10b981;
+}
+
+.redirect-timer {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: var(--radius-md);
+    padding: 15px;
+    margin-top: 15px;
+    font-size: 14px;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.redirect-timer i {
+    margin-right: 8px;
+}
+
+.redirect-timer span {
+    font-weight: 700;
+    color: var(--primary-color);
+}

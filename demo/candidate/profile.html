@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile – Demo | Skreenit</title>
+
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <script>
+      loadSharedCSS('core.css');   
+      loadSharedCSS('layout.css'); 
+      loadSharedCSS('components.css'); 
+      loadSharedCSS('special.css');
+      loadSharedCSS('mobile.css');
+    </script>
+
+    <style>
+        .demo-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .demo-banner i { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .exit-demo-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .exit-demo-btn:hover { background: rgba(255,255,255,0.3); color: white; }
+        
+        .profile-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .profile-header {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+        
+        .profile-info { flex: 1; }
+        
+        .profile-name {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+        
+        .profile-title {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+        
+        .profile-completion {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .completion-bar {
+            flex: 1;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .completion-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        .completion-text {
+            font-size: 0.9rem;
+            color: #22c55e;
+            font-weight: 600;
+        }
+        
+        .profile-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .profile-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .profile-section h3 i { color: #6366f1; }
+        
+        .profile-field { margin-bottom: 1.25rem; }
+        .profile-field:last-child { margin-bottom: 0; }
+        
+        .field-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .field-value { font-size: 1rem; color: #1e293b; }
+        .field-value a { color: #6366f1; text-decoration: none; }
+        .field-value a:hover { text-decoration: underline; }
+        
+        .skills-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        
+        .skill-tag {
+            background: #e0e7ff;
+            color: #4f46e5;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .edit-btn {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .edit-btn:hover { background: #4f46e5; }
+        
+        /* AI Analysis Section */
+        .ai-analysis-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+        
+        .ai-analysis-section h3 { color: white; }
+        
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .analysis-item {
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .analysis-score {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .analysis-label { font-size: 0.85rem; opacity: 0.9; }
+        
+        .strengths-list, .improvement-list { margin-top: 1rem; }
+        
+        .strengths-list li, .improvement-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .strengths-list i { color: #22c55e; }
+        .improvement-list i { color: #fbbf24; }
+        
+        /* Video Section */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        
+        .video-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .video-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        
+        .video-thumbnail {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            position: relative;
+        }
+        
+        .video-thumbnail i { font-size: 3rem; opacity: 0.8; }
+        
+        .video-duration {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.8);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .video-info { padding: 1rem; }
+        
+        .video-question {
+            font-size: 0.9rem;
+            color: #1e293b;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .video-date { font-size: 0.8rem; color: #64748b; }
+        
+        /* Document Cards */
+        .document-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .document-card:hover {
+            border-color: #6366f1;
+            background: #f5f3ff;
+        }
+        
+        .document-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .document-icon.resume { background: #dbeafe; color: #2563eb; }
+        .document-icon.video { background: #dcfce7; color: #16a34a; }
+        
+        .document-info { flex: 1; }
+        .document-name { font-weight: 600; color: #1e293b; margin-bottom: 0.25rem; }
+        .document-meta { font-size: 0.85rem; color: #64748b; }
+        
+        /* Skills Assessment */
+        .skill-bar-container { margin-bottom: 1rem; }
+        
+        .skill-bar-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .skill-bar-name { font-weight: 500; color: #1e293b; }
+        .skill-bar-value { font-weight: 600; color: #6366f1; }
+        
+        .skill-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .skill-bar-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 4px;
+        }
+        
+        /* Work Experience */
+        .experience-item {
+            border-left: 3px solid #6366f1;
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .experience-item::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            background: #6366f1;
+            border-radius: 50%;
+        }
+        
+        .experience-role { font-weight: 600; color: #1e293b; font-size: 1.1rem; }
+        .experience-company { color: #6366f1; font-weight: 500; }
+        .experience-duration { color: #64748b; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .experience-description { color: #475569; font-size: 0.95rem; }
+        
+        /* Certification */
+        .cert-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+        
+        .cert-icon {
+            width: 40px;
+            height: 40px;
+            background: #fef3c7;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #92400e;
+        }
+        
+        .cert-name { font-weight: 600; color: #1e293b; }
+        .cert-issuer { font-size: 0.85rem; color: #64748b; }
+        
+        @media (max-width: 600px) {
+            .profile-header { flex-direction: column; text-align: center; }
+            .profile-completion { flex-direction: column; }
+            .completion-bar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Banner -->
+    <div class="demo-banner">
+        <i class="fas fa-play-circle"></i>
+        <span>You're viewing a <strong>Demo</strong> with sample data</span>
+        <a href="../index.html" class="exit-demo-btn">
+            <i class="fas fa-sign-out-alt"></i> Exit Demo
+        </a>
+    </div>
+
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-home"></i><span>Dashboard</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='jobs.html'">
+                    <i class="fas fa-briefcase"></i><span>Browse Jobs</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='my-applications.html'">
+                    <i class="fas fa-file-alt"></i><span>My Applications</span>
+                </li>
+                <li class="nav-item active" onclick="window.location.href='profile.html'">
+                    <i class="fas fa-user"></i><span>My Profile</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div id="userAvatar" class="avatar-circle">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <span id="userName" class="user-name">Demo User</span>
+                        <span id="candidateRole" class="user-role">Candidate</span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="logout-btn" title="Exit Demo">
+                    <i class="fas fa-sign-out-alt"></i><span>Exit Demo</span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-content dashb">
+            <div class="dashboard-content">
+                <div class="profile-container" id="profileContent">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Demo Action Modal -->
+    <div class="modal fade" id="demoActionModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <h5 class="modal-title"><i class="fas fa-play-circle me-2"></i>Demo Mode</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <i class="fas fa-info-circle" style="font-size: 3rem; color: #667eea;"></i>
+                    <h5 class="mt-3" id="modalTitle">Demo Mode</h5>
+                    <p class="text-muted" id="modalMessage">In demo mode, this action is simulated.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { 
+            DEMO_USERS,
+            DEMO_CANDIDATE_PROFILE,
+            DemoSession,
+            mockDelay 
+        } from '../js/demo-data.js';
+        
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+        
+        // Set logo
+        const logoImg = document.getElementById('logoImg');
+        if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage();
+        });
+        
+        async function initPage() {
+            await mockDelay(300);
+            
+            const user = DEMO_USERS.candidate;
+            const profile = DEMO_CANDIDATE_PROFILE;
+            
+            document.getElementById('userName').textContent = user.name;
+            
+            const container = document.getElementById('profileContent');
+            
+            container.innerHTML = `
+                <!-- Header -->
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h1 class="profile-name">${profile.name}</h1>
+                        <p class="profile-title">${profile.current_role} at ${profile.current_company}</p>
+                        <p style="color: #64748b; margin: 0;">
+                            <i class="fas fa-map-marker-alt me-1"></i> ${profile.location}
+                        </p>
+                        <div class="profile-completion">
+                            <div class="completion-bar">
+                                <div class="completion-fill" style="width: ${profile.profile_completion}%;"></div>
+                            </div>
+                            <span class="completion-text">${profile.profile_completion}% Complete</span>
+                        </div>
+                    </div>
+                    <button class="edit-btn" onclick="showEditDemo()">
+                        <i class="fas fa-edit me-1"></i> Edit Profile
+                    </button>
+                </div>
+                
+                <!-- Documents Section -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-file-alt"></i> Documents & Media</h3>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="document-card" onclick="showDemoDoc('Resume')">
+                                <div class="document-icon resume">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="document-info">
+                                    <div class="document-name">Resume / CV</div>
+                                    <div class="document-meta">PDF • Updated Mar 2025</div>
+                                </div>
+                                <i class="fas fa-download" style="color: #6366f1;"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="document-card" onclick="showDemoDoc('Video Introduction')">
+                                <div class="document-icon video">
+                                    <i class="fas fa-video"></i>
+                                </div>
+                                <div class="document-info">
+                                    <div class="document-name">Video Introduction</div>
+                                    <div class="document-meta">2:30 duration • Recorded Mar 2025</div>
+                                </div>
+                                <i class="fas fa-play" style="color: #22c55e;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Analysis Report -->
+                <div class="ai-analysis-section">
+                    <h3><i class="fas fa-brain"></i> AI Analysis Report</h3>
+                    <p style="opacity: 0.9; margin-bottom: 1rem;">Generated from your video interview responses</p>
+                    
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <div class="analysis-score">${profile.ai_analysis.overall_score}%</div>
+                            <div class="analysis-label">Overall Score</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-score">${profile.ai_analysis.communication_score}%</div>
+                            <div class="analysis-label">Communication</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-score">${profile.ai_analysis.technical_score}%</div>
+                            <div class="analysis-label">Technical</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-score">${profile.ai_analysis.confidence_score}%</div>
+                            <div class="analysis-label">Confidence</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle me-2"></i>Strengths</h5>
+                            <ul class="strengths-list" style="list-style: none; padding: 0;">
+                                ${profile.ai_analysis.strengths.map(s => `<li><i class="fas fa-check"></i> ${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 style="margin-bottom: 0.5rem;"><i class="fas fa-lightbulb me-2"></i>Areas for Improvement</h5>
+                            <ul class="improvement-list" style="list-style: none; padding: 0;">
+                                ${profile.ai_analysis.areas_for_improvement.map(a => `<li><i class="fas fa-arrow-right"></i> ${a}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.2);">
+                        <strong>Interview Readiness:</strong> ${profile.ai_analysis.interview_readiness}<br>
+                        <strong>Recommended Roles:</strong> ${profile.ai_analysis.recommended_roles.join(', ')}
+                    </div>
+                </div>
+                
+                <!-- Video Interviews -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-video"></i> Recorded Video Interviews</h3>
+                    <div class="video-grid">
+                        ${profile.video_interviews.map(v => `
+                            <div class="video-card" onclick="showDemoDoc('Video: ${v.question.substring(0, 30)}...')">
+                                <div class="video-thumbnail">
+                                    <i class="fas fa-play-circle"></i>
+                                    <span class="video-duration">${v.duration}</span>
+                                </div>
+                                <div class="video-info">
+                                    <div class="video-question">${v.question}</div>
+                                    <div class="video-date"><i class="far fa-calendar me-1"></i> ${new Date(v.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <!-- Skills Assessment -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-chart-bar"></i> Skills Assessment</h3>
+                    ${Object.entries(profile.ai_analysis.skills_assessment).map(([skill, score]) => `
+                        <div class="skill-bar-container">
+                            <div class="skill-bar-header">
+                                <span class="skill-bar-name">${skill}</span>
+                                <span class="skill-bar-value">${score}%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: ${score}%;"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- Summary -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-user"></i> About Me</h3>
+                    <p style="color: #475569; line-height: 1.7;">${profile.summary}</p>
+                </div>
+                
+                <!-- Skills -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-code"></i> Skills</h3>
+                    <div class="skills-list">
+                        ${profile.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                    </div>
+                </div>
+                
+                <!-- Work Experience -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-briefcase"></i> Work Experience</h3>
+                    ${profile.work_experience.map(exp => `
+                        <div class="experience-item">
+                            <div class="experience-role">${exp.role}</div>
+                            <div class="experience-company">${exp.company}</div>
+                            <div class="experience-duration"><i class="far fa-calendar me-1"></i> ${exp.duration} • ${exp.location}</div>
+                            <div class="experience-description">${exp.description}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- Education -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-graduation-cap"></i> Education</h3>
+                    ${profile.education_details.map(edu => `
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="profile-field">
+                                    <div class="field-label">Degree</div>
+                                    <div class="field-value">${edu.degree}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="profile-field">
+                                    <div class="field-label">Institution</div>
+                                    <div class="field-value">${edu.institution}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="profile-field">
+                                    <div class="field-label">Year</div>
+                                    <div class="field-value">${edu.year}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="profile-field">
+                                    <div class="field-label">Grade</div>
+                                    <div class="field-value">${edu.grade}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- Certifications -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-certificate"></i> Certifications</h3>
+                    ${profile.certifications.map(cert => `
+                        <div class="cert-item">
+                            <div class="cert-icon"><i class="fas fa-award"></i></div>
+                            <div>
+                                <div class="cert-name">${cert.name}</div>
+                                <div class="cert-issuer">${cert.issuer} • ${cert.year}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- Contact Info -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-address-card"></i> Contact Information</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="field-label">Email</div>
+                                <div class="field-value">${profile.email}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="field-label">Phone</div>
+                                <div class="field-value">${profile.phone}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="field-label">LinkedIn</div>
+                                <div class="field-value">
+                                    <a href="${profile.linkedin}" target="_blank">${profile.linkedin}</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="field-label">GitHub</div>
+                                <div class="field-value">
+                                    <a href="${profile.github}" target="_blank">${profile.github}</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="field-label">Portfolio</div>
+                                <div class="field-value">
+                                    <a href="${profile.portfolio}" target="_blank">${profile.portfolio}</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="field-label">Location</div>
+                                <div class="field-value">${profile.location}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Languages -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-language"></i> Languages</h3>
+                    <div class="skills-list">
+                        ${profile.languages.map(lang => `<span class="skill-tag">${lang}</span>`).join('')}
+                    </div>
+                </div>
+                
+                <!-- Job Preferences -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-cog"></i> Job Preferences</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="field-label">Expected Salary</div>
+                                <div class="field-value">${profile.expected_salary}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="field-label">Notice Period</div>
+                                <div class="field-value">${profile.notice_period}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Setup event listeners
+            document.getElementById('logoutBtn')?.addEventListener('click', () => {
+                DemoSession.clear();
+                window.location.href = '../index.html';
+            });
+        }
+        
+        // Global functions
+        window.showEditDemo = function() {
+            document.getElementById('modalTitle').textContent = 'Edit Profile';
+            document.getElementById('modalMessage').textContent = 'In demo mode, profile editing is simulated. In the real application, you can update all your profile information.';
+            const modal = new bootstrap.Modal(document.getElementById('demoActionModal'));
+            modal.show();
+        };
+        
+        window.showDemoDoc = function(docName) {
+            document.getElementById('modalTitle').textContent = docName;
+            document.getElementById('modalMessage').textContent = 'In demo mode, document viewing is simulated. In the real application, you can view and download your resume, video introductions, and other documents.';
+            const modal = new bootstrap.Modal(document.getElementById('demoActionModal'));
+            modal.show();
+        };
+    </script>
+</body>
+</html>

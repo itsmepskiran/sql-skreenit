@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analysis Reports – Demo | Skreenit</title>
+
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <script>
+      loadSharedCSS('core.css');   
+      loadSharedCSS('layout.css'); 
+      loadSharedCSS('components.css');
+      loadSharedCSS('mobile.css');
+    </script>
+
+    <style>
+        .demo-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .demo-banner i { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .exit-demo-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .exit-demo-btn:hover { background: rgba(255,255,255,0.3); color: white; }
+        
+        .report-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        
+        .report-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .candidate-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .candidate-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+        
+        .candidate-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+        
+        .job-title-text {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .score-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .score-excellent { background: #dcfce7; color: #166534; }
+        .score-good { background: #fef3c7; color: #92400e; }
+        .score-average { background: #fee2e2; color: #991b1b; }
+        
+        .analysis-section {
+            margin: 1.5rem 0;
+        }
+        
+        .analysis-section h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.75rem;
+        }
+        
+        .score-bar-container {
+            margin-bottom: 0.75rem;
+        }
+        
+        .score-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+        
+        .score-bar {
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        .strengths-list, .improvements-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .strengths-list li, .improvements-list li {
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+        
+        .strengths-list li i { color: #22c55e; margin-right: 0.5rem; }
+        .improvements-list li i { color: #f59e0b; margin-right: 0.5rem; }
+        
+        .video-thumbnails {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .video-thumb {
+            width: 120px;
+            height: 80px;
+            border-radius: 8px;
+            background: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .video-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+        }
+        
+        .video-thumb i {
+            position: absolute;
+            font-size: 1.5rem;
+        }
+        
+        .video-thumb:hover {
+            transform: scale(1.05);
+        }
+        
+        .recommendation-box {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .recommendation-box h6 {
+            color: #166534;
+            margin-bottom: 0.5rem;
+        }
+        
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #475569;
+            background: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Banner -->
+    <div class="demo-banner">
+        <i class="fas fa-play-circle"></i>
+        <span>You're viewing a <strong>Demo</strong> with sample data</span>
+        <a href="../index.html" class="exit-demo-btn">
+            <i class="fas fa-sign-out-alt"></i> Exit Demo
+        </a>
+    </div>
+
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-tachometer-alt"></i><span>Overview</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='jobs.html'">
+                    <i class="fas fa-briefcase"></i><span>My Jobs</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='applications.html'">
+                    <i class="fas fa-users"></i><span>Applications</span>
+                </li>
+                <li class="nav-item active" onclick="window.location.href='analysis.html'">
+                    <i class="fas fa-brain"></i><span>Analysis Reports</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='profile.html'">
+                    <i class="fas fa-user-circle"></i><span>My Profile</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div id="userAvatar" class="avatar-circle">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="user-details">
+                        <span id="recruiterName" class="user-name">Demo Recruiter</span>
+                        <span id="companyId" class="user-role">TechCorp Solutions</span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="logout-btn" title="Exit Demo">
+                    <i class="fas fa-sign-out-alt"></i><span>Exit Demo</span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-content dashb">
+            <header class="dashboard-header">
+                <h1>AI Analysis Reports</h1>
+            </header>
+
+            <div class="dashboard-content">
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>Job:</label>
+                        <select id="jobFilter" class="filter-select">
+                            <option value="all">All Jobs</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Score:</label>
+                        <select id="scoreFilter" class="filter-select">
+                            <option value="all">All Scores</option>
+                            <option value="excellent">Excellent (85+)</option>
+                            <option value="good">Good (70-84)</option>
+                            <option value="average">Average (&lt;70)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Reports List -->
+                <div id="reportsList">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Video Modal -->
+    <div class="modal fade" id="videoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="videoModalTitle">Video Interview Response</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3" id="videoQuestion"></p>
+                    <div style="background: #1e293b; border-radius: 8px; padding: 2rem; text-align: center;">
+                        <i class="fas fa-play-circle" style="font-size: 4rem; color: white; opacity: 0.5;"></i>
+                        <p style="color: #94a3b8; margin-top: 1rem;">Video playback simulated in demo mode</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { 
+            DEMO_USERS, 
+            DEMO_JOBS, 
+            DEMO_APPLICATIONS,
+            DemoSession,
+            mockDelay 
+        } from '../js/demo-data.js';
+        
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+        
+        // Set logo
+        const logoImg = document.getElementById('logoImg');
+        if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage();
+        });
+        
+        async function initPage() {
+            await mockDelay(300);
+            
+            // Set user info
+            const user = DEMO_USERS.recruiter;
+            document.getElementById('recruiterName').textContent = user.name;
+            document.getElementById('companyId').textContent = user.company_name;
+            
+            // Populate job filter
+            const jobFilter = document.getElementById('jobFilter');
+            DEMO_JOBS.forEach(job => {
+                const option = document.createElement('option');
+                option.value = job.id;
+                option.textContent = job.title;
+                jobFilter.appendChild(option);
+            });
+            
+            renderReports();
+            setupEventListeners();
+        }
+        
+        function renderReports() {
+            const container = document.getElementById('reportsList');
+            
+            // Get filter values
+            const jobFilter = document.getElementById('jobFilter').value;
+            const scoreFilter = document.getElementById('scoreFilter').value;
+            
+            // Filter applications with analysis data
+            let reports = DEMO_APPLICATIONS.filter(a => a.analysis || a.status === 'interviewing');
+            
+            if (jobFilter !== 'all') {
+                reports = reports.filter(a => a.job_id === jobFilter);
+            }
+            
+            if (scoreFilter !== 'all') {
+                reports = reports.filter(a => {
+                    const score = a.analysis?.overall_score || 75;
+                    if (scoreFilter === 'excellent') return score >= 85;
+                    if (scoreFilter === 'good') return score >= 70 && score < 85;
+                    return score < 70;
+                });
+            }
+            
+            if (!reports.length) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-brain" style="font-size: 3rem; color: #cbd5e0;"></i>
+                        <h4 class="mt-3">No analysis reports found</h4>
+                        <p class="text-muted">Analysis reports are generated after candidates complete video interviews.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = reports.map(app => {
+                const analysis = app.analysis || {
+                    overall_score: 75,
+                    communication: 78,
+                    technical_knowledge: 72,
+                    confidence: 76,
+                    sentiment: 'positive',
+                    strengths: ['Clear communication', 'Good technical understanding'],
+                    improvements: ['Could elaborate more on specific examples'],
+                    recommendation: 'Recommended for next round'
+                };
+                
+                const scoreClass = analysis.overall_score >= 85 ? 'score-excellent' : 
+                                   analysis.overall_score >= 70 ? 'score-good' : 'score-average';
+                
+                const getBarColor = (score) => {
+                    if (score >= 85) return '#22c55e';
+                    if (score >= 70) return '#f59e0b';
+                    return '#ef4444';
+                };
+                
+                return `
+                    <div class="report-card">
+                        <div class="report-header">
+                            <div class="candidate-info">
+                                <div class="candidate-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <h4 class="candidate-name">${app.candidate_name}</h4>
+                                    <p class="job-title-text">${app.job_title}</p>
+                                </div>
+                            </div>
+                            <div class="score-badge ${scoreClass}">
+                                <i class="fas fa-chart-line me-1"></i> ${analysis.overall_score}%
+                            </div>
+                        </div>
+                        
+                        <div class="analysis-section">
+                            <h5><i class="fas fa-chart-bar me-2" style="color: #6366f1;"></i>Performance Scores</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="score-bar-container">
+                                        <div class="score-bar-label">
+                                            <span>Communication</span>
+                                            <span>${analysis.communication}%</span>
+                                        </div>
+                                        <div class="score-bar">
+                                            <div class="score-bar-fill" style="width: ${analysis.communication}%; background: ${getBarColor(analysis.communication)};"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="score-bar-container">
+                                        <div class="score-bar-label">
+                                            <span>Technical Knowledge</span>
+                                            <span>${analysis.technical_knowledge}%</span>
+                                        </div>
+                                        <div class="score-bar">
+                                            <div class="score-bar-fill" style="width: ${analysis.technical_knowledge}%; background: ${getBarColor(analysis.technical_knowledge)};"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="score-bar-container">
+                                        <div class="score-bar-label">
+                                            <span>Confidence</span>
+                                            <span>${analysis.confidence}%</span>
+                                        </div>
+                                        <div class="score-bar">
+                                            <div class="score-bar-fill" style="width: ${analysis.confidence}%; background: ${getBarColor(analysis.confidence)};"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="score-bar-container">
+                                        <div class="score-bar-label">
+                                            <span>Sentiment</span>
+                                            <span style="text-transform: capitalize;">${analysis.sentiment}</span>
+                                        </div>
+                                        <div class="score-bar">
+                                            <div class="score-bar-fill" style="width: ${analysis.sentiment === 'positive' ? 85 : analysis.sentiment === 'neutral' ? 60 : 35}%; background: ${analysis.sentiment === 'positive' ? '#22c55e' : analysis.sentiment === 'neutral' ? '#f59e0b' : '#ef4444'};"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${app.interview_questions ? `
+                            <div class="analysis-section">
+                                <h5><i class="fas fa-video me-2" style="color: #6366f1;"></i>Video Responses</h5>
+                                <div class="video-thumbnails">
+                                    ${app.interview_questions.map((q, i) => `
+                                        <div class="video-thumb" onclick="showVideo('${q.question}', ${i})">
+                                            <img src="https://via.placeholder.com/120x80/1e293b/ffffff?text=Q${i+1}" alt="Video thumbnail">
+                                            <i class="fas fa-play"></i>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="analysis-section">
+                                    <h5><i class="fas fa-check-circle me-2" style="color: #22c55e;"></i>Strengths</h5>
+                                    <ul class="strengths-list">
+                                        ${(analysis.strengths || ['Good communication', 'Technical expertise']).map(s => `
+                                            <li><i class="fas fa-check"></i>${s}</li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="analysis-section">
+                                    <h5><i class="fas fa-exclamation-triangle me-2" style="color: #f59e0b;"></i>Areas for Improvement</h5>
+                                    <ul class="improvements-list">
+                                        ${(analysis.improvements || ['Could provide more specific examples']).map(i => `
+                                            <li><i class="fas fa-exclamation-circle"></i>${i}</li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-box">
+                            <h6><i class="fas fa-lightbulb me-2"></i>AI Recommendation</h6>
+                            <p class="mb-0" style="color: #166534;">${analysis.recommendation || 'Candidate shows strong potential. Recommended for technical round.'}</p>
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                            <button onclick="window.location.href='candidate-details.html?app_id=${app.id}'" class="btn btn-primary">
+                                <i class="fas fa-user me-1"></i> View Full Profile
+                            </button>
+                            <button onclick="showDemoAction()" class="btn btn-success">
+                                <i class="fas fa-check me-1"></i> Proceed to Hire
+                            </button>
+                            <button onclick="showDemoAction()" class="btn btn-outline">
+                                <i class="fas fa-download me-1"></i> Download Report
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function setupEventListeners() {
+            document.getElementById('jobFilter')?.addEventListener('change', renderReports);
+            document.getElementById('scoreFilter')?.addEventListener('change', renderReports);
+            
+            document.getElementById('logoutBtn')?.addEventListener('click', () => {
+                DemoSession.clear();
+                window.location.href = '../index.html';
+            });
+        }
+        
+        // Global functions
+        window.showVideo = function(question, index) {
+            document.getElementById('videoQuestion').textContent = question;
+            document.getElementById('videoModalTitle').textContent = `Video Response ${index + 1}`;
+            const modal = new bootstrap.Modal(document.getElementById('videoModal'));
+            modal.show();
+        };
+        
+        window.showDemoAction = function() {
+            alert('This action is simulated in demo mode.');
+        };
+    </script>
+</body>
+</html>

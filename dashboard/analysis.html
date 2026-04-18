@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Analysis Reports – Skreenit</title>
+  
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+  <script>
+    loadSharedCSS('core.css');   
+    loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css');
+    loadSharedCSS('special.css');
+    loadSharedCSS('mobile.css');
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  
+  <style>
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        border: 1px solid #f1f5f9;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    
+    .stat-icon.bg-blue { background: #dbeafe; color: #2563eb; }
+    .stat-icon.bg-green { background: #dcfce7; color: #16a34a; }
+    .stat-icon.bg-purple { background: #f3e8ff; color: #9333ea; }
+    .stat-icon.bg-orange { background: #fef3c7; color: #d97706; }
+    
+    .stat-info h4 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+    
+    .stat-info p {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem 1.25rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        align-items: center;
+    }
+    
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .filter-select {
+        padding: 0.6rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        color: #475569;
+        background: white;
+        cursor: pointer;
+        min-width: 150px;
+    }
+    
+    .filter-select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .search-input {
+        padding: 0.6rem 1rem 0.6rem 2.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        flex: 1;
+        min-width: 200px;
+        transition: all 0.2s;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .search-wrapper {
+        position: relative;
+        flex: 1;
+    }
+    
+    .search-wrapper i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+    
+    .analysis-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .analysis-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-color: #c7d2fe;
+        transform: translateY(-1px);
+    }
+    
+    .candidate-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    
+    .candidate-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .candidate-name {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 1rem;
+        margin: 0;
+    }
+    
+    .candidate-meta {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+    
+    .score-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    
+    .score-high { background: #dcfce7; color: #166534; }
+    .score-medium { background: #fef3c7; color: #92400e; }
+    .score-low { background: #fee2e2; color: #991b1b; }
+    
+    .metric-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .metric-good { background: #dcfce7; color: #166534; }
+    .metric-average { background: #fef3c7; color: #92400e; }
+    .metric-poor { background: #fee2e2; color: #991b1b; }
+    
+    .video-thumbnail {
+        width: 80px;
+        height: 50px;
+        border-radius: 8px;
+        background: #1e293b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+    
+    .video-thumbnail:hover {
+        background: #334155;
+        transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    
+    <nav class="sidebar">
+      <div class="sidebar-header">
+         <div class="logo">
+            <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+         </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
+        <li class="nav-item" id="navJobs"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+        <li class="nav-item" id="navApplications"><i class="fas fa-users"></i><span>Applications</span></li>
+        <li class="nav-item active" id="navAnalysis"><i class="fas fa-brain"></i><span>Analysis Reports</span></li>
+        <li class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div id="userAvatar" class="avatar-circle">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="user-details">
+             <span id="recruiterName" class="user-name">Loading...</span>
+             <span id="companyId" class="user-role">---</span>
+             <span id="userIdDisplay" class="user-id"></span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+      </div>
+    </nav>
+    
+    <main class="main-content dashb">
+      <header class="dashboard-header" style="justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button id="backBtn" class="btn btn-outline-secondary btn-sm">
+              <i class="fas fa-arrow-left me-1"></i> Back
+          </button>
+          <h1 style="margin: 0; font-size: 1.5rem;">Analysis Reports</h1>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn" id="notificationBtn" style="position: relative;">
+            <i class="far fa-bell"></i>
+            <span id="notificationBadge" class="notification-badge" style="display: none;"></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        <!-- Stats Row -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon bg-blue"><i class="fas fa-brain"></i></div>
+            <div class="stat-info">
+              <h4 id="statTotal">0</h4>
+              <p>Total Analyzed</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-green"><i class="fas fa-chart-line"></i></div>
+            <div class="stat-info">
+              <h4 id="statAvgScore">0</h4>
+              <p>Avg Score</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-purple"><i class="fas fa-microphone"></i></div>
+            <div class="stat-info">
+              <h4 id="statAvgWpm">0</h4>
+              <p>Avg Speaking Pace</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-orange"><i class="fas fa-star"></i></div>
+            <div class="stat-info">
+              <h4 id="statHighScores">0</h4>
+              <p>High Performers</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by candidate name...">
+          </div>
+          <div class="filter-group">
+            <select id="jobFilter" class="filter-select">
+              <option value="">All Jobs</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <select id="scoreFilter" class="filter-select">
+              <option value="">All Scores</option>
+              <option value="high">High Score (70+)</option>
+              <option value="medium">Medium Score (40-69)</option>
+              <option value="low">Low Score (&lt;40)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Analysis List -->
+        <div id="analysisListContainer">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Analysis Detail Modal -->
+  <div class="custom-modal-backdrop" id="analysisModal">
+    <div class="custom-modal-card" style="max-width: 900px; text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+        <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-brain text-success me-2"></i> Analysis Details</h3>
+        <button onclick="document.getElementById('analysisModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+      </div>
+      <div id="analysisModalContent" style="max-height: 600px; overflow-y: auto;">
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+        <button class="btn btn-secondary" onclick="document.getElementById('analysisModal').classList.remove('active')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const analysisScript = document.createElement('script');
+    analysisScript.type = 'module';
+    analysisScript.src = `js/analysis.js?v=${Date.now()}`;
+    document.body.appendChild(analysisScript);
+  </script>
+</body>
+</html>

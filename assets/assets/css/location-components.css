@@ -1,0 +1,380 @@
+/**
+ * Location Components Styles
+ * Country Select and City Autocomplete styling
+ */
+
+/* ============================================
+   Country Select
+   ============================================ */
+
+.country-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.country-select-wrapper.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.country-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.country-select-trigger:hover {
+    border-color: #9ca3af;
+}
+
+.country-select-wrapper.open .country-select-trigger,
+.country-select-trigger:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    outline: none;
+}
+
+.country-select-placeholder {
+    color: #9ca3af;
+}
+
+.country-select-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.country-flag {
+    font-size: 1.2em;
+}
+
+.country-select-arrow {
+    color: #6b7280;
+    transition: transform 0.2s;
+}
+
+.country-select-wrapper.open .country-select-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown */
+.country-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-height: 300px;
+    overflow: hidden;
+}
+
+.country-select-search {
+    padding: 10px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.country-select-search input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.country-select-search input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.country-select-list {
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.country-select-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.country-select-option:hover {
+    background: #f3f4f6;
+}
+
+.country-select-option .country-name {
+    flex: 1;
+    font-size: 14px;
+}
+
+.country-select-option .country-phone {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.country-select-option .country-region {
+    font-size: 12px;
+    color: #9ca3af;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.country-select-loading,
+.country-select-empty,
+.country-select-error {
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.country-select-error {
+    color: #ef4444;
+}
+
+/* ============================================
+   City Autocomplete
+   ============================================ */
+
+.city-autocomplete-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.city-autocomplete-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.city-autocomplete-input {
+    width: 100%;
+    padding: 10px 36px 10px 36px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.city-autocomplete-input:hover {
+    border-color: #9ca3af;
+}
+
+.city-autocomplete-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.city-autocomplete-icon {
+    position: absolute;
+    left: 12px;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.city-autocomplete-clear {
+    position: absolute;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.city-autocomplete-clear:hover {
+    color: #6b7280;
+    background: #f3f4f6;
+}
+
+/* Dropdown */
+.city-autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-height: 320px;
+    overflow: hidden;
+}
+
+.city-autocomplete-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.city-autocomplete-option {
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.city-autocomplete-option:last-child {
+    border-bottom: none;
+}
+
+.city-autocomplete-option:hover,
+.city-autocomplete-option.active {
+    background: #f3f4f6;
+}
+
+.city-autocomplete-option.active {
+    background: #eef2ff;
+    border-left: 3px solid #6366f1;
+}
+
+.city-autocomplete-option .city-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.city-autocomplete-option .city-name {
+    font-weight: 500;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.city-autocomplete-option .city-name mark {
+    background: #fde047;
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+.city-autocomplete-option .city-population {
+    font-size: 12px;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.city-autocomplete-option .city-location {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.city-autocomplete-option.city-autocomplete-free-text {
+    background: #f0fdf4;
+    border-left: 3px solid #22c55e;
+}
+
+.city-autocomplete-option.city-autocomplete-free-text .city-name {
+    color: #166534;
+}
+
+.city-autocomplete-option.city-autocomplete-free-text .city-meta {
+    font-size: 12px;
+    color: #22c55e;
+    margin-left: 8px;
+}
+
+.city-autocomplete-loading,
+.city-autocomplete-empty,
+.city-autocomplete-error {
+    padding: 24px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.city-autocomplete-error {
+    color: #ef4444;
+}
+
+/* ============================================
+   Location Picker (Combined Component)
+   ============================================ */
+
+.location-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.location-picker-row {
+    display: flex;
+    gap: 12px;
+}
+
+.location-picker-row .country-select-wrapper,
+.location-picker-row .city-autocomplete-wrapper {
+    flex: 1;
+}
+
+.location-picker-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.location-picker-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+.location-picker-value .location-icon {
+    color: #6366f1;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 640px) {
+    .location-picker-row {
+        flex-direction: column;
+    }
+    
+    .country-select-dropdown,
+    .city-autocomplete-dropdown {
+        max-height: 250px;
+    }
+    
+    .country-select-list,
+    .city-autocomplete-list {
+        max-height: 200px;
+    }
+}

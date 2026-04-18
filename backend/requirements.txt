@@ -1,0 +1,44 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.0.0+cpu
+torchvision==0.15.1+cpu
+
+# Core backend
+fastapi==0.110.0
+uvicorn[standard]==0.27.1
+httpx==0.27.0
+python-dotenv==1.0.1
+pydantic==2.6.3
+python-multipart==0.0.9
+python-jose[cryptography]==3.3.0
+bcrypt==4.1.2
+sqlalchemy==2.0.28
+pymysql==1.1.0
+jinja2==3.1.3
+email-validator==2.1.1
+PyJWT==2.8.0
+# Cloud & Email
+boto3==1.34.69
+resend==0.8.0
+
+# ML Stack (Render-safe)
+git+https://github.com/openai/whisper.git
+onnxruntime==1.17.1
+mediapipe==0.10.14
+opencv-python-headless==4.8.0.74
+pillow==10.2.0
+ffmpeg-python==0.2.0
+moviepy==1.0.3
+fer==22.5.0
+insightface==0.7.3
+
+# NLP & Audio
+textblob==0.18.0.post0
+nltk==3.8.1
+textstat==0.7.3
+scipy==1.12.0
+soundfile==0.11.0
+eng-to-ipa==0.0.2
+numpy==1.26.4  # Pinned for TensorFlow compatibility (numpy 2.x breaks TF)
+
+# PDF
+reportlab==4.1.0

@@ -1,0 +1,851 @@
+/* =========================================
+   3. LAYOUT.CSS - Dashboard Structure
+   ========================================= */
+
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--light-gray, #f4f7f6);
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    width: 260px;
+    background: linear-gradient(135deg, var(--primary-color, #6366f1), #4338ca);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    z-index: 100;
+    color: white
+}
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sidebar-header img { 
+    width: 90%;        /* Forces it to stretch across 90% of the container */
+    height: auto;      /* Automatically scales the height to keep it proportional */
+    max-height: 70px;  /* Safety limit so it doesn't push your menu items down too far */
+    border-radius: 0; 
+    object-fit: contain; 
+    border: none;
+    margin-left: 5%;   /* Centers it perfectly if the width is 90% */
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.nav-item {
+    padding: 0.875rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.7); /* Slightly dimmed white for inactive links */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-item:hover, .nav-item.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border-left: 4px solid white;
+}
+.nav-item.active { font-weight: 700; }
+
+/* Hidden nav item - use !important to override mobile.css rules */
+.nav-item.hidden {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+.sidebar-footer {
+    margin-top: auto; /* Pushes footer to the very bottom */
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Pushes profile to left, logout to right */
+}
+.user-avatar { 
+    width: 36px; 
+    height: 36px; 
+    border-radius: 50%; 
+    background: #e0e7ff; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: var(--primary-color); 
+}
+.user-details {
+    display: flex;
+    flex-direction: column; /* Forces items to stack top-to-bottom */
+    align-items: flex-start; /* Aligns text to the left */
+    justify-content: center;
+    overflow: hidden;
+}
+
+.user-name {
+    display: block; /* Physically prevents anything from sitting next to it */
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: white; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2; /* Keeps the text tightly stacked */
+}
+
+.user-role {
+    display: block; /* Physically prevents anything from sitting next to it */
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7); 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px; /* Adds a tiny breathing room between name and ID */
+}
+
+.user-id {
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden; /* Prevents long names from breaking layout */
+}
+
+.avatar-circle {
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%; 
+    background: rgba(255, 255, 255, 0.2); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: white;
+    flex-shrink: 0;
+}
+
+/* --- Main Content --- */
+.main-content {
+    flex: 1;
+    margin-left: 260px;
+    padding: 2rem;
+    width: calc(100% - 260px);
+    transition: margin-left 0.3s ease;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .sidebar { left: -280px; transition: left 0.3s ease; width: 280px;}
+    .sidebar.active { left: 0; }
+    .main-content { margin-left: 0; width: 100%;}
+    .sidebar-overlay{display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 99; /* Just below sidebar */}
+    .sidebar-overlay-active{display: block;}
+}
+/* User Avatar (Sidebar & Topbar) */
+.user-avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--text-light);
+    flex-shrink: 0;
+}
+/* Red Logout Button */
+.logout-btn {
+    background: transparent;
+    border: none;
+    color: #fca5a5;
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm, 4px);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    font-size: 0.95rem;
+    margin-top: 12px;
+}
+
+.logout-btn i {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.logout-btn span {
+    white-space: nowrap;
+}
+
+.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.2); /* Soft red hover effect */
+    color: #f87171;
+}
+/* =========================================
+   Dashboard Main Content & Headers
+   ========================================= */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.dashboard-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark, #1e293b);
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+}
+
+/* Notification Bell Button */
+.icon-btn {
+    background: white;
+    border: 1px solid var(--border-color, #e2e8f0);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: var(--text-light, #64748b);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.icon-btn:hover {
+    background: var(--primary-color, #4f46e5);
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* =========================================
+   Notification Panel
+   ========================================= */
+.notification-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 360px;
+    max-height: 480px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.notification-panel::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    transform: rotate(45deg);
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+}
+
+.notification-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.notification-header .mark-all-read {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.notification-header .mark-all-read:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.notification-list {
+    overflow-y: auto;
+    max-height: 360px;
+    padding: 8px;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+}
+
+.notification-item:hover {
+    background: rgba(79, 70, 229, 0.05);
+}
+
+.notification-item.unread {
+    background: rgba(79, 70, 229, 0.08);
+}
+
+.notification-item.unread:hover {
+    background: rgba(79, 70, 229, 0.12);
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notification-icon.application {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.notification-icon.application_status,
+.notification-icon.status_update {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.notification-icon.interview {
+    background: rgba(79, 70, 229, 0.1);
+    color: #4f46e5;
+}
+
+.notification-icon.system {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-message {
+    margin: 0 0 4px 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: #1f2937;
+}
+
+.notification-time {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.notification-dot {
+    width: 8px;
+    height: 8px;
+    background: #4f46e5;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.notification-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+    text-align: center;
+}
+
+.notification-empty i {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.notification-empty p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+    .notification-panel {
+        position: fixed;
+        top: 60px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+        max-height: calc(100vh - 80px);
+    }
+    
+    .notification-panel::before {
+        display: none;
+    }
+}
+
+/* =========================================
+   Stats Grid & Stat Cards
+   ========================================= */
+.stats-grid {
+    display: grid;
+    /* Auto-fits columns. 4 on desktop, 2 on tablet, 1 on mobile */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius-lg, 12px);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0,0,0,0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-info h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark, #1e293b);
+    margin: 0 0 0.25rem 0;
+    line-height: 1;
+}
+
+.stat-info p {
+    font-size: 0.875rem;
+    color: var(--text-light, #64748b);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Stat Card Icons & Colors */
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px; /* Soft rounded square */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.bg-blue   { background: #eff6ff; color: #3b82f6; }
+.bg-green  { background: #f0fdf4; color: #22c55e; }
+.bg-purple { background: #faf5ff; color: #a855f7; }
+.bg-orange { background: #fff7ed; color: #f97316; }
+
+/* =========================================
+   Activity Grids (Lower Dashboard)
+   ========================================= */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.section-header h2, .section-header h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-dark, #1e293b);
+    margin: 0;
+}
+
+/* 2-Column layout for Recruiter bottom section */
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Job & Application Card Lists */
+.grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+/* Hide mobile branding on Desktop */
+.mobile-header-brand {
+    display: none;
+}
+/* =========================================
+   GLOBAL MOBILE DASHBOARD FIX
+   ========================================= */
+@media (max-width: 768px) {
+    /* 1. Sidebar sliding logic */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px; /* Hidden off-screen */
+        width: 260px;
+        height: 100vh;
+        z-index: 1050;
+        transition: left 0.3s ease;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+    }
+    .dashboard-header h1 {
+        font-size: 1.1rem !important; /* Shorter, cleaner titles for mobile */
+    }
+
+    .stat-info h3 {
+        font-size: 1.25rem !important; /* Smaller numbers in stats cards */
+    }
+    
+    .stat-info p {
+        font-size: 0.75rem !important; /* Smaller labels */
+    }
+    .sidebar.active {
+        left: 0; /* Slide in */
+    }
+
+    /* 2. Main content takes full width */
+    .main-content {
+        margin-left: 0 !important;
+        width: 100%;
+        padding-top: 10px; /* Space for mobile header */
+    }
+
+    /* 3. Force dashboard header to act as a proper Mobile Navbar */
+    .dashboard-header {
+        display: flex !important;
+        flex-direction: row !important; /* Keep items side-by-side */
+        align-items: center !important;
+        justify-content: flex-start;
+        gap: 15px;
+        background: transparent;
+        padding: 0.5rem 1rem;
+    }
+
+    /* 4. The Hamburger Button */
+    .btn-menu-mobile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1.25rem;
+        color: #1e293b;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* 6. Dark overlay for when menu is open */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(2px);
+        z-index: 1000;
+    }
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    /* 7. General fixes for grids on mobile */
+    .activity-grid { grid-template-columns: 1fr; }
+    /* 5. Mobile Brand Logo (Shows in header when sidebar is hidden) */
+    .mobile-header-brand {
+        display: block !important;
+        height: 35px;
+        width: auto;
+        object-fit: contain;
+    }
+}
+/* ADD THIS TO THE BOTTOM OF layout.css */
+
+/* Isolated padding for the main content area */
+.dashboard-main-area {
+    padding: 2rem !important; /* Forces the gap from sidebar and screen edges */
+    max-width: 1400px; /* Prevents it from stretching too far on ultra-wide screens */
+    margin: 0 auto; /* Centers the content if it hits max-width */
+}
+
+@media (max-width: 768px) {
+    .dashboard-main-area {
+        padding: 1rem !important;
+        padding-top: 85px !important; /* Space for the mobile header */
+    }
+}
+        /* Brand-aligned Confirmation Page Styles */
+        .confirmation-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        }
+        
+        .confirmation-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 3rem;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .confirmation-logo {
+            margin-bottom: 1.5rem;
+        }
+        
+        .confirmation-logo img {
+            max-width: 180px;
+            height: auto;
+        }
+        
+        .confirmation-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .confirmation-icon .fa-spinner {
+            color: var(--primary-color);
+        }
+        
+        .confirmation-icon .fa-check-circle {
+            color: var(--secondary-color);
+        }
+        
+        .confirmation-icon .fa-exclamation-circle {
+            color: var(--danger-color);
+        }
+        
+        .confirmation-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+        
+        .confirmation-message {
+            color: var(--text-light);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .confirmation-message.success {
+            color: var(--secondary-color);
+        }
+        
+        .confirmation-message.error {
+            color: var(--danger-color);
+        }
+        
+        .confirmation-message.loading {
+            color: var(--primary-color);
+        }
+        
+        .confirmation-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .confirmation-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .confirmation-footer {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .confirmation-footer p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .confirmation-footer .text-success {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .confirmation-footer .text-warning {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        
+        .confirmation-help {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+        }
+        
+        .help-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+        }
+        
+        .help-text a {
+            color: white;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+        
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-3 { margin-top: 1rem; }
+
+/* =========================================
+   DASHBOARD UTILITY CLASSES
+   ========================================= */
+
+/* Dashboard Header */
+.header-justify-end { justify-content: flex-end; }
+
+/* Activity Section Layout */
+.dashboard-activity-wrapper { margin: 2rem 0; padding: 0 10px; }
+.activity-row { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; }
+.activity-column { flex: 1; min-width: 320px; }
+
+/* Activity Cards */
+.activity-card { padding: 24px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; height: 100%; }
+.activity-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+.activity-card-title { font-size: 1.1rem; margin: 0; }
+.activity-card-link { font-size: 0.85rem; color: #4f46e5; text-decoration: none; font-weight: 500; }
+.activity-card-link:hover { text-decoration: underline; }
+.activity-list { display: flex; flex-direction: column; gap: 12px; }
+
+/* Stat Card Clickable */
+.stat-card-clickable { cursor: pointer; }
+
+/* Stat Icon Gradient */
+.stat-icon-gradient { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
+
+/* Logo Size */
+.logo-max-width { max-width: 150px; }
+
+/* Position Relative (for notification button) */
+.pos-relative { position: relative; }
+
+/* Modal Rounded */
+.modal-rounded { border-radius: 12px; }
+
+/* Hidden utility */
+.hidden { display: none; }
+        

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Applications – Demo | Skreenit</title>
+
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <script>
+      loadSharedCSS('core.css');   
+      loadSharedCSS('layout.css'); 
+      loadSharedCSS('components.css'); 
+      loadSharedCSS('special.css');
+      loadSharedCSS('mobile.css');
+    </script>
+
+    <style>
+        .demo-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .demo-banner i { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .exit-demo-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .exit-demo-btn:hover { background: rgba(255,255,255,0.3); color: white; }
+        
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        
+        .filter-tab:hover {
+            border-color: #6366f1;
+            color: #6366f1;
+        }
+        
+        .filter-tab.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        
+        .application-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        
+        .application-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .application-card.new-application {
+            border-left: 4px solid #22c55e;
+        }
+        
+        .application-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .job-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+        
+        .company-name {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin: 0.25rem 0 0 0;
+        }
+        
+        .status-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-submitted { background: #ebf8ff; color: #2b6cb0; }
+        .status-reviewing { background: #fef3c7; color: #92400e; }
+        .status-interviewing { background: #faf5ff; color: #7c3aed; }
+        .status-shortlisted { background: #dcfce7; color: #166534; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        
+        .application-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        
+        .meta-item i {
+            color: #6366f1;
+        }
+        
+        .match-score {
+            font-weight: 600;
+            color: #4f46e5;
+        }
+        
+        .application-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .application-actions .btn {
+            flex: 1;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .no-applications {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+        
+        .no-applications i {
+            font-size: 3rem;
+            color: #cbd5e0;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            flex: 1;
+            min-width: 120px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        .new-badge {
+            background: #22c55e;
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Banner -->
+    <div class="demo-banner">
+        <i class="fas fa-play-circle"></i>
+        <span>You're viewing a <strong>Demo</strong> with sample data</span>
+        <a href="../index.html" class="exit-demo-btn">
+            <i class="fas fa-sign-out-alt"></i> Exit Demo
+        </a>
+    </div>
+
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-home"></i><span>Dashboard</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='jobs.html'">
+                    <i class="fas fa-briefcase"></i><span>Browse Jobs</span>
+                </li>
+                <li class="nav-item active" onclick="window.location.href='my-applications.html'">
+                    <i class="fas fa-file-alt"></i><span>My Applications</span>
+                </li>
+                <li class="nav-item" onclick="window.location.href='profile.html'">
+                    <i class="fas fa-user"></i><span>My Profile</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div id="userAvatar" class="avatar-circle">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <span id="userName" class="user-name">Demo User</span>
+                        <span id="candidateRole" class="user-role">Candidate</span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="logout-btn" title="Exit Demo">
+                    <i class="fas fa-sign-out-alt"></i><span>Exit Demo</span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-content dashb">
+            <div class="dashboard-content">
+                <div class="page-header">
+                    <h1>My Applications</h1>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="stats-row" id="statsRow">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalApps">0</div>
+                        <div class="stat-label">Total Applications</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pendingApps">0</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="interviewApps">0</div>
+                        <div class="stat-label">Interviewing</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="rejectedApps">0</div>
+                        <div class="stat-label">Rejected</div>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="all">All</button>
+                    <button class="filter-tab" data-filter="submitted">New</button>
+                    <button class="filter-tab" data-filter="reviewing">Reviewing</button>
+                    <button class="filter-tab" data-filter="interviewing">Interviewing</button>
+                    <button class="filter-tab" data-filter="shortlisted">Shortlisted</button>
+                    <button class="filter-tab" data-filter="rejected">Rejected</button>
+                </div>
+
+                <!-- Applications List -->
+                <div id="applicationsList">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { 
+            DEMO_USERS,
+            DemoSession,
+            DemoApplicationManager,
+            mockDelay 
+        } from '../js/demo-data.js';
+        
+        const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+        const assetsBase = isLocal ? '../../assets' : 'https://assets.skreenit.com';
+        
+        // Set logo
+        const logoImg = document.getElementById('logoImg');
+        if (logoImg) logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
+        
+        let currentFilter = 'all';
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage();
+        });
+        
+        async function initPage() {
+            await mockDelay(300);
+            
+            // Set user info
+            const user = DEMO_USERS.candidate;
+            document.getElementById('userName').textContent = user.name;
+            
+            setupEventListeners();
+            renderApplications();
+        }
+        
+        function renderApplications() {
+            const container = document.getElementById('applicationsList');
+            const applications = DemoApplicationManager.getAllApplications();
+            
+            // Update stats
+            document.getElementById('totalApps').textContent = applications.length;
+            document.getElementById('pendingApps').textContent = applications.filter(a => a.status === 'submitted').length;
+            document.getElementById('interviewApps').textContent = applications.filter(a => a.status === 'interviewing').length;
+            document.getElementById('rejectedApps').textContent = applications.filter(a => a.status === 'rejected').length;
+            
+            // Filter applications
+            let filteredApps = applications;
+            if (currentFilter !== 'all') {
+                filteredApps = applications.filter(a => a.status === currentFilter);
+            }
+            
+            // Sort by date (newest first)
+            filteredApps.sort((a, b) => new Date(b.applied_at) - new Date(a.applied_at));
+            
+            if (!filteredApps.length) {
+                container.innerHTML = `
+                    <div class="no-applications">
+                        <i class="fas fa-inbox"></i>
+                        <h4>No applications found</h4>
+                        <p>Start applying to jobs to see them here</p>
+                        <a href="jobs.html" class="btn btn-primary mt-3">
+                            <i class="fas fa-briefcase me-2"></i>Browse Jobs
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const getStatusLabel = (status) => {
+                const labels = {
+                    'submitted': 'New',
+                    'reviewing': 'Reviewing',
+                    'interviewing': 'Interviewing',
+                    'shortlisted': 'Shortlisted',
+                    'rejected': 'Rejected'
+                };
+                return labels[status] || status;
+            };
+            
+            container.innerHTML = filteredApps.map(app => `
+                <div class="application-card ${app.is_new ? 'new-application' : ''}">
+                    <div class="application-header">
+                        <div>
+                            <h3 class="job-title">
+                                ${app.job_title}
+                                ${app.is_new ? '<span class="new-badge">JUST APPLIED</span>' : ''}
+                            </h3>
+                            <p class="company-name">${app.company_name}</p>
+                        </div>
+                        <span class="status-badge status-${app.status}">${getStatusLabel(app.status)}</span>
+                    </div>
+                    
+                    <div class="application-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${app.location || 'Hyderabad, India'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-chart-line"></i>
+                            <span class="match-score">${app.match_score}%</span> match
+                        </div>
+                        <div class="meta-item">
+                            <i class="far fa-clock"></i>
+                            <span>Applied ${formatDate(app.applied_at)}</span>
+                        </div>
+                    </div>
+                    
+                    ${app.status === 'interviewing' ? `
+                        <div style="background: #faf5ff; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                            <p style="margin: 0; color: #7c3aed; font-weight: 500;">
+                                <i class="fas fa-video me-2"></i> Video interview completed - Awaiting results
+                            </p>
+                        </div>
+                    ` : ''}
+                    
+                    ${app.rejection_reason ? `
+                        <div style="background: #fee2e2; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                            <p style="margin: 0; color: #991b1b; font-size: 0.9rem;">
+                                <i class="fas fa-info-circle me-2"></i> ${app.rejection_reason}
+                            </p>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="application-actions">
+                        <a href="job-details.html?job_id=${app.job_id}" class="btn btn-outline">
+                            <i class="fas fa-eye"></i> View Job
+                        </a>
+                        ${app.status === 'interviewing' ? `
+                            <button class="btn btn-primary" onclick="showInterviewDemo()">
+                                <i class="fas fa-video"></i> View Interview
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} minutes ago`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`;
+            if (diff < 604800000) return `${Math.floor(diff / 86400000)} days ago`;
+            
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+        
+        function setupEventListeners() {
+            // Filter tabs
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentFilter = tab.dataset.filter;
+                    renderApplications();
+                });
+            });
+            
+            // Logout
+            document.getElementById('logoutBtn')?.addEventListener('click', () => {
+                DemoSession.clear();
+                DemoApplicationManager.clear();
+                window.location.href = '../index.html';
+            });
+        }
+        
+        // Global function
+        window.showInterviewDemo = function() {
+            alert('In demo mode, video interview playback is simulated. In the real application, you can review your recorded interview responses.');
+        };
+    </script>
+</body>
+</html>

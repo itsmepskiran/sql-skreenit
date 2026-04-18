@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Received Applications – Skreenit</title>
+  <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+      const icon = document.createElement('link'); 
+      icon.rel = 'icon'; 
+      icon.href = `${assetsBase}/assets/images/favicon-32x32.png`; 
+      document.head.appendChild(icon);
+    })();
+  </script>
+  <script>
+    loadSharedCSS('core.css');   
+    loadSharedCSS('layout.css'); 
+    loadSharedCSS('components.css'); 
+    loadSharedCSS('dashboard.css');
+    loadSharedCSS('special.css');
+    loadSharedCSS('mobile.css');
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+    <div class="dashboard-container">
+        
+        <nav class="sidebar">
+          <div class="sidebar-header">
+             <div class="logo">
+                <img src="" id="logoImg" alt="Skreenit" style="max-width: 150px;"/>
+             </div>
+          </div>
+          <ul class="nav-menu">
+            <li class="nav-item" id="navDashboard"><i class="fas fa-tachometer-alt"></i><span>Overview</span></li>
+            <li class="nav-item" id="navJobs"><i class="fas fa-briefcase"></i><span>My Jobs</span></li>
+            <li class="nav-item active" id="navApplications"><i class="fas fa-users"></i><span>Applications</span></li>
+            <li class="nav-item" id="navAnalysis"><i class="fas fa-brain"></i><span>Analysis Reports</span></li>
+            <li class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i><span>My Profile</span></li>
+          </ul>
+          
+          <div class="sidebar-footer">
+            <div class="user-info">
+              <div id="userAvatar" class="avatar-circle">
+                <i class="fas fa-user-tie"></i>
+              </div>
+              <div class="user-details">
+                 <span id="recruiterName" class="user-name">Loading...</span>
+                 <span id="companyId" class="user-role">---</span>
+                 <span id="userIdDisplay" class="user-id"></span>
+              </div>
+            </div>
+            <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+          </div>
+        </nav>
+
+        <main class="main-content dashb">
+            <header class="dashboard-header" style="justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <button id="backBtn" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Back
+                </button>
+                <h1 style="margin: 0; font-size: 1.5rem;">Applications</h1>
+              </div>
+              <div class="header-actions">
+                <button class="icon-btn" id="notificationBtn" style="position: relative;">
+                    <i class="far fa-bell"></i>
+                    <span id="notificationBadge" class="notification-badge" style="display: none;"></span>
+                </button>
+              </div>
+            </header>
+
+            <div class="dashboard-content">
+              <!-- Stats Row -->
+              <div class="stats-row">
+                <div class="stat-card">
+                  <div class="stat-icon bg-blue"><i class="fas fa-users"></i></div>
+                  <div class="stat-info">
+                    <h4 id="statTotal">0</h4>
+                    <p>Total Applications</p>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon bg-green"><i class="fas fa-clock"></i></div>
+                  <div class="stat-info">
+                    <h4 id="statNew">0</h4>
+                    <p>New Applications</p>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon bg-purple"><i class="fas fa-video"></i></div>
+                  <div class="stat-info">
+                    <h4 id="statInterviews">0</h4>
+                    <p>In Interviews</p>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon bg-orange"><i class="fas fa-brain"></i></div>
+                  <div class="stat-info">
+                    <h4 id="statAnalysis">0</h4>
+                    <p>Analysis Ready</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Filter Bar -->
+              <div class="filter-bar">
+                <div class="search-wrapper">
+                  <i class="fas fa-search"></i>
+                  <input type="text" id="appSearch" class="search-input" placeholder="Search candidates...">
+                </div>
+                <div class="filter-group">
+                  <select id="jobFilter" class="filter-select">
+                    <option value="all">All Jobs</option>
+                  </select>
+                </div>
+                <div class="filter-group">
+                  <select id="statusFilter" class="filter-select">
+                    <option value="all">All Statuses</option>
+                    <option value="submitted">Applied</option>
+                    <option value="interviewing">Interviewing</option>
+                    <option value="responses_submitted">Responses Ready</option>
+                    <option value="analysis_ready">Analysis Completed</option>
+                    <option value="hired">Hired</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Selection Toolbar -->
+              <div id="selectionToolbar" class="selection-toolbar">
+                <input type="checkbox" id="selectAll" class="bulk-checkbox">
+                <span id="selectedCount" style="font-weight: 600; color: #1e40af;">0 selected</span>
+                <button id="bulkRejectBtn" class="btn btn-sm btn-outline-danger">
+                  <i class="fas fa-times me-1"></i> Reject
+                </button>
+                <button id="bulkInterviewBtn" class="btn btn-sm btn-primary">
+                  <i class="fas fa-video me-1"></i> Schedule Interview
+                </button>
+                <button id="bulkAnalyzeBtn" class="btn btn-sm btn-success">
+                  <i class="fas fa-brain me-1"></i> Analyze
+                </button>
+              </div>
+
+              <!-- Applications List -->
+              <div id="listHeader" class="list-header" style="display: none;">
+                <div style="text-align: center;"><input type="checkbox" id="headerCheckbox" class="bulk-checkbox"></div>
+                <div>Candidate Name</div>
+                <div>Position Applied</div>
+                <div>Applied Date</div>
+                <div>Status</div>
+                <div>Match</div>
+                <div>Actions</div>
+              </div>
+              <div id="applicationListContainer">
+                <div class="loading-spinner"></div>
+              </div>
+            </div>
+          </main>
+    </div>
+
+<!-- Profile Modal -->
+<div class="custom-modal-backdrop" id="profileModal">
+    <div class="custom-modal-card" style="max-width: 600px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-user text-primary me-2"></i> Candidate Profile</h3>
+            <button onclick="document.getElementById('profileModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        
+        <div id="profileModalContent" style="max-height: 400px; overflow-y: auto;">
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+            <button class="btn btn-secondary" onclick="document.getElementById('profileModal').classList.remove('active')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Resume Modal -->
+<div class="custom-modal-backdrop" id="resumeModal">
+    <div class="custom-modal-card" style="max-width: 800px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-file-pdf text-primary me-2"></i> Resume</h3>
+            <button onclick="document.getElementById('resumeModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        
+        <div id="resumeModalContent" style="max-height: 500px; overflow-y: auto;">
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+            <a id="resumeDownloadLink" href="#" download class="btn btn-primary" style="display: none;">
+                <i class="fas fa-download"></i> Download Resume
+            </a>
+            <button class="btn btn-secondary" onclick="document.getElementById('resumeModal').classList.remove('active')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Video Modal -->
+<div class="custom-modal-backdrop" id="videoModal">
+    <div class="custom-modal-card" style="max-width: 700px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-video text-primary me-2"></i> Interview Responses</h3>
+            <button onclick="document.getElementById('videoModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        
+        <div id="videoModalContent" style="text-align: center;">
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+            <button class="btn btn-secondary" onclick="document.getElementById('videoModal').classList.remove('active')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Interview Modal -->
+<div class="custom-modal-backdrop" id="interviewModal">
+    <div class="custom-modal-card" style="max-width: 600px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-video text-primary me-2"></i> Set Interview Questions</h3>
+            <button onclick="document.getElementById('interviewModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        
+        <p class="text-muted mb-4">Add the questions you want the candidate to answer in their video response.</p>
+        
+        <div id="modalQuestionsContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 1.5rem;">
+        </div>
+        
+        <button id="addQuestionBtn" class="btn btn-outline-primary w-100 mb-4" style="border-style: dashed; background: #f8fafc;">
+            <i class="fas fa-plus"></i> Add Another Question
+        </button>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="document.getElementById('interviewModal').classList.remove('active')">Cancel</button>
+            <button id="confirmInterviewBtn" class="btn btn-primary">Save & Request Interview</button>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Results Modal -->
+<div class="custom-modal-backdrop" id="analysisModal">
+    <div class="custom-modal-card" style="max-width: 900px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;"><i class="fas fa-brain text-success me-2"></i> Video Analysis Results</h3>
+            <button onclick="document.getElementById('analysisModal').classList.remove('active')" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        
+        <div id="analysisModalContent" style="max-height: 600px; overflow-y: auto;">
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+            <button class="btn btn-secondary" onclick="document.getElementById('analysisModal').classList.remove('active')">Close</button>
+        </div>
+    </div>
+</div>
+
+    <script type="module" src="js/application-list.js"></script>
+</body>
+</html>

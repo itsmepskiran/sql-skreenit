@@ -1,0 +1,1016 @@
+/* =========================================
+   MOBILE.CSS - Global Mobile & Tablet Responsive Styles
+   ========================================= */
+
+/* =========================================
+   1. MOBILE NAVIGATION (Hamburger Menu)
+   ========================================= */
+.btn-menu-mobile {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-right: 0.75rem;
+}
+
+.mobile-header-brand {
+    display: none;
+    height: 32px;
+    width: auto;
+    margin-left: 0.5rem;
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* =========================================
+   2. TABLET BREAKPOINT (max-width: 1366px)
+   - Covers iPad Pro in landscape (1366px)
+   - Covers iPad Pro in portrait (1024px)
+   - Covers iPad Mini in landscape (1024px)
+   ========================================= */
+@media (max-width: 1366px) {
+    /* Show hamburger menu on tablets including iPad Pro */
+    .btn-menu-mobile {
+        display: block;
+    }
+    
+    .mobile-header-brand {
+        display: block;
+    }
+    
+    /* Dashboard Layout */
+    .dashboard-container {
+        flex-direction: column;
+    }
+
+    /* Sidebar visibility for tablets */
+    .sidebar {
+        width: 280px;
+        position: fixed;
+        top: 0;
+        left: -280px;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1001;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Ensure sidebar footer shows user details on tablets */
+    .sidebar .sidebar-footer .user-details {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .sidebar .sidebar-footer .user-name,
+    .sidebar .sidebar-footer .user-role,
+    .sidebar .sidebar-footer .user-id {
+        display: block;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding-top: 60px;
+    }
+
+    /* Mobile Header Adjustments */
+    .dashboard-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    /* Jobs Grid */
+    .jobs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Cards */
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    /* Form Layouts */
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-row .form-group {
+        width: 100%;
+    }
+
+    /* Talent Cards - Tablet */
+    .talent-card-row {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .talent-card-row .card-main-info {
+        flex: 1 1 60%;
+    }
+
+    .talent-card-row .card-job-info {
+        flex: 1 1 40%;
+        padding-left: 58px;
+    }
+
+    .talent-card-row .card-status-info {
+        flex: 1 1 auto;
+        padding-left: 58px;
+    }
+
+    .talent-card-row .card-actions-toolbar {
+        flex: 1 1 100%;
+        justify-content: flex-start;
+        padding-left: 58px;
+    }
+
+    /* Profile Cards */
+    .profile-header-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    /* Profile Card Tablet Fix */
+    .profile-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem;
+        gap: 1.5rem;
+    }
+    
+    .profile-avatar {
+        margin: 0 auto;
+    }
+    
+    .profile-info {
+        text-align: center;
+    }
+    
+    .profile-meta {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .profile-avatar-large {
+        width: 100px;
+        height: 100px;
+    }
+
+    /* Activity Grid */
+    .activity-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+}
+
+/* =========================================
+   3. MOBILE BREAKPOINT (max-width: 768px)
+   ========================================= */
+@media (max-width: 768px) {
+    /* Show Mobile Menu Toggle */
+    .btn-menu-mobile {
+        display: block;
+    }
+    
+    /* Profile Card Mobile Fix */
+    .profile-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+        gap: 1rem;
+    }
+    
+    .profile-avatar {
+        margin: 0 auto;
+    }
+    
+    .profile-info {
+        text-align: center;
+    }
+    
+    .profile-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .profile-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Profile Grid Mobile */
+    .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .profile-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .mobile-header-brand {
+        display: block;
+    }
+
+    /* Header Adjustments */
+    .header-content {
+        padding: 0 1rem;
+    }
+
+    .header-actions {
+        gap: 0.5rem;
+    }
+
+    .header-actions .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    /* Hide desktop logo text on mobile */
+    .logo-section span {
+        display: none;
+    }
+
+    /* Dashboard Stats - Single Column */
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    /* Jobs Page */
+    .jobs-page-container {
+        padding: 1rem;
+        grid-template-columns: 1fr;
+    }
+
+    .filters-sidebar {
+        position: static;
+        order: 2;
+        margin-top: 1rem;
+    }
+
+    .jobs-content {
+        order: 1;
+    }
+
+    .jobs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .jobs-search-bar {
+        flex-direction: column;
+    }
+
+    .jobs-search-bar .search-input-wrapper {
+        max-width: none;
+    }
+
+    /* Job Cards */
+    .job-card {
+        padding: 1rem;
+    }
+
+    .job-card-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .job-card-title {
+        font-size: 1.1rem;
+    }
+
+    /* Interview Room */
+    .interview-container {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .question-panel {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .video-panel {
+        width: 100%;
+        height: 50vh;
+    }
+
+    .interview-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .interview-header .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    /* Search Containers */
+    .search-container-modern {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .search-input-wrapper {
+        max-width: none;
+    }
+
+    /* Grid Cards */
+    .grid-cards {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Application Cards */
+    .application-card {
+        padding: 1rem;
+    }
+
+    .application-card .card-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    /* Modal */
+    .auth-modal {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    /* Forms */
+    .form-card {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    /* Stepper */
+    .stepper-wrapper {
+        padding: 0 10px;
+    }
+
+    .step-circle {
+        width: 36px;
+        height: 36px;
+        font-size: 0.875rem;
+    }
+
+    .step-label {
+        font-size: 0.75rem;
+    }
+
+    /* Filters */
+    .filter-group {
+        margin-bottom: 1rem;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+    }
+
+    .filter-actions .btn {
+        width: 100%;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.625rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+        left: 1rem;
+        right: 1rem;
+        top: 1rem;
+    }
+
+    .toast {
+        min-width: auto;
+        max-width: none;
+    }
+
+    /* Page Headers */
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .dashboard-content {
+        padding: 1rem;
+    }
+
+    /* Section Headers */
+    .section-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    .section-header h2 {
+        font-size: 1.25rem;
+    }
+
+    /* Tables (make them scrollable) */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 600px;
+    }
+
+    /* Back Buttons - Standardize Position */
+    .back-button-container {
+        position: fixed;
+        top: 70px;
+        left: 1rem;
+        z-index: 90;
+    }
+
+    .back-button-container .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        background: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* User Info in Header - hide name only in header, not sidebar */
+    .dashboard-header .user-info .user-name {
+        display: none;
+    }
+
+    .user-info .user-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Show mobile logout button in header */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .mobile-logout-btn {
+        display: block !important;
+        background: none;
+        border: 1px solid var(--border-color);
+        color: var(--text-dark);
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    /* Talent Cards - Mobile */
+    .talent-card-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .talent-card-row .card-main-info,
+    .talent-card-row .card-job-info,
+    .talent-card-row .card-status-info,
+    .talent-card-row .card-actions-toolbar {
+        width: 100%;
+        padding-left: 0;
+        flex: none;
+    }
+
+    .talent-card-row .card-selection {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .talent-card-row .avatar-box {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        font-size: 0.875rem;
+    }
+
+    /* Form Row Grids */
+    .form-row,
+    .form-row-3 {
+        grid-template-columns: 1fr;
+    }
+
+    /* Profile Section */
+    .profile-section {
+        padding: 1rem;
+    }
+
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Video Container */
+    #videoContainer,
+    #videoPlayer {
+        max-width: 100%;
+    }
+
+    /* Recording Interface */
+    #videoRecordingContainer {
+        padding: 1rem;
+    }
+
+    #introCameraFeed,
+    #introPlaybackFeed {
+        max-height: 250px;
+    }
+
+    /* Modal Card */
+    .custom-modal-card {
+        max-width: 95%;
+        margin: 1rem;
+        padding: 1rem;
+    }
+}
+
+/* =========================================
+   4. SMALL MOBILE BREAKPOINT (max-width: 480px)
+   ========================================= */
+@media (max-width: 480px) {
+    /* Further reduce padding */
+    .dashboard-content,
+    .jobs-page-container,
+    .interview-container {
+        padding: 0.75rem;
+    }
+
+    /* Smaller headers */
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .page-header p {
+        font-size: 1rem;
+    }
+
+    /* Compact job cards */
+    .job-card {
+        padding: 0.875rem;
+    }
+
+    .job-card-details {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Compact buttons */
+    .btn {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.875rem;
+    }
+
+    /* Interview Room - Full width controls */
+    .controls-wrapper {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .controls-wrapper .btn {
+        width: 100%;
+    }
+
+    /* Form Cards */
+    .form-card {
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+
+    /* Stepper - Hide labels on very small screens */
+    .step-label {
+        display: none;
+    }
+
+    .stepper-wrapper::before {
+        left: 20px;
+        right: 20px;
+    }
+
+    /* Talent Cards - Extra Small */
+    .talent-card-row {
+        padding: 0.75rem;
+    }
+
+    .talent-card-row .full-name {
+        font-size: 0.95rem;
+    }
+
+    .talent-card-row .sub-text,
+    .talent-card-row .job-name {
+        font-size: 0.75rem;
+    }
+
+    /* Action Buttons */
+    .action-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* Badges */
+    .badge-success,
+    .badge-pending,
+    .badge-interview-pending {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+
+    /* Stats Cards */
+    .stat-card {
+        padding: 0.75rem;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .stat-info h3 {
+        font-size: 1.25rem;
+    }
+
+    .stat-info p {
+        font-size: 0.8rem;
+    }
+
+    /* Recording Controls */
+    .record-btn-modern {
+        padding: 10px 20px;
+        font-size: 0.875rem;
+    }
+
+    .timer-display {
+        font-size: 1rem;
+    }
+
+    /* Video Elements */
+    #introCameraFeed,
+    #introPlaybackFeed {
+        max-height: 200px;
+    }
+
+    /* Mobile Menu Toggle */
+    .btn-menu-mobile {
+        width: 36px;
+        height: 36px;
+        font-size: 1.25rem;
+    }
+}
+
+/* =========================================
+   5. LANDSCAPE ORIENTATION FIXES
+   ========================================= */
+@media (max-height: 600px) and (orientation: landscape) {
+    .interview-container {
+        flex-direction: row;
+    }
+
+    .question-panel {
+        width: 40%;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .video-panel {
+        width: 60%;
+        height: 100vh;
+    }
+
+    .interview-header {
+        position: relative;
+    }
+}
+
+/* =========================================
+   6. TOUCH DEVICE OPTIMIZATIONS
+   ========================================= */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .btn,
+    .nav-item,
+    .filter-group input,
+    .filter-group select {
+        min-height: 44px;
+    }
+
+    /* Remove hover effects on touch devices */
+    .card:hover,
+    .job-card:hover,
+    .stat-card:hover {
+        transform: none;
+    }
+
+    /* Larger checkboxes/radio buttons */
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Larger touch targets for talent cards */
+    .talent-card-row {
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+    }
+
+    .action-btn {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* =========================================
+   7. SAFE AREA INSETS (Notch Devices)
+   ========================================= */
+@supports (padding-top: env(safe-area-inset-top)) {
+    .dashboard-header {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    .sidebar {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    .main-content {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* =========================================
+   8. HIGH DPI / RETINA DISPLAYS
+   ========================================= */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .avatar-box,
+    .avatar-circle,
+    .stat-icon,
+    .action-btn {
+        /* Sharper rendering on high DPI */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* =========================================
+   9. PRINT STYLES
+   ========================================= */
+
+/* Jobs Page Header - Desktop: Reduce Skreenit ID font size */
+.header-actions .user-info .user-name + span,
+.header-actions .user-info span[style*="Skreenit ID"] {
+    font-size: 0.65rem !important;
+}
+
+/* Jobs Page Header - Mobile: Show only avatar and logout */
+@media (max-width: 768px) {
+    .header-actions .user-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Hide user name and Skreenit ID text */
+    .header-actions .user-info .user-name,
+    .header-actions .user-info span[style*="Skreenit ID"],
+    .header-actions .user-info > div > div:not(.user-avatar) {
+        display: none !important;
+    }
+    
+    /* Keep only avatar visible */
+    .header-actions .user-avatar {
+        display: flex !important;
+        margin-right: 10px;
+    }
+    
+    /* Keep logout button */
+    .header-actions #logoutBtn {
+        display: inline-flex !important;
+        margin-left: 10px !important;
+    }
+}
+
+/* Hide ad slider on mobile */
+@media (max-width: 768px) {
+    .ad-slider-container {
+        display: none !important;
+    }
+}
+
+/* Print styles */
+@media print {
+    .sidebar,
+    .btn-menu-mobile,
+    .sidebar-overlay,
+    .dashboard-header .btn,
+    .action-btn,
+    .logout-btn {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 0;
+    }
+
+    .card,
+    .talent-card-row,
+    .job-card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}
+
+/* =========================================
+   SIDEBAR NAVIGATION FIX FOR MOBILE
+   ========================================= */
+@media (max-width: 768px) {
+    /* AGGRESSIVE OVERRIDE for landing.css .nav-menu display:none */
+    body .dashboard-container nav.sidebar ul.nav-menu,
+    body nav.sidebar ul.nav-menu,
+    .dashboard-container .sidebar .nav-menu,
+    nav.sidebar .nav-menu,
+    ul.nav-menu {
+        display: flex;
+        flex-direction: column;
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0;
+        gap: 0.5rem;
+    }
+    
+    /* Override any global .nav-menu { display: none } */
+    .nav-menu {
+        display: flex;
+    }
+    
+    /* Force nav items to be visible */
+    body .dashboard-container nav.sidebar ul.nav-menu li.nav-item,
+    body nav.sidebar .nav-menu li.nav-item,
+    .sidebar .nav-menu li.nav-item,
+    ul.nav-menu li.nav-item,
+    li.nav-item {
+        display: flex;
+        align-items: center;
+        padding: 0.875rem 1.5rem;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    body .dashboard-container nav.sidebar ul.nav-menu li.nav-item i,
+    body nav.sidebar .nav-menu li.nav-item i,
+    .sidebar .nav-menu li.nav-item i,
+    li.nav-item i {
+        margin-right: 0.75rem;
+        width: 20px;
+        text-align: center;
+        display: inline-block;
+        margin-right: 0.75rem !important;
+        width: 20px !important;
+        text-align: center !important;
+        display: inline-block !important;
+    }
+    
+    /* Logout button with text on mobile */
+    .sidebar .logout-btn,
+    .logout-btn {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        padding: 0.875rem 1.5rem !important;
+        width: 100% !important;
+        gap: 0.75rem !important;
+        font-size: 0.95rem !important;
+        color: #fca5a5 !important;
+        margin-top: 1rem !important;
+    }
+    
+    .logout-btn i {
+        margin-right: 0 !important;
+        width: 20px !important;
+        text-align: center !important;
+    }
+    
+    .logout-btn span {
+        display: inline !important;
+    }
+    
+    body .dashboard-container nav.sidebar ul.nav-menu li.nav-item span,
+    body nav.sidebar .nav-menu li.nav-item span,
+    .sidebar .nav-menu li.nav-item span,
+    li.nav-item span {
+        display: inline !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    body .dashboard-container nav.sidebar ul.nav-menu li.nav-item:hover,
+    body .dashboard-container nav.sidebar ul.nav-menu li.nav-item.active,
+    body nav.sidebar .nav-menu li.nav-item:hover,
+    body nav.sidebar .nav-menu li.nav-item.active,
+    .sidebar .nav-menu li.nav-item:hover,
+    .sidebar .nav-menu li.nav-item.active {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border-left: 4px solid white !important;
+    }
+    
+    /* Ensure sidebar footer is visible */
+    body .dashboard-container nav.sidebar .sidebar-footer,
+    body nav.sidebar .sidebar-footer,
+    .sidebar .sidebar-footer {
+        display: block !important;
+        margin-top: auto !important;
+        padding: 1rem !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+/* =========================================
+   FORCE SIDEBAR VISIBILITY (The "Nuclear" Fix)
+   ========================================= */
+@media (max-width: 768px) {
+    /* Target the nav-menu specifically within the active sidebar */
+    body #sidebar.active .nav-menu,
+    body .sidebar.active .nav-menu {
+        display: flex !important;
+        flex-direction: column !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
+        min-height: 100px !important;
+    }
+
+    /* Target every list item and its children */
+    body .sidebar.active .nav-menu li.nav-item {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        padding: 12px 20px !important;
+        color: white !important;
+    }
+
+    body .sidebar.active .nav-menu li.nav-item span,
+    body .sidebar.active .nav-menu li.nav-item i {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+.sidebar .nav-menu {
+    overflow: visible !important;
+    flex: 1 !important; /* Allow it to grow and fill space */
+}

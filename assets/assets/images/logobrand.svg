@@ -1,0 +1,18 @@
+<svg width="420" height="120" viewBox="0 0 420 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded square background -->
+  <rect x="0" y="0" width="96" height="96" rx="16" ry="16" fill="#2A7FDB"/>
+
+  <!-- White icon -->
+  <path fill="#FFFFFF" d="M63.2 34.5c-1.1-1.1-2.9-1.1-4 0L45.7 48l-5-5c-1.1-1.1-2.9-1.1-4 0s-1.1 2.9 0 4l7 7c1.1 1.1 2.9 1.1 4 0l16.5-16.5c1.1-1.1 1.1-2.9 0-4z"/>
+  <path fill="#FFFFFF" d="M48 24c-11.6 0-21 9.4-21 21s9.4 21 21 21 21-9.4 21-21-9.4-21-21-21zm0 38c-9.4 0-17-7.6-17-17s7.6-17 17-17 17 7.6 17 17-7.6 17-17 17z"/>
+
+  <!-- Wordmark -->
+  <text x="120" y="50" font-family="Segoe UI, Arial, sans-serif" font-size="36" fill="#0F2A4A" font-weight="600">
+    Skreenit
+  </text>
+
+  <!-- Tagline -->
+  <text x="120" y="85" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#4AA3E0">
+    Personalised Intelligent Hiring
+  </text>
+</svg>
