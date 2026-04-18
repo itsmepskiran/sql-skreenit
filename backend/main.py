@@ -119,7 +119,7 @@ else:
 
 
 # ---------------------------------------------------------
-# Browser Display (Root) - HEAD added for Render Health Checks
+# Browser Display (Root) - HEAD added for Health Checks
 # ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 @app.head("/", response_class=HTMLResponse)
@@ -127,10 +127,11 @@ async def root_page():
     if not template_env:
         return HTMLResponse("""
         <html>
-            <head><title>Skreenit Backend API</title></head>
+            <head><title>Skreenit Local Server API</title></head>
             <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-                <h2>Skreenit Backend API</h2>
-                <p>Running in {} mode.</p>
+                <h2>Skreenit Local Server API</h2>
+                <p>Running on Local Machine (Xeon E-2276M + 64GB RAM + Quadro T2000)</p>
+                <p>Mode: {}</p>
             </body>
         </html>
         """.format(ENV))
@@ -147,10 +148,11 @@ async def root_page():
         logger.error(f"Error rendering template: {str(e)}")
         return HTMLResponse(f"""
         <html>
-            <head><title>Skreenit Backend API</title></head>
+            <head><title>Skreenit Local Server API</title></head>
             <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-                <h2>Skreenit Backend API</h2>
-                <p>Running in {ENV} mode.</p>
+                <h2>Skreenit Local Server API</h2>
+                <p>Running on Local Machine (Xeon E-2276M + 64GB RAM + Quadro T2000)</p>
+                <p>Mode: {ENV}</p>
                 <p>Template Error: {str(e)}</p>
             </body>
         </html>
@@ -223,16 +225,18 @@ app.add_middleware(PatchedCustomAuthMiddleware, excluded_paths=EXCLUDED_PATHS)
 app.add_middleware(SecurityHeadersMiddleware)
 
 # ---------------------------------------------------------
-# Timeout Middleware
+# Timeout Middleware - Extended for heavy ML processing
 # ---------------------------------------------------------
 TIMEOUT_EXCLUDED_PATHS = {
     "/api/v1/analytics/bulk-analyze-responses",
     "/api/v1/analytics/analyze",
     "/api/v1/analytics/reanalyze",
+    "/api/v1/analytics/analyze-video",
+    "/api/v1/analytics/analyze-video-response",
 }
 
 class TimeoutMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, timeout: int = 60):
+    def __init__(self, app, timeout: int = 120):
         super().__init__(app)
         self.timeout = timeout
 
@@ -253,12 +257,13 @@ class TimeoutMiddleware(BaseHTTPMiddleware):
                 status_code=408
             )
 
-app.add_middleware(TimeoutMiddleware, timeout=60)
+app.add_middleware(TimeoutMiddleware, timeout=120)
 
 # ---------------------------------------------------------
-# CORS Middleware
+# CORS Middleware - Configured for Local Server + Tunnel Bridge
 # ---------------------------------------------------------
-DEFAULT_ALLOWED_ORIGINS = [
+# Cloudflare Pages Frontend origins
+FRONTEND_ORIGINS = [
     "https://www.skreenit.com",
     "https://skreenit.com",
     "https://login.skreenit.com",
@@ -277,6 +282,7 @@ DEFAULT_ALLOWED_ORIGINS = [
     "https://jobs.skreenit.com",
 ]
 
+# Local development origins
 LOCAL_DEV_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -296,10 +302,16 @@ LOCAL_DEV_ORIGINS = [
     "http://127.0.0.1:8083",
 ]
 
-if IS_PROD:
-    origins = DEFAULT_ALLOWED_ORIGINS
-else:
-    origins = DEFAULT_ALLOWED_ORIGINS + LOCAL_DEV_ORIGINS
+# Tunnel bridge origins - Allow all Cloudflare tunnel URLs
+# The tunnel will bridge between local server and Cloudflare Pages
+TUNNEL_ORIGINS = [
+    "https://*.trycloudflare.com",  # Cloudflare tunnel URLs
+    "https://api.skreenit.com",     # Your custom tunnel domain
+    "https://skreenit-backend.pages.dev",  # Cloudflare Pages backend URL if used
+]
+
+# Combine all origins
+origins = FRONTEND_ORIGINS + LOCAL_DEV_ORIGINS + TUNNEL_ORIGINS
 
 app.add_middleware(
     CORSMiddleware,

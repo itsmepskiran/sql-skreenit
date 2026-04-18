@@ -5,13 +5,20 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "skreenit-backend"
 version = "1.0.0"
-description = "Backend API for Skreenit recruitment platform"
+description = "Backend API for Skreenit recruitment platform - Local Server (Xeon + 64GB + Quadro T2000)"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
     {name = "Skreenit Team", email = "support@skreenit.com"}
 ]
 requires-python = ">=3.10"
+
+# =============================================================================
+# IMPORTANT: GPU Support
+# This project requires CUDA 11.8 for NVIDIA Quadro T2000
+# PyTorch with CUDA must be installed separately:
+#   pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
+# =============================================================================
 
 dependencies = [
     # Core backend
@@ -26,6 +33,7 @@ dependencies = [
     "bcrypt>=4.0,<5.0",
     "jinja2>=3.1,<4.0",
     "PyJWT>=2.0,<3.0",
+    "websockets>=12.0",
 
     # Database
     "sqlalchemy>=2.0,<3.0",
@@ -36,14 +44,14 @@ dependencies = [
     "boto3>=1.26,<4.0",
     "resend>=0.8",
 
-    # ML stack (Render-safe)
-    "opencv-python-headless==4.8.0.74",
+    # ML stack (GPU-accelerated for local server)
+    "opencv-python==4.8.1.78",  # Full OpenCV (not headless for local)
     "numpy>=1.23,<1.27",
     "pillow>=10.0",
     "ffmpeg-python>=0.2.0",
     "mediapipe==0.10.14",
     "fer==22.5.0",
-    "onnxruntime==1.17.1",
+    "onnxruntime-gpu==1.17.1",  # GPU-accelerated ONNX
     "textblob>=0.17",
     "nltk>=3.8",
     "textstat>=0.7",
@@ -51,6 +59,31 @@ dependencies = [
     "soundfile==0.11.0",
     "eng-to-ipa>=0.0.2",
     "reportlab>=4.0",
+    
+    # NLP & Transformers (heavy libraries for 64GB RAM)
+    "sentence-transformers>=2.5.1",
+    "transformers>=4.38.2",
+    "accelerate>=0.27.2",
+    
+    # Document processing
+    "PyMuPDF>=1.23.26",
+    "python-docx>=0.8.11",
+    "pdf2image>=1.17.0",
+    "pdfplumber>=0.10.4",
+    
+    # System monitoring (for 64GB system)
+    "psutil>=5.9.8",
+    "GPUtil>=1.4.0",
+    "pynvml>=11.5.0",
+    
+    # Performance optimization
+    "ray>=2.9.3",
+    "numba>=0.59.1",
+    "structlog>=24.1.0",
+    "prometheus-client>=0.20.0",
+    
+    # Note: PyTorch with CUDA must be installed separately
+    # See requirements.txt for the exact versions
 ]
 
 [project.optional-dependencies]

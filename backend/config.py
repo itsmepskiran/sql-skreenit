@@ -80,7 +80,7 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:8085",
     # Production domains
     "https://www.skreenit.com",
-    "https://skreenit.com", 
+    "https://skreenit.com",
     "https://login.skreenit.com",
     "https://auth.skreenit.com",
     "https://applicant.skreenit.com",
@@ -89,12 +89,14 @@ ALLOWED_ORIGINS = [
     "https://backend.skreenit.com",
     "https://storage.skreenit.com",
     "https://assets.skreenit.com",
-    "https://skreenitdb.onrender.com",
     "https://hrms.skreenit.com",
     "https://app.skreenit.com",
     "https://in.skreenit.com",
     "https://support.skreenit.com",
-    "https://legal.skreenit.com"
+    "https://legal.skreenit.com",
+    "https://api.skreenit.com",
+    # Tunnel bridge (Cloudflare tunnel URLs)
+    "https://*.trycloudflare.com"
 ]
 
 # ============================================================
@@ -120,4 +122,5 @@ def validate_config():
         )
     
     print("✅ Configuration validated successfully")
+    print("🖥️  Local Server Mode: Xeon E-2276M + 64GB RAM + Quadro T2000")
     return True

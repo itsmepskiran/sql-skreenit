@@ -1,5 +1,10 @@
-# Step 1: Use a slim Python image
-FROM python:3.10-slim
+# =============================================================================
+# SKREENIT LOCAL SERVER DOCKERFILE
+# For: Intel Xeon E-2276M + 64GB RAM + NVIDIA Quadro T2000 (4GB)
+# =============================================================================
+
+# Step 1: Use NVIDIA CUDA base image for GPU support
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -7,11 +12,15 @@ ENV PYTHONUNBUFFERED=1
 ENV ENVIRONMENT=production
 ENV HOME=/root
 ENV PYTHONPATH=/app
-# Install system dependencies
-# Added build-essential and python3-dev for GCC/Compilation
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# Install Python and system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.10 \
+    python3.10-dev \
+    python3-pip \
     build-essential \
-    python3-dev \
     ffmpeg \
     pkg-config \
     libavformat-dev \
@@ -28,13 +37,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender1 \
     libgomp1 \
     git \
+    git-lfs \
+    curl \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Set Python3.10 as default
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
+RUN update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
 
-# --- Git LFS Setup ---
-# Install git-lfs to pull LFS files during build
-RUN apt-get update && apt-get install -y --no-install-recommends git-lfs && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
 # --- InsightFace Model Setup ---
 # Create the hidden system directory
@@ -43,22 +55,6 @@ RUN mkdir -p /root/.insightface/models/buffalo_m
 # Copy models from your project root into the system path
 # Path: root -> backend -> resources -> models -> buffalo_m
 COPY backend/resources/models/buffalo_m/ /root/.insightface/models/buffalo_m/
-
-# Verify models are actual files not LFS pointers, download if needed
-RUN cd /root/.insightface/models/buffalo_m/ && \
-    echo "Checking model files..." && \
-    for f in *.onnx; do \
-        if [ -f "$f" ]; then \
-            size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f" 2>/dev/null || echo "0"); \
-            echo "$f size: $size bytes"; \
-            if [ "$size" -lt 1000 ]; then \
-                echo "ERROR: $f is too small (likely LFS pointer), need to download manually"; \
-            fi; \
-        else \
-            echo "ERROR: $f not found"; \
-        fi; \
-    done && \
-    ls -lh /root/.insightface/models/buffalo_m/
 
 # Copy and install requirements
 COPY backend/requirements.txt .
@@ -70,8 +66,16 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 # Copy the rest of your backend code
 COPY backend/ .
 
-# Expose the port Render expects
+# Create directories for uploads and temp processing
+RUN mkdir -p /app/uploads /app/temp /app/logs
+
+# Expose the port for local server
 EXPOSE 8080
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
 # Start the app - main.py is at /app/main.py because we COPY backend/ .
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+# Using 4 workers for 64GB RAM system
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]
