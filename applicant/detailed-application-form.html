@@ -535,48 +535,21 @@
                             Choose the language you prefer for the video interview. Questions will be displayed in both English and your selected language. You can respond in any language.
                         </p>
                         
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem;">
-                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
-                                <input type="radio" name="interviewLanguage" value="en" style="width: 18px; height: 18px;" />
-                                <span style="font-weight: 500;">English</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
-                                <input type="radio" name="interviewLanguage" value="hi" style="width: 18px; height: 18px;" />
-                                <span style="font-weight: 500;">Hindi (<span style="font-family: 'Noto Sans Devanagari', sans-serif;"> Hindi</span>)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
-                                <input type="radio" name="interviewLanguage" value="kn" style="width: 18px; height: 18px;" />
-                                <span style="font-weight: 500;">Kannada (Kannada)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
-                                <input type="radio" name="interviewLanguage" value="ta" style="width: 18px; height: 18px;" />
-                                <span style="font-weight: 500;">Tamil (Tamil)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
-                                <input type="radio" name="interviewLanguage" value="te" style="width: 18px; height: 18px;" />
-                                <span style="font-weight: 500;">Telugu (Telugu)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
-                                <input type="radio" name="interviewLanguage" value="mr" style="width: 18px; height: 18px;" />
-                                <span style="font-weight: 500;">Marathi (Marathi)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
-                                <input type="radio" name="interviewLanguage" value="bn" style="width: 18px; height: 18px;" />
-                                <span style="font-weight: 500;">Bengali (Bengali)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
-                                <input type="radio" name="interviewLanguage" value="gu" style="width: 18px; height: 18px;" />
-                                <span style="font-weight: 500;">Gujarati (Gujarati)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
-                                <input type="radio" name="interviewLanguage" value="ml" style="width: 18px; height: 18px;" />
-                                <span style="font-weight: 500;">Malayalam (Malayalam)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
-                                <input type="radio" name="interviewLanguage" value="pa" style="width: 18px; height: 18px;" />
-                                <span style="font-weight: 500;">Punjabi (Punjabi)</span>
-                            </label>
-                        </div>
+                        <select id="interviewLanguageSelect" name="interviewLanguage" style="width: 100%; padding: 12px 16px; font-size: 1rem; border: 2px solid #fcd34d; border-radius: 8px; background: white; color: #333; cursor: pointer;">
+                            <option value="en">English</option>
+                            <option value="hi">Hindi ( Hindi)</option>
+                            <option value="kn">Kannada (Kannada)</option>
+                            <option value="ta">Tamil (Tamil)</option>
+                            <option value="te">Telugu (Telugu)</option>
+                            <option value="mr">Marathi (Marathi)</option>
+                            <option value="bn">Bengali (Bengali)</option>
+                            <option value="gu">Gujarati (Gujarati)</option>
+                            <option value="ml">Malayalam (Malayalam)</option>
+                            <option value="pa">Punjabi (Punjabi)</option>
+                            <option value="ur">Urdu (Urdu)</option>
+                            <option value="or">Odia (Odia)</option>
+                            <option value="as">Assamese (Assamese)</option>
+                        </select>
                         
                         <input type="hidden" id="selectedInterviewLanguage" name="selected_interview_language" value="en" />
                         

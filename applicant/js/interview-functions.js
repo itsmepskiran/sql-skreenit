@@ -62,12 +62,12 @@ async function loadSupportedLanguages() {
 }
 
 function getSelectedLanguageFromStep6() {
-    // Get the language selected in Step 6
+    // Get the language selected in Step 6 from dropdown
+    const languageSelect = document.getElementById('interviewLanguageSelect');
     const hiddenInput = document.getElementById('selectedInterviewLanguage');
-    const selectedRadio = document.querySelector('input[name="interviewLanguage"]:checked');
     
-    if(selectedRadio) {
-        selectedLanguage = selectedRadio.value;
+    if(languageSelect && languageSelect.value) {
+        selectedLanguage = languageSelect.value;
     } else if(hiddenInput && hiddenInput.value) {
         selectedLanguage = hiddenInput.value;
     } else {
@@ -130,15 +130,36 @@ function setupInterviewRecording() {
 
 async function initInterviewCamera() {
     const video = document.getElementById('interviewCameraFeed');
-    if(!video) return;
+    if(!video) {
+        console.error('Video element not found');
+        return;
+    }
+    
     try {
+        // Stop any existing stream
+        if(interviewStream) {
+            interviewStream.getTracks().forEach(track => track.stop());
+        }
+        
         const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { width: { ideal: 1280 }, height: { ideal: 720 } }, 
+            video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, 
             audio: true 
         });
+        
+        // Set stream and play
         video.srcObject = stream;
+        video.muted = true; // Mute to avoid feedback
+        video.playsInline = true;
+        
+        // Wait for video to be ready
+        video.onloadedmetadata = () => {
+            video.play().catch(e => console.warn('Video autoplay issue:', e));
+            console.log('Camera initialized successfully');
+        };
+        
         interviewStream = stream;
     } catch(err) {
+        console.error('Camera access error:', err);
         notify('Unable to access camera. Please ensure camera permissions are granted.', 'error');
     }
 }

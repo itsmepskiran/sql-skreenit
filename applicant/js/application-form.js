@@ -788,34 +788,16 @@ function setupEventListeners() {
     if(addSkillBtn) addSkillBtn.addEventListener('click', () => addSkill(skillInput?.value.trim()));
     if(skillInput) skillInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(skillInput.value.trim()); } });
     
-    // Language Selection for Interview (Step 6)
-    const languageRadios = document.querySelectorAll('input[name="interviewLanguage"]');
+    // Language Selection for Interview (Step 6) - Dropdown
+    const languageSelect = document.getElementById('interviewLanguageSelect');
     const selectedLangInput = document.getElementById('selectedInterviewLanguage');
-    const languageOptions = document.querySelectorAll('.language-option');
     
-    languageRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
+    if(languageSelect) {
+        languageSelect.addEventListener('change', (e) => {
             // Update hidden input
             if(selectedLangInput) selectedLangInput.value = e.target.value;
-            
-            // Update visual styling
-            languageOptions.forEach(opt => {
-                opt.style.borderColor = '#e2e8f0';
-                opt.style.background = 'white';
-            });
-            e.target.closest('.language-option').style.borderColor = '#f59e0b';
-            e.target.closest('.language-option').style.background = '#fffbeb';
-            
             console.log('Interview language selected:', e.target.value);
         });
-    });
-    
-    // Set default selection styling for English
-    const defaultRadio = document.querySelector('input[name="interviewLanguage"][value="en"]');
-    if(defaultRadio) {
-        defaultRadio.checked = true;
-        defaultRadio.closest('.language-option').style.borderColor = '#f59e0b';
-        defaultRadio.closest('.language-option').style.background = '#fffbeb';
     }
     
     if(resumeInput) {
