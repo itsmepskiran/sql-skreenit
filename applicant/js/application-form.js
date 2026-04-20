@@ -321,11 +321,11 @@ async function initLocationPickers() {
         const permanentCountrySelect = document.getElementById('permanentCountrySelect');
         
         if(currentCountrySelect && validCountries.length > 0) {
-            createSearchableDropdown(currentCountrySelect, validCountries, 'name', 'name', () => loadStatesForCountry('current'));
+            createSearchableDropdown(currentCountrySelect, validCountries, 'id', 'name', () => loadStatesForCountry('current'));
         }
         
         if(permanentCountrySelect && validCountries.length > 0) {
-            createSearchableDropdown(permanentCountrySelect, validCountries, 'name', 'name', () => loadStatesForCountry('permanent'));
+            createSearchableDropdown(permanentCountrySelect, validCountries, 'id', 'name', () => loadStatesForCountry('permanent'));
         }
 
         // Note: City selects are regular dropdowns that will be populated when state is selected
@@ -492,18 +492,18 @@ async function loadStatesForCountry(type) {
     
     if(!countryInput || !stateSelect) return;
     
-    // Get country name from searchable dropdown input or hidden value
-    let countryName = '';
+    // Get country ID from searchable dropdown hidden value
+    let countryId = '';
     if(countryInput.getValue) {
-        // Searchable dropdown - getValue returns the hidden input value (country name)
-        countryName = countryInput.getValue();
+        // Searchable dropdown - getValue returns the hidden input value (country ID)
+        countryId = countryInput.getValue();
     } else if(countryInput._hiddenInput) {
-        countryName = countryInput._hiddenInput.value;
+        countryId = countryInput._hiddenInput.value;
     } else {
-        countryName = countryInput.value;
+        countryId = countryInput.value;
     }
     
-    if(!countryName) {
+    if(!countryId) {
         stateSelect.innerHTML = '<option value="">Select State</option>';
         stateSelect.disabled = true;
         if(citySelect) {
@@ -514,34 +514,35 @@ async function loadStatesForCountry(type) {
     }
     
     try {
-        console.log('Location: Searching for country:', countryName);
-        const countries = await getCountries({ search: countryName });
-        console.log('Location: Countries found:', countries);
-        if(countries && countries.length > 0) {
-            const countryId = countries[0].id;
-            console.log('Location: Country ID:', countryId, 'Type:', typeof countryId);
-            const states = await getStates(countryId);
-            console.log('Location: States loaded:', states?.length || 0, 'states');
-            // Filter out states with empty/null names
-            const validStates = states.filter(s => s.name && s.name.trim());
-            
-            // Enable state dropdown
-            stateSelect.disabled = false;
-            
-            // Check if searchable dropdown already exists (check wrapper, not the hidden select)
-            const existingWrapper = stateSelect.parentElement.querySelector('.searchable-dropdown');
-            if(!existingWrapper || !existingWrapper._searchableInit) {
-                // First time - create the searchable dropdown with callback to load cities
-                createSearchableDropdown(stateSelect, validStates, 'name', 'name', () => loadCitiesForState(type));
-            } else {
-                // Update existing searchable dropdown items and clear previous selection
-                const input = existingWrapper.querySelector('.searchable-dropdown-input');
-                const hiddenInput = existingWrapper.querySelector('input[type="hidden"]');
-                if(input) {
-                    input._items = validStates;
-                    input.value = '';  // Clear previous selection
-                    if(hiddenInput) hiddenInput.value = '';  // Clear hidden value
-                }
+        console.log('Location: Loading states for country ID:', countryId);
+        const states = await getStates(countryId);
+        console.log('Location: States loaded:', states?.length || 0, 'states');
+        // Filter out states with empty/null names
+        const validStates = states.filter(s => s.name && s.name.trim());
+        
+        if(validStates.length === 0) {
+            console.warn('Location: No valid states found for country ID:', countryId);
+            stateSelect.innerHTML = '<option value="">No states available</option>';
+            stateSelect.disabled = true;
+            return;
+        }
+        
+        // Enable state dropdown
+        stateSelect.disabled = false;
+        
+        // Check if searchable dropdown already exists (check wrapper, not the hidden select)
+        const existingWrapper = stateSelect.parentElement.querySelector('.searchable-dropdown');
+        if(!existingWrapper || !existingWrapper._searchableInit) {
+            // First time - create the searchable dropdown with callback to load cities
+            createSearchableDropdown(stateSelect, validStates, 'id', 'name', () => loadCitiesForState(type));
+        } else {
+            // Update existing searchable dropdown items and clear previous selection
+            const input = existingWrapper.querySelector('.searchable-dropdown-input');
+            const hiddenInput = existingWrapper.querySelector('input[type="hidden"]');
+            if(input) {
+                input._items = validStates;
+                input.value = '';  // Clear previous selection
+                if(hiddenInput) hiddenInput.value = '';  // Clear hidden value
             }
         }
     } catch (err) {
@@ -556,59 +557,47 @@ async function loadCitiesForState(type) {
     
     if(!countryInput || !stateInput || !citySelect) return;
     
-    // Get state name from searchable dropdown input or hidden value
-    let stateName = '';
+    // Get state ID from searchable dropdown hidden value
+    let stateId = '';
     if(stateInput.getValue) {
-        stateName = stateInput.getValue();
+        // Searchable dropdown - getValue returns the hidden input value (state ID)
+        stateId = stateInput.getValue();
     } else if(stateInput._hiddenInput) {
-        stateName = stateInput._hiddenInput.value;
+        stateId = stateInput._hiddenInput.value;
     } else {
-        stateName = stateInput.value;
+        stateId = stateInput.value;
     }
     
-    if(!stateName) {
+    if(!stateId) {
         citySelect.innerHTML = '<option value="">Select City</option>';
         citySelect.disabled = true;
         return;
     }
     
     try {
-        // Get country ID first
-        let countryName = '';
-        if(countryInput.getValue) {
-            countryName = countryInput.getValue();
-        } else if(countryInput._hiddenInput) {
-            countryName = countryInput._hiddenInput.value;
-        } else {
-            countryName = countryInput.value;
+        console.log('Location: Loading cities for state ID:', stateId);
+        const cities = await getCities({ state_id: stateId });
+        console.log('Location: Cities loaded:', cities?.length || 0, 'cities');
+        const validCities = cities.filter(c => c.name && c.name.trim());
+        
+        if(validCities.length === 0) {
+            console.warn('Location: No valid cities found for state ID:', stateId);
+            citySelect.innerHTML = '<option value="">No cities available</option>';
+            citySelect.disabled = true;
+            return;
         }
         
-        const countries = await getCountries({ search: countryName });
-        if(countries && countries.length > 0) {
-            const countryId = countries[0].id;
-            
-            // Get state ID
-            const states = await getStates(countryId);
-            const state = states.find(s => s.name === stateName);
-            
-            if(state) {
-                const cities = await getCities({ state_id: state.id });
-                console.log('Location: Cities loaded:', cities?.length || 0, 'cities');
-                const validCities = cities.filter(c => c.name && c.name.trim());
-                
-                // Enable city dropdown
-                citySelect.disabled = false;
-                
-                // Populate city select directly with options
-                citySelect.innerHTML = '<option value="">Select City</option>';
-                validCities.forEach(city => {
-                    const option = document.createElement('option');
-                    option.value = city.name;
-                    option.textContent = city.name;
-                    citySelect.appendChild(option);
-                });
-            }
-        }
+        // Enable city dropdown
+        citySelect.disabled = false;
+        
+        // Populate city select directly with options
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        validCities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city.name;
+            option.textContent = city.name;
+            citySelect.appendChild(option);
+        });
     } catch (err) {
         console.error('Error loading cities:', err);
     }
