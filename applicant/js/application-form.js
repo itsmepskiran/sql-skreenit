@@ -328,21 +328,8 @@ async function initLocationPickers() {
             createSearchableDropdown(permanentCountrySelect, validCountries, 'name', 'name', () => loadStatesForCountry('permanent'));
         }
 
-        // Initialize city autocomplete pickers
-        const currentCityContainer = document.getElementById('currentCityPicker');
-        const permanentCityContainer = document.getElementById('permanentCityPicker');
-        
-        if(currentCityContainer) {
-            currentCityContainer.innerHTML = '<input type="text" name="current_city" placeholder="Search city..." class="form-control" />';
-            const input = currentCityContainer.querySelector('input');
-            setupCityAutocomplete(input, 'current');
-        }
-        
-        if(permanentCityContainer) {
-            permanentCityContainer.innerHTML = '<input type="text" name="permanent_city" placeholder="Search city..." class="form-control" />';
-            const input = permanentCityContainer.querySelector('input');
-            setupCityAutocomplete(input, 'permanent');
-        }
+        // Note: City selects are regular dropdowns that will be populated when state is selected
+        // No autocomplete initialization needed for now
     } catch (err) {
         console.error('Error initializing location pickers:', err);
     }
@@ -612,21 +599,14 @@ async function loadCitiesForState(type) {
                 // Enable city dropdown
                 citySelect.disabled = false;
                 
-                // Check if searchable dropdown already exists
-                const existingWrapper = citySelect.parentElement.querySelector('.searchable-dropdown');
-                if(!existingWrapper || !existingWrapper._searchableInit) {
-                    // First time - create the searchable dropdown
-                    createSearchableDropdown(citySelect, validCities, 'name', 'name');
-                } else {
-                    // Update existing searchable dropdown items and clear previous selection
-                    const input = existingWrapper.querySelector('.searchable-dropdown-input');
-                    const hiddenInput = existingWrapper.querySelector('input[type="hidden"]');
-                    if(input) {
-                        input._items = validCities;
-                        input.value = '';  // Clear previous selection
-                        if(hiddenInput) hiddenInput.value = '';  // Clear hidden value
-                    }
-                }
+                // Populate city select directly with options
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                validCities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.name;
+                    option.textContent = city.name;
+                    citySelect.appendChild(option);
+                });
             }
         }
     } catch (err) {
