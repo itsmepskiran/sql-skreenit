@@ -374,7 +374,7 @@ function resetInterviewTimer() {
 }
 
 // Setter function to update interviewQuestions from other modules
-export function setInterviewQuestions(questions) {
+function setInterviewQuestions(questions) {
     interviewQuestions = questions;
 }
 
