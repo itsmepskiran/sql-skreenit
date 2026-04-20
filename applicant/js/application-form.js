@@ -5,7 +5,7 @@ import { CONFIG } from '@shared/js/config.js';
 import { showError, showSuccess, showWarning, hideWarning } from '@shared/js/notification-manager.js';
 import { sidebarManager } from '@shared/js/profile-checker.js';
 import { getCountries, getStates, getCities, searchLocations, CityAutocomplete } from '@shared/js/location.js';
-import { setupInterviewRecording, interviewQuestions, interviewResponses, isInterviewComplete } from './interview-functions.js';
+import { setupInterviewRecording, interviewQuestions, interviewResponses, isInterviewComplete, setInterviewQuestions } from './interview-functions.js';
 import '@shared/js/mobile.js';
 
 // Global variables for video recording
@@ -235,7 +235,7 @@ async function loadExistingProfile() {
         }
 
         // Certifications
-        if(profile.certifications && profile.certifications.length > 0) {
+        if(profile.certifications && Array.isArray(profile.certifications) && profile.certifications.length > 0) {
             certifications = profile.certifications;
             renderCertifications();
         }
@@ -946,7 +946,7 @@ async function handleResumeUpload(e) {
     } catch(err) {
         console.warn('Failed to generate questions from resume:', err);
         // Use fallback questions if generation fails
-        interviewQuestions = getFallbackQuestions();
+        setInterviewQuestions(getFallbackQuestions());
     }
 }
 
@@ -961,10 +961,10 @@ async function generateInterviewQuestions(resumeFile) {
         const result = await handleResponse(response);
         
         if(result.data && result.data.questions && result.data.questions.length > 0) {
-            interviewQuestions = result.data.questions;
+            setInterviewQuestions(result.data.questions);
         } else {
             // Fallback to default questions
-            interviewQuestions = getFallbackQuestions();
+            setInterviewQuestions(getFallbackQuestions());
         }
         
         // Update status
@@ -975,7 +975,7 @@ async function generateInterviewQuestions(resumeFile) {
         
     } catch(err) {
         console.error('Error generating questions:', err);
-        interviewQuestions = getFallbackQuestions();
+        setInterviewQuestions(getFallbackQuestions());
     }
 }
 

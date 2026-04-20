@@ -175,14 +175,15 @@ async function startInterview() {
     
     // If no questions loaded, use fallback
     if(interviewQuestions.length === 0) {
-        interviewQuestions = getFallbackQuestions();
+        setInterviewQuestions(getFallbackQuestions());
     }
     
     // Translate questions to selected language
-    interviewQuestions = await translateQuestions(
+    const translatedQuestions = await translateQuestions(
         interviewQuestions.map(q => typeof q === 'string' ? q : q.english),
         selectedLanguage
     );
+    setInterviewQuestions(translatedQuestions);
     
     const totalQNum = document.getElementById('totalQNum');
     if(totalQNum) totalQNum.textContent = interviewQuestions.length;
@@ -372,11 +373,17 @@ function resetInterviewTimer() {
     if(display) display.textContent = '00:00';
 }
 
+// Setter function to update interviewQuestions from other modules
+export function setInterviewQuestions(questions) {
+    interviewQuestions = questions;
+}
+
 // Export functions for use in application-form.js
 export {
     interviewQuestions,
     interviewResponses,
     isInterviewComplete,
     setupInterviewRecording,
-    getFallbackQuestions
+    getFallbackQuestions,
+    setInterviewQuestions
 };
