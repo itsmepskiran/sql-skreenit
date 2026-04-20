@@ -62,3 +62,7 @@ Thumbs.db
 # SUPABASE
 # ============================
 .supabase/
+backend/
+Skreenit_server/
+.env
+__pycache__/

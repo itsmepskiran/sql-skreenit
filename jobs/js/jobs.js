@@ -838,7 +838,11 @@ function formatJobType(type) {
         'remote': 'Remote',
         'hybrid': 'Hybrid',
         'contract': 'Contract',
-        'internship': 'Internship'
+        'internship': 'Internship',
+        // Handle jobtype IDs from database
+        'jobtype-001': 'On-site',
+        'jobtype-002': 'Remote',
+        'jobtype-003': 'Hybrid'
     };
     return types[type] || type;
 }

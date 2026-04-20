@@ -116,8 +116,8 @@
                     <div class="step-label">Experience</div>
                 </div>
                 <div class="step-item" data-step="6">
-                    <div class="step-circle"><i class="fas fa-file-upload"></i></div>
-                    <div class="step-label">Documents</div>
+                    <div class="step-circle"><i class="fas fa-file-alt"></i></div>
+                    <div class="step-label">Review</div>
                 </div>
                 <div class="step-item" data-step="7">
                     <div class="step-circle"><i class="fas fa-check-circle"></i></div>
@@ -129,6 +129,22 @@
                 
                 <section class="form-section active" id="step1">
                     <h2 class="section-title">Personal Information</h2>
+                    
+                    <!-- Resume Upload -->
+                    <div class="upload-area" id="resumeUpload" style="margin-bottom: 2rem;">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h3>Upload Resume*</h3>
+                        <p class="text-muted mb-3">PDF, DOCX (Max 5MB).</p>
+                        <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx" required />
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('resumeFile').click()">Choose File</button>
+                        <div class="file-name mt-3 fw-bold" id="resumeFileName"></div>
+                        <div id="resumeQuestionsStatus" style="margin-top: 1rem; display: none;">
+                            <div class="alert alert-info" style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px; padding: 0.75rem 1rem;">
+                                <i class="fas fa-magic" style="color: #3b82f6; margin-right: 8px;"></i>
+                                <span id="questionsStatusText" style="color: #1e40af; font-size: 0.9rem;">Resume uploaded! Questions will be generated for your Introduction video Session.</span>
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Profile Image Upload -->
                     <div class="form-group" style="text-align: center; margin-bottom: 2rem;">
@@ -200,19 +216,21 @@
                     </div>
                     <div class="form-row-3">
                         <div class="form-group">
-                            <label>City</label>
-                            <div id="currentCityPicker"></div>
+                            <label>Country*</label>
+                            <select name="current_country" id="currentCountrySelect" required>
+                                <option value="">Select Country</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>State</label>
-                            <select name="current_state" id="currentStateSelect">
+                            <label>State*</label>
+                            <select name="current_state" id="currentStateSelect" required disabled>
                                 <option value="">Select State</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Country</label>
-                            <select name="current_country" id="currentCountrySelect">
-                                <option value="">Select Country</option>
+                            <label>City*</label>
+                            <select name="current_city" id="currentCitySelect" required disabled>
+                                <option value="">Select City</option>
                             </select>
                         </div>
                     </div>
@@ -496,67 +514,152 @@
                 </section>
 
                 <section class="form-section" id="step6">
-                    <h2 class="section-title">Documents</h2>
+                    <h2 class="section-title">Review Your Profile</h2>
                     
-                    <!-- Resume Upload -->
-                    <div class="upload-area" id="resumeUpload">
-                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                        <h3>Upload Resume*</h3>
-                        <p class="text-muted mb-3">PDF, DOCX (Max 5MB)</p>
-                        <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx" hidden />
-                        <button type="button" class="btn btn-primary" onclick="document.getElementById('resumeFile').click()">Choose File</button>
-                        <div class="file-name mt-3 fw-bold" id="resumeFileName"></div>
+                    <div class="alert alert-info" style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                        <i class="fas fa-info-circle" style="color: #0284c7; margin-right: 8px;"></i>
+                        <span style="color: #0c4a6e;">Please review your information. Click "Next Step" to proceed to your personalized video introduction.</span>
+                    </div>
+                    
+                    <div id="profileReviewContent" style="background: #f8fafc; border-radius: 12px; padding: 1.5rem;">
+                        <p class="text-muted">Your profile information is ready for submission. The next step will be your video introduction with AI-generated questions based on your resume.</p>
                     </div>
                 </section>
 
                 <section class="form-section" id="step7">
-                    <h2 class="section-title">Introduction Video & Submit</h2>
+                    <h2 class="section-title">Video Introduction</h2>
                     
-                    <!-- Intro Video -->
-                    <h3 style="margin: 0 0 1rem; font-size: 1.1rem; color: var(--text-dark);"><i class="fas fa-video" style="margin-right: 8px; color: var(--primary-color);"></i>Introduction Video*</h3>
-                    <p class="text-muted mb-3">Record a 60-90 second video introducing yourself. This helps recruiters know you better!</p>
-                    
-                    <div id="videoRecordingContainer" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; background: #f8fafc;">
-                        <div id="videoRecorderInterface">
-                            <div style="position: relative; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
-                                <video id="introCameraFeed" autoplay muted playsinline style="width: 100%; max-height: 350px; display: block;"></video>
-                                <video id="introPlaybackFeed" controls style="width: 100%; max-height: 350px; display: none;"></video>
-                                <div id="recordingIndicator" style="display: none; position: absolute; top: 15px; right: 15px; background: rgba(239, 68, 68, 0.9); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
-                                    <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 6px; animation: pulse 1s infinite;"></i>
-                                    <span id="introTimerDisplay">00:00</span>
+                    <!-- Interview Instructions -->
+                    <div id="interviewInstructions" style="display: block;">
+                        <div class="alert alert-info" style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                            <h3 style="margin: 0 0 1rem 0; color: #0369a1;"><i class="fas fa-info-circle" style="margin-right: 8px;"></i>Session Instructions</h3>
+                            <ul style="margin: 0; padding-left: 1.5rem; color: #0c4a6e; line-height: 1.8;">
+                                <li><i class="fas fa-video me-2 text-muted"></i> You'll be asked <strong>3 personalized questions</strong> based on your resume</li>
+                                <li><i class="fas fa-microphone me-2 text-muted"></i> <strong>First question:</strong> 30-second introduction about yourself</li>
+                                <li><i class="fas fa-redo me-2 text-muted"></i> You can retake any answer before moving to the next question</li>
+                                <li><i class="fas fa-shield-alt me-2 text-muted"></i> Your responses are stored securely for recruiters review</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                            <h4 style="margin: 0 0 1rem 0; color: var(--text-dark);"><i class="fas fa-lightbulb" style="margin-right: 8px; color: var(--primary-color);"></i>Tips for Success</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="instruction-step" style="display: flex; gap: 12px;">
+                                    <div style="width: 28px; height: 28px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; flex-shrink: 0;">1</div>
+                                    <div>
+                                        <h5 style="margin: 0 0 4px 0; font-size: 0.95rem;">Prepare Your Environment</h5>
+                                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-light);">Find a quiet, well-lit space with stable internet</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div id="introRecordingControls" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-                                <button type="button" id="startIntroRecordingBtn" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.1rem;">
-                                    <i class="fas fa-video" style="margin-right: 8px;"></i>Start Recording
-                                </button>
-                            </div>
-                            <div id="introStopControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
-                                <button type="button" id="stopIntroRecordingBtn" class="btn btn-danger" style="padding: 14px 40px; font-size: 1.1rem;">
-                                    <i class="fas fa-stop-circle" style="margin-right: 8px;"></i>Stop Recording
-                                </button>
-                            </div>
-                            <div id="introReviewControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
-                                <div style="display: flex; gap: 1rem;">
-                                    <button type="button" id="retakeIntroVideoBtn" class="btn btn-secondary"><i class="fas fa-redo" style="margin-right: 8px;"></i>Retake</button>
-                                    <button type="button" id="acceptIntroVideoBtn" class="btn btn-success"><i class="fas fa-check" style="margin-right: 8px;"></i>Accept Video</button>
+                                <div class="instruction-step" style="display: flex; gap: 12px;">
+                                    <div style="width: 28px; height: 28px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; flex-shrink: 0;">2</div>
+                                    <div>
+                                        <h5 style="margin: 0 0 4px 0; font-size: 0.95rem;">Test Your Equipment</h5>
+                                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-light);">Ensure camera and microphone work properly</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div id="introVideoAccepted" style="display: none; text-align: center; padding: 1rem;">
-                                <div style="background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
-                                    <i class="fas fa-check-circle" style="color: #16a34a; font-size: 2rem; margin-bottom: 0.5rem;"></i>
-                                    <p style="color: #166534; margin: 0; font-weight: 600;">Video recorded successfully!</p>
-                                    <p style="color: #166534; margin: 0.25rem 0 0 0; font-size: 0.9rem;">Duration: <span id="acceptedVideoDuration">--</span></p>
+                                <div class="instruction-step" style="display: flex; gap: 12px;">
+                                    <div style="width: 28px; height: 28px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; flex-shrink: 0;">3</div>
+                                    <div>
+                                        <h5 style="margin: 0 0 4px 0; font-size: 0.95rem;">Answer Clearly</h5>
+                                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-light);">Speak clearly and concisely. Take time to think</p>
+                                    </div>
                                 </div>
-                                <div style="display: flex; gap: 1rem; justify-content: center;">
-                                    <button type="button" id="viewIntroVideoBtn" class="btn btn-outline-primary"><i class="fas fa-play-circle" style="margin-right: 8px;"></i>View Video</button>
-                                    <button type="button" id="reRecordIntroVideoBtn" class="btn btn-outline-secondary"><i class="fas fa-redo" style="margin-right: 8px;"></i>Re-record Video</button>
+                                <div class="instruction-step" style="display: flex; gap: 12px;">
+                                    <div style="width: 28px; height: 28px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; flex-shrink: 0;">4</div>
+                                    <div>
+                                        <h5 style="margin: 0 0 4px 0; font-size: 0.95rem;">Be Professional</h5>
+                                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-light);">Dress appropriately, maintain eye contact</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <input type="hidden" id="introVideoRecordedBlob" name="intro_video_recorded" />
+                        
+                        <div style="text-align: center;">
+                            <button type="button" id="startInterviewBtn" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.1rem;">
+                                <i class="fas fa-play-circle" style="margin-right: 8px;"></i>Begin Session
+                            </button>
+                        </div>
                     </div>
-                    <input type="file" id="introVideoFile" name="intro_video" accept="video/webm" hidden />
+                    
+                    <!-- Interview Questions Container -->
+                    <div id="interviewQuestionsContainer" style="display: none;">
+                        <!-- Step Indicator -->
+                        <div class="step-indicator" id="interviewStepDots" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 1.5rem;"></div>
+                        
+                        <!-- Question Display -->
+                        <div id="questionDisplay" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                            <h4 style="margin: 0 0 0.5rem 0; color: var(--text-light); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Question <span id="currentQNum">1</span> of <span id="totalQNum">3</span>
+                            </h4>
+                            <h3 id="questionText" style="margin: 0; color: var(--text-dark); font-size: 1.25rem; line-height: 1.5;">
+                                Loading question...
+                            </h3>
+                        </div>
+                        
+                        <!-- Video Recording Area -->
+                        <div style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; background: #f8fafc;">
+                            <div style="position: relative; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
+                                <video id="interviewCameraFeed" autoplay muted playsinline style="width: 100%; max-height: 350px; display: block; transform: scaleX(-1);"></video>
+                                <video id="interviewPlaybackFeed" controls style="width: 100%; max-height: 350px; display: none; transform: scaleX(1);"></video>
+                                <div id="interviewRecordingIndicator" style="display: none; position: absolute; top: 15px; right: 15px; background: rgba(239, 68, 68, 0.9); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                                    <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 6px; animation: pulse 1s infinite;"></i>
+                                    <span id="interviewTimerDisplay">00:00</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Recording Controls -->
+                            <div id="interviewRecordingControls" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                                <p class="text-muted mb-2">When you're ready, click <strong>Start Recording</strong> to begin your answer</p>
+                                <button type="button" id="startRecordingBtn" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.1rem;">
+                                    <i class="fas fa-video" style="margin-right: 8px;"></i>Start Recording
+                                </button>
+                            </div>
+                            
+                            <!-- Stop Controls -->
+                            <div id="interviewStopControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                                <button type="button" id="stopRecordingBtn" class="btn btn-danger" style="padding: 14px 40px; font-size: 1.1rem;">
+                                    <i class="fas fa-stop-circle" style="margin-right: 8px;"></i>Stop Recording
+                                </button>
+                            </div>
+                            
+                            <!-- Review Controls -->
+                            <div id="interviewReviewControls" style="display: none; flex-direction: column; align-items: center; gap: 1rem;">
+                                <p class="text-muted mb-2">Review your answer. You can retake or submit.</p>
+                                <div style="display: flex; gap: 1rem;">
+                                    <button type="button" id="retakeAnswerBtn" class="btn btn-secondary">
+                                        <i class="fas fa-redo" style="margin-right: 8px;"></i>Retake
+                                    </button>
+                                    <button type="button" id="submitAnswerBtn" class="btn btn-success">
+                                        <i class="fas fa-check" style="margin-right: 8px;"></i>Submit Answer
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Upload Progress -->
+                            <div id="uploadProgressContainer" style="display: none; width: 100%;">
+                                <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--text-light);">
+                                    <span>Uploading response...</span>
+                                    <span id="uploadProgressPercent">0%</span>
+                                </div>
+                                <div style="background: #e2e8f0; border-radius: 4px; height: 8px; overflow: hidden;">
+                                    <div id="uploadProgressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Interview Completion -->
+                        <div id="interviewCompleted" style="display: none; text-align: center; padding: 2rem;">
+                            <div style="background: #dcfce7; border: 1px solid #86efac; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem;">
+                                <i class="fas fa-check-circle" style="color: #16a34a; font-size: 3rem; margin-bottom: 1rem;"></i>
+                                <h3 style="color: #166534; margin: 0 0 0.5rem 0;">Interaction Completed!</h3>
+                                <p style="color: #166534; margin: 0;">All your responses have been recorded and saved.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden inputs for storing responses -->
+                    <input type="hidden" id="interviewResponses" name="interview_responses" />
                     
                     <!-- Disclaimer -->
                     <div class="alert alert-info" style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 1rem; margin: 2rem 0 1.5rem;">

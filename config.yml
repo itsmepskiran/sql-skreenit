@@ -1,0 +1,9 @@
+tunnel: 6e9c8968-cb0d-4981-892e-5c2710a9c125
+credentials-file: f:\Skreenit_App\.cloudflared\6e9c8968-cb0d-4981-892e-5c2710a9c125.json
+
+ingress:
+  - hostname: *.skreenit.com
+    service: http://localhost:8080
+    originRequest:
+      noTLSVerify: true
+  - service: http_status:404

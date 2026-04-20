@@ -5,6 +5,7 @@ import { CONFIG } from '@shared/js/config.js';
 import { showError, showSuccess, showWarning, hideWarning } from '@shared/js/notification-manager.js';
 import { sidebarManager } from '@shared/js/profile-checker.js';
 import { getCountries, getStates, getCities, searchLocations, CityAutocomplete } from '@shared/js/location.js';
+import { setupInterviewRecording, interviewQuestions, interviewResponses, isInterviewComplete } from './interview-functions.js';
 import '@shared/js/mobile.js';
 
 // Global variables for video recording
@@ -15,6 +16,15 @@ let introVideoBlob = null;
 let hasIntroVideoRecorded = false;
 let introRecordingSeconds = 0;
 let introTimerInterval = null;
+
+// Interview state variables
+let currentQuestionIndex = 0;
+let interviewStream = null;
+let interviewRecorder = null;
+let interviewRecordedChunks = [];
+let interviewRecordingBlob = null;
+let interviewRecordingSeconds = 0;
+let interviewTimerInterval = null;
 
 // Location picker instances
 let currentCityPicker = null;
@@ -55,6 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
     goToProfileBtn = document.getElementById('goToProfileBtn');
     
     resumeInput = document.getElementById('resumeFile');
+    
+    // Setup resume upload listener for question generation
+    if(resumeInput) {
+        resumeInput.addEventListener('change', handleResumeUpload);
+    }
     skillInput = document.getElementById('skillInput');
     addSkillBtn = document.getElementById('addSkillBtn');
     skillsContainer = document.getElementById('skillsContainer');
@@ -486,6 +501,7 @@ function createSearchableDropdown(originalSelect, items, valueKey, labelKey, onC
 async function loadStatesForCountry(type) {
     const countryInput = document.getElementById(`${type}CountrySelect`);
     const stateSelect = document.getElementById(`${type}StateSelect`);
+    const citySelect = document.getElementById(`${type}CitySelect`);
     
     if(!countryInput || !stateSelect) return;
     
@@ -502,6 +518,11 @@ async function loadStatesForCountry(type) {
     
     if(!countryName) {
         stateSelect.innerHTML = '<option value="">Select State</option>';
+        stateSelect.disabled = true;
+        if(citySelect) {
+            citySelect.innerHTML = '<option value="">Select City</option>';
+            citySelect.disabled = true;
+        }
         return;
     }
     
@@ -517,11 +538,14 @@ async function loadStatesForCountry(type) {
             // Filter out states with empty/null names
             const validStates = states.filter(s => s.name && s.name.trim());
             
+            // Enable state dropdown
+            stateSelect.disabled = false;
+            
             // Check if searchable dropdown already exists (check wrapper, not the hidden select)
             const existingWrapper = stateSelect.parentElement.querySelector('.searchable-dropdown');
             if(!existingWrapper || !existingWrapper._searchableInit) {
-                // First time - create the searchable dropdown
-                createSearchableDropdown(stateSelect, validStates, 'name', 'name');
+                // First time - create the searchable dropdown with callback to load cities
+                createSearchableDropdown(stateSelect, validStates, 'name', 'name', () => loadCitiesForState(type));
             } else {
                 // Update existing searchable dropdown items and clear previous selection
                 const input = existingWrapper.querySelector('.searchable-dropdown-input');
@@ -535,6 +559,78 @@ async function loadStatesForCountry(type) {
         }
     } catch (err) {
         console.error('Error loading states:', err);
+    }
+}
+
+async function loadCitiesForState(type) {
+    const countryInput = document.getElementById(`${type}CountrySelect`);
+    const stateInput = document.getElementById(`${type}StateSelect`);
+    const citySelect = document.getElementById(`${type}CitySelect`);
+    
+    if(!countryInput || !stateInput || !citySelect) return;
+    
+    // Get state name from searchable dropdown input or hidden value
+    let stateName = '';
+    if(stateInput.getValue) {
+        stateName = stateInput.getValue();
+    } else if(stateInput._hiddenInput) {
+        stateName = stateInput._hiddenInput.value;
+    } else {
+        stateName = stateInput.value;
+    }
+    
+    if(!stateName) {
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        citySelect.disabled = true;
+        return;
+    }
+    
+    try {
+        // Get country ID first
+        let countryName = '';
+        if(countryInput.getValue) {
+            countryName = countryInput.getValue();
+        } else if(countryInput._hiddenInput) {
+            countryName = countryInput._hiddenInput.value;
+        } else {
+            countryName = countryInput.value;
+        }
+        
+        const countries = await getCountries({ search: countryName });
+        if(countries && countries.length > 0) {
+            const countryId = countries[0].id;
+            
+            // Get state ID
+            const states = await getStates(countryId);
+            const state = states.find(s => s.name === stateName);
+            
+            if(state) {
+                const cities = await getCities({ state_id: state.id });
+                console.log('Location: Cities loaded:', cities?.length || 0, 'cities');
+                const validCities = cities.filter(c => c.name && c.name.trim());
+                
+                // Enable city dropdown
+                citySelect.disabled = false;
+                
+                // Check if searchable dropdown already exists
+                const existingWrapper = citySelect.parentElement.querySelector('.searchable-dropdown');
+                if(!existingWrapper || !existingWrapper._searchableInit) {
+                    // First time - create the searchable dropdown
+                    createSearchableDropdown(citySelect, validCities, 'name', 'name');
+                } else {
+                    // Update existing searchable dropdown items and clear previous selection
+                    const input = existingWrapper.querySelector('.searchable-dropdown-input');
+                    const hiddenInput = existingWrapper.querySelector('input[type="hidden"]');
+                    if(input) {
+                        input._items = validCities;
+                        input.value = '';  // Clear previous selection
+                        if(hiddenInput) hiddenInput.value = '';  // Clear hidden value
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Error loading cities:', err);
     }
 }
 
@@ -658,10 +754,10 @@ function updateUI() {
         if(submitBtn) submitBtn.style.display = 'none';
     }
     
-    // Initialize video recording when reaching video step (step 7)
-    if (currentStep === 7 && !window.videoSetupInitialized) {
-        setupIntroVideoRecording();
-        window.videoSetupInitialized = true;
+    // Initialize interview when reaching step 7
+    if (currentStep === 7 && !window.interviewSetupInitialized) {
+        setupInterviewRecording();
+        window.interviewSetupInitialized = true;
     }
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -670,8 +766,23 @@ function updateUI() {
 function setupEventListeners() {
     const origin = window.location.origin;
 
-    if(nextBtn) nextBtn.addEventListener('click', () => { if (validateStep(currentStep)) { currentStep++; updateUI(); } });
-    if(prevBtn) prevBtn.addEventListener('click', () => { if(currentStep > 1) { currentStep--; updateUI(); } });
+    if(nextBtn) nextBtn.addEventListener('click', () => { 
+        if (validateStep(currentStep)) { 
+            currentStep++; 
+            updateUI(); 
+        } 
+    });
+    if(prevBtn) prevBtn.addEventListener('click', () => { 
+        if(currentStep > 1) { 
+            // Prevent going back from interview step if in progress
+            if(currentStep === 7 && interviewQuestions.length > 0 && !isInterviewComplete) {
+                notify('Please complete or submit the interview before going back.', 'warning');
+                return;
+            }
+            currentStep--; 
+            updateUI(); 
+        } 
+    });
     if(addExpBtn) addExpBtn.addEventListener('click', () => addExperienceField());
     if(addEduBtn) addEduBtn.addEventListener('click', () => addEducationField());
     if(addSkillBtn) addSkillBtn.addEventListener('click', () => addSkill(skillInput?.value.trim()));
@@ -830,79 +941,69 @@ function renderSkills() {
 window.removeSkill = (s) => { skills = skills.filter(k => k !== s); renderSkills(); };
 
 /* -------------------------------------------------------
-   VIDEO RECORDING SETUP
+   RESUME UPLOAD & QUESTION GENERATION
 ------------------------------------------------------- */
-function setupIntroVideoRecording() {
-    const startBtn = document.getElementById('startIntroRecordingBtn');
-    const stopBtn = document.getElementById('stopIntroRecordingBtn');
-    const acceptBtn = document.getElementById('acceptIntroVideoBtn');
-    const retakeBtn = document.getElementById('retakeIntroVideoBtn');
+async function handleResumeUpload(e) {
+    const file = e.target.files[0];
+    if(!file) return;
     
-    if(startBtn) startBtn.addEventListener('click', startIntroRecording);
-    if(stopBtn) stopBtn.addEventListener('click', stopIntroRecording);
-    if(acceptBtn) acceptBtn.addEventListener('click', acceptIntroVideo);
-    if(retakeBtn) retakeBtn.addEventListener('click', retakeIntroVideo);
-    
-    // Re-record button (in accepted state)
-    const reRecordBtn = document.getElementById('reRecordIntroVideoBtn');
-    if(reRecordBtn) {
-        reRecordBtn.addEventListener('click', () => {
-            resetIntroVideoRecording();
-        });
+    // Show file name
+    const resumeFileName = document.getElementById('resumeFileName');
+    if(resumeFileName) {
+        resumeFileName.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name}`;
     }
     
-    // View Video button (in accepted state)
-    const viewVideoBtn = document.getElementById('viewIntroVideoBtn');
-    if(viewVideoBtn) {
-        viewVideoBtn.addEventListener('click', async () => {
-            const playbackFeed = document.getElementById('introPlaybackFeed');
-            const cameraFeed = document.getElementById('introCameraFeed');
-            const acceptedDiv = document.getElementById('introVideoAccepted');
-            
-            // Check if we have a newly recorded video blob
-            if(playbackFeed && introVideoBlob) {
-                // Show playback video
-                playbackFeed.style.display = 'block';
-                playbackFeed.src = URL.createObjectURL(introVideoBlob);
-                playbackFeed.play();
-                if(cameraFeed) cameraFeed.style.display = 'none';
-                if(acceptedDiv) acceptedDiv.style.display = 'none';
-                
-                // When video ends, show accepted state again
-                playbackFeed.onended = () => {
-                    playbackFeed.style.display = 'none';
-                    if(cameraFeed) cameraFeed.style.display = 'block';
-                    if(acceptedDiv) acceptedDiv.style.display = 'block';
-                };
-            } else {
-                // Check for existing video from profile
-                try {
-                    const res = await backendGet('/applicant/profile');
-                    const json = await handleResponse(res);
-                    const profile = json.data || {};
-                    
-                    if(profile.intro_video_url && playbackFeed) {
-                        playbackFeed.style.display = 'block';
-                        playbackFeed.src = profile.intro_video_url;
-                        playbackFeed.play();
-                        if(cameraFeed) cameraFeed.style.display = 'none';
-                        if(acceptedDiv) acceptedDiv.style.display = 'none';
-                        
-                        playbackFeed.onended = () => {
-                            playbackFeed.style.display = 'none';
-                            if(cameraFeed) cameraFeed.style.display = 'block';
-                            if(acceptedDiv) acceptedDiv.style.display = 'block';
-                        };
-                    }
-                } catch(err) {
-                    console.error('Error fetching existing video:', err);
-                }
-            }
-        });
+    // Show status that questions will be generated
+    const questionsStatus = document.getElementById('resumeQuestionsStatus');
+    if(questionsStatus) {
+        questionsStatus.style.display = 'block';
     }
     
-    // Initialize camera on page load
-    initIntroCamera();
+    // Try to generate questions from resume
+    try {
+        await generateInterviewQuestions(file);
+    } catch(err) {
+        console.warn('Failed to generate questions from resume:', err);
+        // Use fallback questions if generation fails
+        interviewQuestions = getFallbackQuestions();
+    }
+}
+
+async function generateInterviewQuestions(resumeFile) {
+    try {
+        // First upload the resume temporarily to get questions
+        const formData = new FormData();
+        formData.append('resume', resumeFile);
+        
+        // Call backend to generate questions from resume
+        const response = await backendPost('/applicant/generate-interview-questions', formData);
+        const result = await handleResponse(response);
+        
+        if(result.data && result.data.questions && result.data.questions.length > 0) {
+            interviewQuestions = result.data.questions;
+        } else {
+            // Fallback to default questions
+            interviewQuestions = getFallbackQuestions();
+        }
+        
+        // Update status
+        const statusText = document.getElementById('questionsStatusText');
+        if(statusText) {
+            statusText.textContent = `${interviewQuestions.length} personalized questions ready for your video interview!`;
+        }
+        
+    } catch(err) {
+        console.error('Error generating questions:', err);
+        interviewQuestions = getFallbackQuestions();
+    }
+}
+
+function getFallbackQuestions() {
+    return [
+        "Please introduce yourself in 30 seconds.",
+        "What are your key skills and strengths that make you a great candidate?",
+        "Why are you interested in this position and what are your career goals?"
+    ];
 }
 
 async function initIntroCamera() {
