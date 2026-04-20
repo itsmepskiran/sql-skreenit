@@ -78,7 +78,7 @@ export async function getStates(countryId, options = {}) {
         if (options.search) params.append('search', options.search);
         params.append('limit', options.limit || '100');
         
-        const response = await backendGet(`/locations/state?${params}`);
+        const response = await backendGet(`/locations/states?${params}`);
         const data = await handleResponse(response);
         
         cache.states.set(countryId, data);
@@ -118,7 +118,7 @@ export async function getCities(filters = {}) {
         }
         params.append('limit', filters.limit || '50');
         
-        const response = await backendGet(`/locations/city?${params}`);
+        const response = await backendGet(`/locations/cities?${params}`);
         const data = await handleResponse(response);
         
         cache.cities.set(cacheKey, data);
