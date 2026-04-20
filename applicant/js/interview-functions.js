@@ -18,13 +18,100 @@ let interviewRecordingSeconds = 0;
 let interviewTimerInterval = null;
 let interviewResponses = [];
 let isInterviewComplete = false;
+let selectedLanguage = 'auto'; // 'auto' for auto-detection, or specific language code
+let supportedLanguages = [];
+
+// Supported Indian Languages for display
+const INDIAN_LANGUAGES = [
+    { code: 'auto', name: 'Auto-Detect (Recommended)', native: 'स्वचालित पहचान' },
+    { code: 'hi', name: 'Hindi', native: 'हिन्दी' },
+    { code: 'bn', name: 'Bengali', native: 'বাংলা' },
+    { code: 'te', name: 'Telugu', native: 'తెలుగు' },
+    { code: 'mr', name: 'Marathi', native: 'मराठी' },
+    { code: 'ta', name: 'Tamil', native: 'தமிழ்' },
+    { code: 'ur', name: 'Urdu', native: 'اردو' },
+    { code: 'gu', name: 'Gujarati', native: 'ગુજરાતી' },
+    { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ' },
+    { code: 'ml', name: 'Malayalam', native: 'മലയാളം' },
+    { code: 'pa', name: 'Punjabi', native: 'ਪੰਜਾਬੀ' },
+    { code: 'or', name: 'Odia', native: 'ଓଡ଼ିଆ' },
+    { code: 'as', name: 'Assamese', native: 'অসমীয়া' },
+    { code: 'en', name: 'English', native: 'English' }
+];
 
 function getFallbackQuestions() {
+    // Return questions in new format with english and translated
     return [
-        "Please introduce yourself in 30 seconds.",
-        "What are your key skills and strengths that make you a great candidate?",
-        "Why are you interested in this position and what are your career goals?"
+        { english: "Please introduce yourself in 30 seconds.", translated: "Please introduce yourself in 30 seconds.", language: "en" },
+        { english: "What are your key skills and strengths that make you a great candidate?", translated: "What are your key skills and strengths that make you a great candidate?", language: "en" },
+        { english: "Why are you interested in this position and what are your career goals?", translated: "Why are you interested in this position and what are your career goals?", language: "en" }
     ];
+}
+
+async function loadSupportedLanguages() {
+    try {
+        const response = await fetch('/api/v1/applicant/supported-languages');
+        const result = await response.json();
+        if(result.ok && result.data) {
+            supportedLanguages = result.data.languages || INDIAN_LANGUAGES.filter(l => l.code !== 'auto');
+        }
+    } catch(e) {
+        console.warn('Failed to load supported languages:', e);
+        supportedLanguages = INDIAN_LANGUAGES.filter(l => l.code !== 'auto');
+    }
+}
+
+function getSelectedLanguageFromStep6() {
+    // Get the language selected in Step 6
+    const hiddenInput = document.getElementById('selectedInterviewLanguage');
+    const selectedRadio = document.querySelector('input[name="interviewLanguage"]:checked');
+    
+    if(selectedRadio) {
+        selectedLanguage = selectedRadio.value;
+    } else if(hiddenInput && hiddenInput.value) {
+        selectedLanguage = hiddenInput.value;
+    } else {
+        selectedLanguage = 'en'; // Default to English
+    }
+    
+    console.log('Selected interview language:', selectedLanguage);
+    return selectedLanguage;
+}
+
+async function translateQuestions(questions, targetLang) {
+    // If English, no translation needed - just format the questions
+    if(targetLang === 'en') {
+        return questions.map(q => {
+            if(typeof q === 'string') {
+                return { english: q, translated: q, language: 'en' };
+            }
+            return q; // Already in correct format
+        });
+    }
+    
+    // Call backend to translate questions
+    try {
+        const response = await fetch('/api/v1/applicant/translate-questions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ questions: questions.map(q => typeof q === 'string' ? q : q.english), language: targetLang })
+        });
+        const result = await response.json();
+        
+        if(result.ok && result.data && result.data.questions) {
+            console.log(`Questions translated to ${targetLang}`);
+            return result.data.questions;
+        }
+    } catch(e) {
+        console.warn('Translation failed, using English:', e);
+    }
+    
+    // Fallback: return questions in English format
+    return questions.map(q => ({
+        english: typeof q === 'string' ? q : q.english,
+        translated: typeof q === 'string' ? q : q.english,
+        language: 'en'
+    }));
 }
 
 function setupInterviewRecording() {
@@ -56,21 +143,55 @@ async function initInterviewCamera() {
     }
 }
 
-function startInterview() {
+async function startInterview() {
     const instructionsDiv = document.getElementById('interviewInstructions');
     const questionsDiv = document.getElementById('interviewQuestionsContainer');
     if(instructionsDiv) instructionsDiv.style.display = 'none';
     if(questionsDiv) questionsDiv.style.display = 'block';
-    if(interviewQuestions.length === 0) interviewQuestions = getFallbackQuestions();
+    
+    // Get selected language from Step 6
+    getSelectedLanguageFromStep6();
+    
+    // If no questions loaded, use fallback
+    if(interviewQuestions.length === 0) {
+        interviewQuestions = getFallbackQuestions();
+    }
+    
+    // Translate questions to selected language
+    interviewQuestions = await translateQuestions(
+        interviewQuestions.map(q => typeof q === 'string' ? q : q.english),
+        selectedLanguage
+    );
+    
     const totalQNum = document.getElementById('totalQNum');
     if(totalQNum) totalQNum.textContent = interviewQuestions.length;
+    
     renderQuestion();
 }
 
 function renderQuestion() {
-    const questionText = document.getElementById('questionText');
+    const questionTextEnglish = document.getElementById('questionTextEnglish');
+    const questionTextTranslated = document.getElementById('questionTextTranslated');
+    const translatedContainer = document.getElementById('questionTranslatedContainer');
     const currentQNum = document.getElementById('currentQNum');
-    if(questionText) questionText.textContent = interviewQuestions[currentQuestionIndex];
+    
+    const currentQ = interviewQuestions[currentQuestionIndex];
+    
+    // Display English question
+    if(questionTextEnglish) {
+        questionTextEnglish.textContent = currentQ.english || currentQ;
+    }
+    
+    // Display translated question if different from English
+    if(questionTextTranslated && translatedContainer) {
+        if(currentQ.translated && currentQ.translated !== currentQ.english && selectedLanguage !== 'en') {
+            questionTextTranslated.textContent = currentQ.translated;
+            translatedContainer.style.display = 'block';
+        } else {
+            translatedContainer.style.display = 'none';
+        }
+    }
+    
     if(currentQNum) currentQNum.textContent = currentQuestionIndex + 1;
     const dotsContainer = document.getElementById('interviewStepDots');
     if(dotsContainer) {
@@ -161,6 +282,7 @@ async function submitAnswer() {
         formData.append('video_file', interviewRecordingBlob, `interview_q${currentQuestionIndex}_${Date.now()}.webm`);
         formData.append('question_index', currentQuestionIndex);
         formData.append('question', interviewQuestions[currentQuestionIndex]);
+        formData.append('language', selectedLanguage); // Include selected language
         updateInterviewProgress(60);
         const response = await backendPost('/applicant/upload-interview-response', formData);
         const result = await handleResponse(response);
@@ -170,7 +292,9 @@ async function submitAnswer() {
                 question: interviewQuestions[currentQuestionIndex], 
                 video_path: result.data.path, 
                 video_url: result.data.url, 
-                question_index: currentQuestionIndex 
+                question_index: currentQuestionIndex,
+                language: result.data.language_analysis?.detected_language || selectedLanguage,
+                transcription: result.data.language_analysis?.transcription
             });
             const responsesInput = document.getElementById('interviewResponses');
             if(responsesInput) responsesInput.value = JSON.stringify(interviewResponses);

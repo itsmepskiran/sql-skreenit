@@ -514,15 +514,76 @@
                 </section>
 
                 <section class="form-section" id="step6">
-                    <h2 class="section-title">Review Your Profile</h2>
+                    <h2 class="section-title">Review & Language Selection</h2>
                     
                     <div class="alert alert-info" style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
                         <i class="fas fa-info-circle" style="color: #0284c7; margin-right: 8px;"></i>
-                        <span style="color: #0c4a6e;">Please review your information. Click "Next Step" to proceed to your personalized video introduction.</span>
+                        <span style="color: #0c4a6e;">Please review your information and select your preferred language for the video interview.</span>
                     </div>
                     
-                    <div id="profileReviewContent" style="background: #f8fafc; border-radius: 12px; padding: 1.5rem;">
+                    <div id="profileReviewContent" style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
                         <p class="text-muted">Your profile information is ready for submission. The next step will be your video introduction with AI-generated questions based on your resume.</p>
+                    </div>
+                    
+                    <!-- Language Selection for Interview -->
+                    <div id="interviewLanguageSelection" style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0 0 1rem 0; color: #92400e; font-size: 1.1rem;">
+                            <i class="fas fa-language" style="margin-right: 8px;"></i>
+                            Select Your Interview Language
+                        </h3>
+                        <p style="color: #a16207; margin-bottom: 1rem; font-size: 0.95rem;">
+                            Choose the language you prefer for the video interview. Questions will be displayed in both English and your selected language. You can respond in any language.
+                        </p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem;">
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
+                                <input type="radio" name="interviewLanguage" value="en" style="width: 18px; height: 18px;" />
+                                <span style="font-weight: 500;">English</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
+                                <input type="radio" name="interviewLanguage" value="hi" style="width: 18px; height: 18px;" />
+                                <span style="font-weight: 500;">Hindi (<span style="font-family: 'Noto Sans Devanagari', sans-serif;"> Hindi</span>)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
+                                <input type="radio" name="interviewLanguage" value="kn" style="width: 18px; height: 18px;" />
+                                <span style="font-weight: 500;">Kannada (Kannada)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
+                                <input type="radio" name="interviewLanguage" value="ta" style="width: 18px; height: 18px;" />
+                                <span style="font-weight: 500;">Tamil (Tamil)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
+                                <input type="radio" name="interviewLanguage" value="te" style="width: 18px; height: 18px;" />
+                                <span style="font-weight: 500;">Telugu (Telugu)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
+                                <input type="radio" name="interviewLanguage" value="mr" style="width: 18px; height: 18px;" />
+                                <span style="font-weight: 500;">Marathi (Marathi)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
+                                <input type="radio" name="interviewLanguage" value="bn" style="width: 18px; height: 18px;" />
+                                <span style="font-weight: 500;">Bengali (Bengali)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
+                                <input type="radio" name="interviewLanguage" value="gu" style="width: 18px; height: 18px;" />
+                                <span style="font-weight: 500;">Gujarati (Gujarati)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
+                                <input type="radio" name="interviewLanguage" value="ml" style="width: 18px; height: 18px;" />
+                                <span style="font-weight: 500;">Malayalam (Malayalam)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" class="language-option">
+                                <input type="radio" name="interviewLanguage" value="pa" style="width: 18px; height: 18px;" />
+                                <span style="font-weight: 500;">Punjabi (Punjabi)</span>
+                            </label>
+                        </div>
+                        
+                        <input type="hidden" id="selectedInterviewLanguage" name="selected_interview_language" value="en" />
+                        
+                        <p style="color: #a16207; margin-top: 1rem; font-size: 0.85rem;">
+                            <i class="fas fa-lightbulb" style="margin-right: 6px;"></i>
+                            <strong>Tip:</strong> Select the language you're most comfortable speaking. You can still respond in any language during the interview.
+                        </p>
                     </div>
                 </section>
 
@@ -577,13 +638,11 @@
                         
                         <div style="text-align: center;">
                             <button type="button" id="startInterviewBtn" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.1rem;">
-                                <i class="fas fa-play-circle" style="margin-right: 8px;"></i>Begin Session
-                            </button>
-                        </div>
-                    </div>
-                    
                     <!-- Interview Questions Container -->
                     <div id="interviewQuestionsContainer" style="display: none;">
+                        <!-- Language Selector -->
+                        <div id="languageSelectorContainer"></div>
+                        
                         <!-- Step Indicator -->
                         <div class="step-indicator" id="interviewStepDots" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 1.5rem;"></div>
                         
@@ -592,9 +651,16 @@
                             <h4 style="margin: 0 0 0.5rem 0; color: var(--text-light); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
                                 Question <span id="currentQNum">1</span> of <span id="totalQNum">3</span>
                             </h4>
-                            <h3 id="questionText" style="margin: 0; color: var(--text-dark); font-size: 1.25rem; line-height: 1.5;">
+                            <!-- English Question -->
+                            <h3 id="questionTextEnglish" style="margin: 0 0 0.75rem 0; color: var(--text-dark); font-size: 1.25rem; line-height: 1.5;">
                                 Loading question...
                             </h3>
+                            <!-- Translated Question (if different from English) -->
+                            <div id="questionTranslatedContainer" style="display: none; padding-top: 0.75rem; border-top: 1px dashed #cbd5e1;">
+                                <span style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">Regional Language</span>
+                                <h4 id="questionTextTranslated" style="margin: 0.25rem 0 0 0; color: #334155; font-size: 1.1rem; line-height: 1.5;">
+                                </h4>
+                            </div>
                         </div>
                         
                         <!-- Video Recording Area -->
