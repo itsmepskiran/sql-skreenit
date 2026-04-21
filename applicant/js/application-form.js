@@ -5,7 +5,7 @@ import { CONFIG } from '@shared/js/config.js';
 import { showError, showSuccess, showWarning, hideWarning } from '@shared/js/notification-manager.js';
 import { sidebarManager } from '@shared/js/profile-checker.js';
 import { getCountries, getStates, getCities, searchLocations, CityAutocomplete } from '@shared/js/location.js';
-import { setupInterviewRecording, interviewQuestions, interviewResponses, isInterviewComplete, setInterviewQuestions } from './interview-functions.js';
+import { setupInterviewRecording, interviewQuestions, interviewResponses, setInterviewQuestions } from './interview-functions.js';
 import '@shared/js/mobile.js';
 
 // Global variables for video recording
@@ -183,12 +183,18 @@ async function loadExistingProfile() {
         
         // Current Address
         if(profile.current_address) setVal('current_address', profile.current_address);
-        if(profile.current_city) setVal('current_city', profile.current_city);
+        if(profile.current_city) {
+            // Store for later setting after state is loaded
+            window._pendingCurrentCity = profile.current_city;
+        }
         // State and country will be set after location pickers are initialized
         
         // Permanent Address
         if(profile.permanent_address) setVal('permanent_address', profile.permanent_address);
-        if(profile.permanent_city) setVal('permanent_city', profile.permanent_city);
+        if(profile.permanent_city) {
+            // Store for later setting after state is loaded
+            window._pendingPermanentCity = profile.permanent_city;
+        }
         // State and country will be set after location pickers are initialized
         
         // Professional Details
@@ -598,6 +604,13 @@ async function loadCitiesForState(type) {
             option.textContent = city.name;
             citySelect.appendChild(option);
         });
+        
+        // Set pending city value if exists (from profile load)
+        const pendingCityKey = type === 'current' ? '_pendingCurrentCity' : '_pendingPermanentCity';
+        if (window[pendingCityKey]) {
+            citySelect.value = window[pendingCityKey];
+            window[pendingCityKey] = null; // Clear after setting
+        }
     } catch (err) {
         console.error('Error loading cities:', err);
     }
@@ -660,6 +673,13 @@ function showCityDropdown(input, cities, type) {
     dropdown.querySelectorAll('.city-option').forEach(option => {
         option.addEventListener('click', () => {
             input.value = option.dataset.city;
+
+            // Set hidden input for city
+            const cityHiddenInput = document.getElementById(`${type}CitySelect_value`);
+            if(cityHiddenInput) {
+                cityHiddenInput.value = option.dataset.city;
+                console.log(`Set ${type}CitySelect_value to:`, option.dataset.city);
+            }
 
             // Also update state and country selects (handle both regular and searchable dropdowns)
             const stateSelect = document.getElementById(`${type}StateSelect`);
@@ -725,6 +745,7 @@ function updateUI() {
     
     // Initialize interview when reaching step 7
     if (currentStep === 7 && !window.interviewSetupInitialized) {
+        console.log('Step 7 reached, initializing interview recording');
         setupInterviewRecording();
         window.interviewSetupInitialized = true;
     }
@@ -744,7 +765,7 @@ function setupEventListeners() {
     if(prevBtn) prevBtn.addEventListener('click', () => { 
         if(currentStep > 1) { 
             // Prevent going back from interview step if in progress
-            if(currentStep === 7 && interviewQuestions.length > 0 && !isInterviewComplete) {
+            if(currentStep === 7 && interviewQuestions.length > 0 && !window.isInterviewComplete) {
                 notify('Please complete or submit the interview before going back.', 'warning');
                 return;
             }
@@ -841,16 +862,13 @@ function validateStep(step) {
     
     // Special validation for video step (step 7)
     if(step === 7) {
-        // Check for existing video from profile (shown in accepted state)
-        const videoAcceptedDiv = document.getElementById('introVideoAccepted');
-        const isVideoAccepted = videoAcceptedDiv && videoAcceptedDiv.style.display === 'block';
-        
-        // Check if we have a newly recorded video blob
-        const hasRecordedVideo = hasIntroVideoRecorded && introVideoBlob;
-        
-        if(!hasRecordedVideo && !isVideoAccepted) {
+        console.log('Step 7 validation: window.isInterviewComplete =', window.isInterviewComplete);
+        console.log('Step 7 validation: interviewQuestions.length =', interviewQuestions?.length);
+        console.log('Step 7 validation: currentQuestionIndex =', currentQuestionIndex);
+        // Check if interview is complete (new flow with generated questions)
+        if(!window.isInterviewComplete) {
             isValid = false;
-            notify('Please record and accept your introduction video before submitting.', 'error');
+            notify('Please complete the interview before submitting your application.', 'error');
         }
     }
     
@@ -1181,6 +1199,8 @@ function resetIntroTimer() {
 ------------------------------------------------------- */
 async function handleFormSubmit(e) {
     e.preventDefault();
+    
+    // Only validate current step
     if (!validateStep(currentStep)) return;
     
     // Check if a resume already exists before failing validation
@@ -1366,28 +1386,79 @@ async function handleFormSubmit(e) {
         showError("errorBox", "Submission failed: " + (err.message || "Unknown error"), "Application Failed");
         submitBtn.disabled = false; submitBtn.textContent = "Submit Application";
     }
-}
+} // Added closing brace here
 
 /* -------------------------------------------------------
    HELPER FUNCTIONS
 ------------------------------------------------------- */
 // Copy current address to permanent address
 window.copyCurrentAddress = function() {
+    console.log('copyCurrentAddress called');
     const sameAsCurrent = document.getElementById('sameAsCurrent');
-    const permanentSection = document.getElementById('permanentAddressSection');
+    
+    console.log('sameAsCurrent:', sameAsCurrent, 'checked:', sameAsCurrent?.checked);
     
     if(sameAsCurrent && sameAsCurrent.checked) {
-        // Copy values
-        setVal('permanent_address', getVal('current_address'));
-        setVal('permanent_city', getVal('current_city'));
-        setVal('permanent_state', getVal('current_state'));
-        setVal('permanent_country', getVal('current_country'));
+        console.log('Copying current address to permanent address');
+        // Copy values from current address to permanent address
+        // Use hidden inputs for searchable dropdowns
+        const currentAddress = document.querySelector('[name="current_address"]');
+        const currentCountryInput = document.getElementById('currentCountrySelect');
+        const currentStateInput = document.getElementById('currentStateSelect');
+        const currentCitySelect = document.getElementById('currentCitySelect');
         
-        // Hide the permanent address section
-        if(permanentSection) permanentSection.style.display = 'none';
+        const permanentAddress = document.querySelector('[name="permanent_address"]');
+        const permanentCountryInput = document.getElementById('permanentCountrySelect');
+        const permanentStateInput = document.getElementById('permanentStateSelect');
+        const permanentCitySelect = document.getElementById('permanentCitySelect');
+        
+        console.log('currentAddress:', currentAddress?.value);
+        console.log('currentCountryInput value:', currentCountryInput?.value);
+        console.log('currentStateInput value:', currentStateInput?.value);
+        console.log('currentCitySelect value:', currentCitySelect?.value);
+        
+        // Copy address
+        if(currentAddress && permanentAddress) permanentAddress.value = currentAddress.value;
+        
+        // Copy country using setValue method for searchable dropdown
+        if(currentCountryInput && permanentCountryInput && permanentCountryInput.setValue) {
+            const currentCountryId = currentCountryInput.getValue ? currentCountryInput.getValue() : currentCountryInput.value;
+            const currentCountryName = currentCountryInput.value;
+            console.log('Copying country - ID:', currentCountryId, 'Name:', currentCountryName);
+            permanentCountryInput.setValue(currentCountryId);
+        }
+        
+        // Copy state using setValue method for searchable dropdown
+        if(currentStateInput && permanentStateInput && permanentStateInput.setValue) {
+            const currentStateId = currentStateInput.getValue ? currentStateInput.getValue() : currentStateInput.value;
+            const currentStateName = currentStateInput.value;
+            console.log('Copying state - ID:', currentStateId, 'Name:', currentStateName);
+            permanentStateInput.setValue(currentStateId);
+        }
+        
+        // Copy city (regular select)
+        if(currentCitySelect && permanentCitySelect) {
+            permanentCitySelect.value = currentCitySelect.value;
+            console.log('Copying city value:', currentCitySelect.value);
+        }
+        
+        // Disable the permanent address fields
+        if(permanentCountryInput) permanentCountryInput.disabled = true;
+        if(permanentStateInput) permanentStateInput.disabled = true;
+        if(permanentCitySelect) permanentCitySelect.disabled = true;
+        if(permanentAddress) permanentAddress.disabled = true;
     } else {
-        // Show the permanent address section
-        if(permanentSection) permanentSection.style.display = 'block';
+        console.log('Enabling permanent address fields for editing');
+        // Enable and show the permanent address section for editing
+        const permanentCountryInput = document.getElementById('permanentCountrySelect');
+        const permanentStateInput = document.getElementById('permanentStateSelect');
+        const permanentCitySelect = document.getElementById('permanentCitySelect');
+        const permanentAddress = document.querySelector('[name="permanent_address"]');
+        
+        if(permanentCountryInput) permanentCountryInput.disabled = false;
+        if(permanentStateInput) permanentStateInput.disabled = true; // Will be enabled when country is selected
+        if(permanentCitySelect) permanentCitySelect.disabled = true; // Will be enabled when state is selected
+        if(permanentAddress) permanentAddress.disabled = false;
     }
 };
 
@@ -1402,11 +1473,19 @@ function renderCertifications() {
     if(!container || !certifications.length) return;
     
     container.innerHTML = certifications.map((cert, idx) => `
-        <div class="certification-item" style="display: grid; grid-template-columns: 1fr 1fr 100px auto; gap: 1rem; margin-bottom: 1rem;">
-            <input type="text" name="cert_name_${idx + 1}" value="${cert.name || ''}" placeholder="Certification Name" />
-            <input type="text" name="cert_issuer_${idx + 1}" value="${cert.issuer || ''}" placeholder="Issuing Organization" />
-            <input type="number" name="cert_year_${idx + 1}" value="${cert.year || ''}" placeholder="Year" min="2000" max="2030" />
-            ${idx === 0 ? '<button type="button" class="btn btn-outline-secondary btn-sm" id="addCertification"><i class="fas fa-plus"></i></button>' : '<button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>'}
+        <div class="certification-item form-row" style="margin-bottom: 1rem;">
+            <div class="form-group">
+                <input type="text" name="cert_name_${idx + 1}" value="${cert.name || ''}" placeholder="Certification Name" />
+            </div>
+            <div class="form-group">
+                <input type="text" name="cert_issuer_${idx + 1}" value="${cert.issuer || ''}" placeholder="Issuing Organization" />
+            </div>
+            <div class="form-group" style="flex: 0 0 100px;">
+                <input type="number" name="cert_year_${idx + 1}" value="${cert.year || ''}" placeholder="Year" min="2000" max="2030" />
+            </div>
+            <div class="form-group" style="flex: 0 0 auto; display: flex; align-items: flex-end;">
+                ${idx === 0 ? '<button type="button" class="btn btn-outline-secondary btn-sm" id="addCertification"><i class="fas fa-plus"></i></button>' : '<button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>'}
+            </div>
         </div>
     `).join('');
 }
@@ -1420,13 +1499,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('certificationsContainer');
             if(container) {
                 const newCert = document.createElement('div');
-                newCert.className = 'certification-item';
-                newCert.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr 100px auto; gap: 1rem; margin-bottom: 1rem;';
+                newCert.className = 'certification-item form-row';
+                newCert.style.cssText = 'margin-bottom: 1rem;';
                 newCert.innerHTML = `
-                    <input type="text" name="cert_name_${certificationCount}" placeholder="Certification Name" />
-                    <input type="text" name="cert_issuer_${certificationCount}" placeholder="Issuing Organization" />
-                    <input type="number" name="cert_year_${certificationCount}" placeholder="Year" min="2000" max="2030" />
-                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+                    <div class="form-group">
+                        <input type="text" name="cert_name_${certificationCount}" placeholder="Certification Name" />
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="cert_issuer_${certificationCount}" placeholder="Issuing Organization" />
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100px;">
+                        <input type="number" name="cert_year_${certificationCount}" placeholder="Year" min="2000" max="2030" />
+                    </div>
+                    <div class="form-group" style="flex: 0 0 auto; display: flex; align-items: flex-end;">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.parentElement.remove()"><i class="fas fa-trash"></i></button>
+                    </div>
                 `;
                 container.appendChild(newCert);
             }

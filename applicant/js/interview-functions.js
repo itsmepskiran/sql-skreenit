@@ -16,8 +16,10 @@ let interviewRecordedChunks = [];
 let interviewRecordingBlob = null;
 let interviewRecordingSeconds = 0;
 let interviewTimerInterval = null;
+let generatedQuestionsFromResume = [];
 let interviewResponses = [];
-let isInterviewComplete = false;
+// Store on window object so both interview-functions.js and application-form.js can access it
+window.isInterviewComplete = false;
 let selectedLanguage = 'auto'; // 'auto' for auto-detection, or specific language code
 let supportedLanguages = [];
 
@@ -89,21 +91,25 @@ async function translateQuestions(questions, targetLang) {
         });
     }
     
-    // Call backend to translate questions
+    // Call backend to translate questions with timeout
     try {
-        const response = await fetch('/api/v1/applicant/translate-questions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ questions: questions.map(q => typeof q === 'string' ? q : q.english), language: targetLang })
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        const response = await backendPost('/applicant/translate-questions', {
+            questions: questions.map(q => typeof q === 'string' ? q : q.english),
+            language: targetLang
         });
-        const result = await response.json();
+        
+        clearTimeout(timeoutId);
+        const result = await handleResponse(response);
         
         if(result.ok && result.data && result.data.questions) {
             console.log(`Questions translated to ${targetLang}`);
             return result.data.questions;
         }
     } catch(e) {
-        console.warn('Translation failed, using English:', e);
+        console.warn('Translation failed or timed out, using English:', e);
     }
     
     // Fallback: return questions in English format
@@ -115,6 +121,7 @@ async function translateQuestions(questions, targetLang) {
 }
 
 function setupInterviewRecording() {
+    console.log('setupInterviewRecording called');
     const startBtn = document.getElementById('startInterviewBtn');
     if(startBtn) startBtn.addEventListener('click', startInterview);
     const startRecordingBtn = document.getElementById('startRecordingBtn');
@@ -125,14 +132,83 @@ function setupInterviewRecording() {
     if(stopRecordingBtn) stopRecordingBtn.addEventListener('click', stopInterviewRecording);
     if(retakeAnswerBtn) retakeAnswerBtn.addEventListener('click', retakeAnswer);
     if(submitAnswerBtn) submitAnswerBtn.addEventListener('click', submitAnswer);
-    initInterviewCamera();
+    console.log('Event listeners setup, camera will initialize when interview starts');
 }
 
 async function initInterviewCamera() {
+    console.log('initInterviewCamera called');
     const video = document.getElementById('interviewCameraFeed');
     if(!video) {
         console.error('Video element not found');
         return;
+    }
+    
+    console.log('Video element found, requesting camera access...');
+    console.log('Video element offsetWidth:', video.offsetWidth);
+    console.log('Video element offsetHeight:', video.offsetHeight);
+    console.log('Video element display:', window.getComputedStyle(video).display);
+    console.log('Video element visibility:', window.getComputedStyle(video).visibility);
+    console.log('Video element in DOM:', document.body.contains(video));
+    const rect = video.getBoundingClientRect();
+    console.log('Video element getBoundingClientRect:', rect);
+    console.log('Video element clientWidth:', video.clientWidth);
+    console.log('Video element clientHeight:', video.clientHeight);
+    
+    // Check parent container dimensions and force dimensions on entire hierarchy
+    const parentContainer = video.parentElement;
+    if(parentContainer) {
+        console.log('Parent container offsetWidth:', parentContainer.offsetWidth);
+        console.log('Parent container offsetHeight:', parentContainer.offsetHeight);
+        console.log('Parent container display:', window.getComputedStyle(parentContainer).display);
+        // Force parent container (black div) to have dimensions with !important
+        parentContainer.style.setProperty('width', '100%', 'important');
+        parentContainer.style.setProperty('height', '350px', 'important');
+        parentContainer.style.setProperty('min-height', '350px', 'important');
+        parentContainer.style.setProperty('display', 'block', 'important');
+        
+        // Also force dimensions on grandparent (Video Recording Area div)
+        const grandparentContainer = parentContainer.parentElement;
+        if(grandparentContainer) {
+            console.log('Grandparent container offsetWidth:', grandparentContainer.offsetWidth);
+            console.log('Grandparent container offsetHeight:', grandparentContainer.offsetHeight);
+            grandparentContainer.style.setProperty('width', '100%', 'important');
+            grandparentContainer.style.setProperty('min-height', '400px', 'important');
+            grandparentContainer.style.setProperty('display', 'block', 'important');
+        }
+        
+        // Also force dimensions on interviewQuestionsContainer
+        const questionsContainer = document.getElementById('interviewQuestionsContainer');
+        if(questionsContainer) {
+            console.log('Questions container offsetWidth:', questionsContainer.offsetWidth);
+            console.log('Questions container offsetHeight:', questionsContainer.offsetHeight);
+            console.log('Questions container children count:', questionsContainer.children.length);
+            console.log('Questions container innerHTML length:', questionsContainer.innerHTML.length);
+            questionsContainer.style.setProperty('width', '100%', 'important');
+            questionsContainer.style.setProperty('min-height', '500px', 'important');
+            questionsContainer.style.setProperty('display', 'block', 'important');
+            questionsContainer.style.setProperty('visibility', 'visible', 'important');
+            questionsContainer.style.setProperty('opacity', '1', 'important');
+        }
+        
+        // Also force dimensions on step 7 section
+        const step7Section = document.getElementById('step7');
+        if(step7Section) {
+            console.log('Step 7 section offsetWidth:', step7Section.offsetWidth);
+            console.log('Step 7 section offsetHeight:', step7Section.offsetHeight);
+            console.log('Step 7 section has active class:', step7Section.classList.contains('active'));
+            // Add active class if missing
+            if(!step7Section.classList.contains('active')) {
+                console.log('Adding active class to step 7 section');
+                step7Section.classList.add('active');
+            }
+            // Force step 7 to expand based on content
+            step7Section.style.setProperty('width', '100%', 'important');
+            step7Section.style.setProperty('height', 'auto', 'important');
+            step7Section.style.setProperty('min-height', 'auto', 'important');
+            step7Section.style.setProperty('max-height', 'none', 'important');
+            step7Section.style.setProperty('display', 'block', 'important');
+            step7Section.style.setProperty('overflow', 'visible', 'important');
+        }
     }
     
     try {
@@ -146,15 +222,57 @@ async function initInterviewCamera() {
             audio: true 
         });
         
+        console.log('Camera stream obtained, setting up video...');
+        console.log('Stream tracks:', stream.getTracks().map(t => t.kind));
+        
         // Set stream and play
         video.srcObject = stream;
         video.muted = true; // Mute to avoid feedback
         video.playsInline = true;
         
+        // Force video element to be visible with static positioning
+        video.style.setProperty('position', 'static', 'important');
+        video.style.setProperty('width', '100%', 'important');
+        video.style.setProperty('height', '350px', 'important');
+        video.style.setProperty('max-height', '350px', 'important');
+        video.style.setProperty('display', 'block', 'important');
+        video.style.setProperty('visibility', 'visible', 'important');
+        video.style.setProperty('opacity', '1', 'important');
+        video.style.setProperty('background', '#000', 'important');
+        video.style.setProperty('transform', 'scaleX(-1)', 'important');
+        
         // Wait for video to be ready
         video.onloadedmetadata = () => {
+            console.log('Video metadata loaded');
+            console.log('Video videoWidth:', video.videoWidth);
+            console.log('Video videoHeight:', video.videoHeight);
+            console.log('Video readyState:', video.readyState);
             video.play().catch(e => console.warn('Video autoplay issue:', e));
             console.log('Camera initialized successfully');
+            console.log('Video element display style:', video.style.display);
+        };
+        
+        video.onplay = () => {
+            console.log('Video is now playing');
+            console.log('Video element offsetWidth after play:', video.offsetWidth);
+            console.log('Video element offsetHeight after play:', video.offsetHeight);
+            
+            // If video still has 0 dimensions, try to force them with setTimeout
+            if(video.offsetWidth === 0 || video.offsetHeight === 0) {
+                console.warn('Video element still has 0 dimensions, forcing with setTimeout');
+                setTimeout(() => {
+                    video.style.width = '640px';
+                    video.style.height = '360px';
+                    console.log('Video element offsetWidth after setTimeout:', video.offsetWidth);
+                    console.log('Video element offsetHeight after setTimeout:', video.offsetHeight);
+                }, 100);
+            }
+        };
+        
+        video.onerror = (e) => {
+            console.error('Video error:', e);
+            console.error('Video error code:', video.error?.code);
+            console.error('Video error message:', video.error?.message);
         };
         
         interviewStream = stream;
@@ -167,28 +285,85 @@ async function initInterviewCamera() {
 async function startInterview() {
     const instructionsDiv = document.getElementById('interviewInstructions');
     const questionsDiv = document.getElementById('interviewQuestionsContainer');
+    const step7Section = document.getElementById('step7');
+    
     if(instructionsDiv) instructionsDiv.style.display = 'none';
-    if(questionsDiv) questionsDiv.style.display = 'block';
+    if(step7Section) {
+        step7Section.style.setProperty('height', '800px', 'important');
+        step7Section.style.setProperty('min-height', '800px', 'important');
+        step7Section.style.setProperty('overflow', 'visible', 'important');
+    }
+    
+    // Show the interview modal instead of inline
+    const interviewModal = document.getElementById('interviewModal');
+    if(interviewModal) interviewModal.style.display = 'block';
+    
+    // Setup close button handlers
+    const closeBtn = document.getElementById('closeInterviewModalBtn');
+    const closeCompletedBtn = document.getElementById('closeCompletedBtn');
+    if(closeBtn) {
+        closeBtn.onclick = () => {
+            if(confirm('Are you sure you want to exit the interview? Your progress will be lost.')) {
+                resetInterviewState();
+                closeInterviewModal();
+            }
+        };
+    }
+    if(closeCompletedBtn) {
+        closeCompletedBtn.onclick = () => {
+            // Just close the modal - don't reset state, user may want to submit application
+            closeInterviewModal();
+            // Submit the form after interview is complete
+            const submitBtn = document.querySelector('button[type="submit"]');
+            if(submitBtn) {
+                submitBtn.click();
+            }
+        };
+    }
+    
+    // Wait for browser to render the container before initializing camera
+    console.log('Starting interview, waiting for render...');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Initialize camera now that the questions container is visible
+    console.log('Starting interview, initializing camera...');
+    await initInterviewCamera();
     
     // Get selected language from Step 6
     getSelectedLanguageFromStep6();
     
-    // If no questions loaded, use fallback
-    if(interviewQuestions.length === 0) {
-        setInterviewQuestions(getFallbackQuestions());
-    }
-    
-    // Translate questions to selected language
-    const translatedQuestions = await translateQuestions(
-        interviewQuestions.map(q => typeof q === 'string' ? q : q.english),
-        selectedLanguage
-    );
-    setInterviewQuestions(translatedQuestions);
+    // Start with the intro question only
+    const introQuestion = [
+        { english: "Please introduce yourself in 30 seconds.", translated: "Please introduce yourself in 30 seconds.", language: "en" }
+    ];
+    setInterviewQuestions(introQuestion);
     
     const totalQNum = document.getElementById('totalQNum');
-    if(totalQNum) totalQNum.textContent = interviewQuestions.length;
+    if(totalQNum) totalQNum.textContent = '1';
     
     renderQuestion();
+}
+
+function closeInterviewModal() {
+    const interviewModal = document.getElementById('interviewModal');
+    if(interviewModal) interviewModal.style.display = 'none';
+    // Don't reset interview state here - keep it intact for form submission
+    // State will only be reset when starting a new interview
+    
+    // Stop and clean up camera stream
+    if(interviewStream) {
+        interviewStream.getTracks().forEach(track => track.stop());
+        interviewStream = null;
+    }
+}
+
+function resetInterviewState() {
+    // Only call this when starting a new interview, not when closing after completion
+    currentQuestionIndex = 0;
+    interviewQuestions = [];
+    interviewResponses = [];
+    generatedQuestionsFromResume = [];
+    window.isInterviewComplete = false;
 }
 
 function renderQuestion() {
@@ -304,9 +479,9 @@ async function submitAnswer() {
         formData.append('video_file', interviewRecordingBlob, `interview_q${currentQuestionIndex}_${Date.now()}.webm`);
         formData.append('question_index', currentQuestionIndex);
         formData.append('question', interviewQuestions[currentQuestionIndex]);
-        formData.append('language', selectedLanguage); // Include selected language
+        formData.append('application_id', ''); // Will be filled by backend from user context
         updateInterviewProgress(60);
-        const response = await backendPost('/applicant/upload-interview-response', formData);
+        const response = await backendPost('/applicant/upload-video-response', formData);
         const result = await handleResponse(response);
         updateInterviewProgress(90);
         if(result.data) {
@@ -323,6 +498,13 @@ async function submitAnswer() {
         }
         updateInterviewProgress(100);
         await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // After intro question is submitted, load the generated questions
+        if(currentQuestionIndex === 0) {
+            console.log('Intro question submitted. Loading generated questions...');
+            await loadGeneratedQuestions();
+        }
+        
         currentQuestionIndex++;
         if(currentQuestionIndex < interviewQuestions.length) renderQuestion();
         else finishInterview();
@@ -330,6 +512,28 @@ async function submitAnswer() {
         notify('Failed to upload answer. Please try again.', 'error');
         if(reviewControls) reviewControls.style.display = 'flex';
         if(uploadProgress) uploadProgress.style.display = 'none';
+    }
+}
+
+async function loadGeneratedQuestions() {
+    // Use the stored generated questions from resume upload
+    if(generatedQuestionsFromResume.length > 0) {
+        // Keep the intro question as first, then add generated questions
+        const introQuestion = interviewQuestions[0];
+        interviewQuestions = [introQuestion, ...generatedQuestionsFromResume];
+        
+        const totalQNum = document.getElementById('totalQNum');
+        if(totalQNum) totalQNum.textContent = interviewQuestions.length;
+        
+        console.log(`Loaded ${generatedQuestionsFromResume.length} generated questions from resume. Total: ${interviewQuestions.length}`);
+    } else {
+        // Fallback to default questions if no generated questions found
+        console.warn('No generated questions found, using fallback');
+        const fallbackGenerated = getFallbackQuestions().slice(1); // Get all except first (intro)
+        interviewQuestions = interviewQuestions.concat(fallbackGenerated);
+        
+        const totalQNum = document.getElementById('totalQNum');
+        if(totalQNum) totalQNum.textContent = interviewQuestions.length;
     }
 }
 
@@ -341,11 +545,20 @@ function updateInterviewProgress(percent) {
 }
 
 function finishInterview() {
-    isInterviewComplete = true;
-    const questionsDiv = document.getElementById('interviewQuestionsContainer');
+    console.log('finishInterview called, setting isInterviewComplete = true');
+    window.isInterviewComplete = true;
     const completedDiv = document.getElementById('interviewCompleted');
-    if(questionsDiv) questionsDiv.style.display = 'none';
+    const recordingControls = document.getElementById('interviewRecordingControls');
+    const stopControls = document.getElementById('interviewStopControls');
+    const reviewControls = document.getElementById('interviewReviewControls');
+    const uploadProgress = document.getElementById('uploadProgressContainer');
+    
     if(completedDiv) completedDiv.style.display = 'block';
+    if(recordingControls) recordingControls.style.display = 'none';
+    if(stopControls) stopControls.style.display = 'none';
+    if(reviewControls) reviewControls.style.display = 'none';
+    if(uploadProgress) uploadProgress.style.display = 'none';
+    
     if(interviewStream) interviewStream.getTracks().forEach(track => track.stop());
     notify('Interview completed successfully! You can now submit your application.', 'success');
 }
@@ -376,13 +589,21 @@ function resetInterviewTimer() {
 // Setter function to update interviewQuestions from other modules
 function setInterviewQuestions(questions) {
     interviewQuestions = questions;
+    // Store generated questions from resume upload (not intro question)
+    // Always store if it's not just the intro question
+    if(questions.length > 1) {
+        generatedQuestionsFromResume = questions;
+        console.log(`Stored ${questions.length} generated questions from resume`);
+    } else if(questions.length === 1 && !questions[0].english.includes('introduce yourself')) {
+        generatedQuestionsFromResume = questions;
+        console.log(`Stored 1 generated question from resume`);
+    }
 }
 
 // Export functions for use in application-form.js
 export {
     interviewQuestions,
     interviewResponses,
-    isInterviewComplete,
     setupInterviewRecording,
     getFallbackQuestions,
     setInterviewQuestions

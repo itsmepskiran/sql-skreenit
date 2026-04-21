@@ -312,16 +312,25 @@ function populateForm(profile, userId) {
 
     // Intro Video
     console.log('🎥 Checking intro video URL:', profile.intro_video_url);
+    console.log('🎥 Checking interview responses:', profile.interview_responses);
     const videoCard = document.getElementById('videoCard');
     const noVideoCard = document.getElementById('noVideoCard');
     
-    if (profile.intro_video_url && profile.intro_video_url !== null && profile.intro_video_url !== '') {
+    // Use intro_video_url if available, otherwise use first interview response video
+    let videoUrl = profile.intro_video_url;
+    if ((!videoUrl || videoUrl === null || videoUrl === '') && profile.interview_responses && profile.interview_responses.length > 0) {
+        // Use the first interview response video (intro question)
+        videoUrl = profile.interview_responses[0]?.video_url;
+        console.log('🎥 Using interview response video URL:', videoUrl);
+    }
+    
+    if (videoUrl && videoUrl !== null && videoUrl !== '') {
         console.log('✅ Video found, showing video card');
         if (videoCard) videoCard.style.display = 'block';
         if (noVideoCard) noVideoCard.style.display = 'none';
         
         // Setup video card buttons
-        setupVideoCardButtons(profile.intro_video_url, userId);
+        setupVideoCardButtons(videoUrl, userId);
         
         // Reset analysis state for new video - show analyze button, hide re-analyze
         const analysisButtonContainer = document.getElementById('analysisButtonContainer');
