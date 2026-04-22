@@ -565,11 +565,8 @@ async function submitRegistration() {
             localRegistrations.push(savedRegistration);
             localStorage.setItem('trainingRegistrations', JSON.stringify(localRegistrations));
 
-            // Show success message and proceed to payment/view section
+            // Show success message - form handler will proceed to payment section
             showToast('Registration saved successfully! Click "View Details" to see your confirmation.', 'success');
-
-            // Proceed to payment section (user will click View Details to go to confirmation)
-            proceedToPayment();
 
             return result.data;
         } else {
@@ -578,7 +575,7 @@ async function submitRegistration() {
 
     } catch (error) {
         console.error('Registration error:', error);
-        showToast('Registration failed. Please try again or contact support.', 'error');
+        // Don't show toast here - let the caller handle it
         throw error;
     }
 }
