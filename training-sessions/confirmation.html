@@ -543,30 +543,58 @@
         }
         
         // Download confirmation as PDF
-        window.downloadConfirmation = function() {
+        window.downloadConfirmation = async function() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             // Colors
             const primaryColor = '#4f46e5';
             const successColor = '#10b981';
             const darkColor = '#1f2937';
             const grayColor = '#6b7280';
-            
-            let yPos = 20;
-            
+
+            let yPos = 15;
+
+            // Add Logo
+            try {
+                const logoUrl = `${assetsBase}/assets/images/logobrand.png`;
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.src = logoUrl;
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+
+                // Convert to base64
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const imgData = canvas.toDataURL('image/png');
+
+                // Add logo to PDF (centered, max width 60mm)
+                const imgWidth = 60;
+                const imgHeight = (img.height / img.width) * imgWidth;
+                doc.addImage(imgData, 'PNG', (210 - imgWidth) / 2, yPos, imgWidth, imgHeight);
+                yPos += imgHeight + 5;
+            } catch (e) {
+                console.log('Logo load failed, continuing without logo');
+            }
+
             // Header
             doc.setFillColor(16, 185, 129); // success color
-            doc.rect(0, 0, 210, 40, 'F');
+            doc.rect(0, yPos, 210, 35, 'F');
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(22);
+            doc.setFontSize(20);
             doc.setFont('helvetica', 'bold');
-            doc.text('Registration Confirmed!', 105, 25, { align: 'center' });
-            doc.setFontSize(11);
+            doc.text('Registration Confirmed!', 105, yPos + 20, { align: 'center' });
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
-            doc.text('Thank you for registering with Skreenit Training Programs', 105, 33, { align: 'center' });
-            
-            yPos = 55;
+            doc.text('Thank you for registering with Skreenit Training Programs', 105, yPos + 28, { align: 'center' });
+
+            yPos += 45;
             
             // Registration ID Box
             doc.setFillColor(79, 70, 229); // primary color
