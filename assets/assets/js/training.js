@@ -565,11 +565,11 @@ async function submitRegistration() {
             localRegistrations.push(savedRegistration);
             localStorage.setItem('trainingRegistrations', JSON.stringify(localRegistrations));
 
-            // Show success message
-            showToast('Registration saved successfully!', 'success');
+            // Show success message and proceed to payment/view section
+            showToast('Registration saved successfully! Click "View Details" to see your confirmation.', 'success');
 
-            // Redirect to confirmation page
-            window.location.href = `confirmation.html?type=${registrationData.type}&id=${result.data.registration_id}`;
+            // Proceed to payment section (user will click View Details to go to confirmation)
+            proceedToPayment();
 
             return result.data;
         } else {

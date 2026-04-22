@@ -41,7 +41,18 @@
             margin: 40px auto;
             padding: 0 20px;
         }
-        
+
+        .logo-banner {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-banner img {
+            max-height: 80px;
+            width: auto;
+            max-width: 100%;
+        }
+
         .success-header {
             text-align: center;
             padding: 2rem 2rem 1.5rem;
@@ -312,6 +323,11 @@
 
     <!-- Main Content -->
     <main class="confirmation-container">
+        <!-- Logo Banner -->
+        <div class="logo-banner">
+            <img id="bannerLogo" src="" alt="Skreenit">
+        </div>
+
         <!-- Success Header -->
         <div class="success-header">
             <i class="fas fa-check-circle"></i>
@@ -416,12 +432,19 @@
     <script type="module">
         import { CONFIG } from '@shared/js/config.js';
         
-        // Initialize logo
+        // Initialize logos
+        const assetsBase = CONFIG.IS_LOCAL ? '../assets' : 'https://assets.skreenit.com';
+
         const logoImg = document.getElementById('logoImg');
         if (logoImg) {
-            logoImg.src = `${CONFIG.IS_LOCAL ? '../assets' : 'https://assets.skreenit.com'}/assets/images/logobrand.png`;
+            logoImg.src = `${assetsBase}/assets/images/logobrand.png`;
         }
-        
+
+        const bannerLogo = document.getElementById('bannerLogo');
+        if (bannerLogo) {
+            bannerLogo.src = `${assetsBase}/assets/images/logobrand.png`;
+        }
+
         // Get registration data from URL parameters or localStorage
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
