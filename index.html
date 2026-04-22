@@ -120,29 +120,33 @@
                 <a href="#home" class="logo-link">
                     <img id="logoImg" src="./assets/assets/images/logo.png" alt="Skreenit" class="animate-pulse" />
                 </a>
-                <ul class="nav-menu">
+                <ul class="nav-menu" style="float: right;">
                     <li><a href="#home">Home</a></li>
-                    <li><a href="https://portfolio.pskservices.co.in" target="_blank">Portfolio</a></li>
-                    <li><a href="#pricing">Pricing</a></li>
-                    <li><a href="#contact">Contact Us</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Know More <i class="fas fa-chevron-down" style="font-size: 0.7em; margin-left: 4px;"></i></a>
+                        <ul class="dropdown-menu">
+                            <li class="dropdown">
+                                <a href="#services" class="dropdown-toggle">Services <i class="fas fa-chevron-right" style="font-size: 0.6em; margin-left: 4px; float: right;"></i></a>
+                                <ul class="dropdown-menu dropdown-submenu">
+                                    <li><a href="./training-sessions/index.html">Training Sessions</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="./demo/index.html">Demo</a></li>
+                            <li><a href="#about">About Us</a></li>
+                            <li><a href="#pricing">Pricing</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Application <i class="fas fa-chevron-down" style="font-size: 0.7em; margin-left: 4px;"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="loginBtnNav">Login</a></li>
+                            <li><a href="#" id="registerBtnNav">Get Started</a></li>
+                            <li><a href="#" id="hrmsBtnNav">HRMS</a></li>
+                            <li><a href="#" id="appBtnNav">App</a></li>
+                        </ul>
+                    </li>
                 </ul>
-                <div class="nav-buttons">
-                    <button id="loginBtnNav" class="btn btn-secondary">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
-                    <button id="registerBtnNav" class="btn btn-primary">
-                        <i class="fas fa-rocket"></i> Get Started
-                    </button>
-                    <button id="hrmsBtnNav" class="btn btn-secondary">
-                        <i class="fas fa-briefcase"></i> HRMS
-                    </button>
-                    <button id="appBtnNav" class="btn btn-secondary">
-                        <i class="fas fa-mobile-alt"></i> App
-                    </button>
-                    <a href="./demo/index.html" id="viewDemoBtnNav" class="btn btn-outline">
-                        <i class="fas fa-play-circle"></i> View Demo
-                    </a>
-                </div>
                 <button class="mobile-menu-toggle">
                     <i class="fas fa-bars"></i>
                 </button>

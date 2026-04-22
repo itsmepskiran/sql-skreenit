@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Confirmed - Skreenit Training</title>
+    
+    <meta name="description" content="Your training registration has been confirmed. View your booking details.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/assets/images/favicon-32x32.png">
+    
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.ASSETS_BASE = assetsBase;
+    })();
+    </script>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../assets/assets/css/core.css">
+    <link rel="stylesheet" href="../assets/assets/css/layout.css">
+    <link rel="stylesheet" href="../assets/assets/css/components.css">
+    <link rel="stylesheet" href="../assets/assets/css/training.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        .confirmation-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .success-header {
+            text-align: center;
+            padding: 2rem 2rem 1.5rem;
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            color: white;
+            border-radius: var(--radius-lg);
+            margin-bottom: 30px;
+        }
+        
+        .success-header i {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+        
+        .success-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .success-header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .confirmation-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .confirmation-card h2 {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-gray);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-dark);
+            text-align: right;
+            max-width: 60%;
+        }
+        
+        .registration-id {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .registration-id h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+        
+        .registration-id p {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+        
+        .course-details {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .course-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .course-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .amount-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 25px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .amount-section h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .amount-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-confirmed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .next-steps {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 20px;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin-top: 30px;
+        }
+        
+        .next-steps h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .next-steps ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .next-steps li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .next-steps li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: bold;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-download {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-download:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-home {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-home:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        @media print {
+            .action-buttons, .next-steps {
+                display: none;
+            }
+            
+            .confirmation-card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body class="training-body">
+    <!-- Header -->
+    <header class="training-header">
+        <div class="training-header-content">
+            <a href="index.html" class="training-logo">
+                <img id="logoImg" src="" alt="Skreenit">
+            </a>
+            <nav class="training-nav">
+                <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Courses</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="confirmation-container">
+        <!-- Success Header -->
+        <div class="success-header">
+            <i class="fas fa-check-circle"></i>
+            <h1>Registration Confirmed!</h1>
+            <p>Thank you for registering with Skreenit Training Programs</p>
+        </div>
+        
+        <!-- Registration ID -->
+        <div class="registration-id">
+            <h3>Your Registration ID</h3>
+            <p id="regId">Loading...</p>
+        </div>
+        
+        <!-- Course Details -->
+        <div class="confirmation-card">
+            <h2><i class="fas fa-graduation-cap"></i> Course Details</h2>
+            <div class="course-details">
+                <div class="course-name" id="courseName">Loading...</div>
+                <div class="course-meta">
+                    <span><i class="fas fa-clock"></i> <span id="courseDuration">Loading...</span></span>
+                    <span><i class="fas fa-tag"></i> <span id="courseType">Loading...</span></span>
+                </div>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value"><span class="status-badge status-confirmed" id="statusBadge"><i class="fas fa-check"></i> Confirmed</span></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Registration Date</span>
+                <span class="detail-value" id="regDate">Loading...</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Batch Timing</span>
+                <span class="detail-value" id="batchTiming">Loading...</span>
+            </div>
+        </div>
+        
+        <!-- Personal/Company Details -->
+        <div class="confirmation-card" id="personalDetails">
+            <h2 id="detailsTitle"><i class="fas fa-user"></i> Personal Details</h2>
+            <!-- Dynamic content based on registration type -->
+        </div>
+        
+        <!-- Payment Summary -->
+        <div class="confirmation-card">
+            <h2><i class="fas fa-receipt"></i> Payment Summary</h2>
+            <div class="detail-row">
+                <span class="detail-label">Course Fee</span>
+                <span class="detail-value" id="courseFee">Loading...</span>
+            </div>
+            <div class="detail-row" id="participantsRow" style="display: none;">
+                <span class="detail-label">Participants</span>
+                <span class="detail-value" id="participantsCount">Loading...</span>
+            </div>
+            <div class="detail-row" id="discountRow" style="display: none;">
+                <span class="detail-label">Discount</span>
+                <span class="detail-value" style="color: var(--success-color);">-₹0</span>
+            </div>
+            <div class="amount-section">
+                <h3>Total Amount</h3>
+                <div class="amount-value" id="totalAmount">Loading...</div>
+            </div>
+            <div class="detail-row" style="margin-top: 15px;">
+                <span class="detail-label">Payment Status</span>
+                <span class="detail-value" id="paymentStatus">Pending Payment</span>
+            </div>
+        </div>
+        
+        <!-- Next Steps -->
+        <div class="next-steps">
+            <h3><i class="fas fa-info-circle"></i> What's Next?</h3>
+            <ul>
+                <li>A confirmation email has been sent to your registered email address</li>
+                <li>Our team will contact you within 24 hours for payment processing</li>
+                <li>Course materials and joining instructions will be shared 2 days before the start date</li>
+                <li>Please keep your Registration ID handy for future reference</li>
+            </ul>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn-download" onclick="downloadConfirmation()">
+                <i class="fas fa-file-pdf"></i> Download as PDF
+            </button>
+            <button class="btn-download" onclick="window.print()">
+                <i class="fas fa-print"></i> Print
+            </button>
+            <a href="index.html" class="btn-home">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="training-footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Skreenit. All rights reserved.</p>
+            <p>For any queries, contact us at <a href="mailto:support@skreenit.com">support@skreenit.com</a></p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { CONFIG } from '@shared/js/config.js';
+        
+        // Initialize logo
+        const logoImg = document.getElementById('logoImg');
+        if (logoImg) {
+            logoImg.src = `${CONFIG.IS_LOCAL ? '../assets' : 'https://assets.skreenit.com'}/assets/images/logobrand.png`;
+        }
+        
+        // Get registration data from URL parameters or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type');
+        const id = urlParams.get('id');
+        
+        // Try to get full registration details from localStorage
+        let registrationData = null;
+        try {
+            const localRegistrations = JSON.parse(localStorage.getItem('trainingRegistrations') || '[]');
+            registrationData = localRegistrations.find(r => r.backendRegistrationId === id || r.id === id);
+        } catch (e) {
+            console.error('Failed to load registration from localStorage:', e);
+        }
+        
+        // Populate confirmation page
+        function populateConfirmation() {
+            if (!registrationData) {
+                document.getElementById('regId').textContent = id || 'N/A';
+                document.getElementById('courseName').textContent = 'Registration details not found';
+                return;
+            }
+            
+            // Registration ID
+            document.getElementById('regId').textContent = registrationData.backendRegistrationId || registrationData.id || id;
+            
+            // Course details
+            const courseInfo = TRAINING_COURSES[registrationData.trainingCourse] || { name: 'Unknown Course', duration: 'N/A' };
+            document.getElementById('courseName').textContent = courseInfo.name;
+            document.getElementById('courseDuration').textContent = courseInfo.duration;
+            document.getElementById('courseType').textContent = type === 'college' ? 'Individual Training' : 'Corporate Training';
+            
+            // Registration date
+            const regDate = registrationData.savedAt ? new Date(registrationData.savedAt) : new Date();
+            document.getElementById('regDate').textContent = regDate.toLocaleDateString('en-IN', { 
+                day: 'numeric', month: 'long', year: 'numeric' 
+            });
+            
+            // Batch timing
+            document.getElementById('batchTiming').textContent = registrationData.batchTiming || 
+                (registrationData.preferredDate ? new Date(registrationData.preferredDate).toLocaleDateString('en-IN') : 'To be scheduled');
+            
+            // Status
+            const statusBadge = document.getElementById('statusBadge');
+            if (registrationData.paymentStatus === 'completed') {
+                statusBadge.innerHTML = '<i class="fas fa-check-circle"></i> Payment Completed';
+                statusBadge.className = 'status-badge status-confirmed';
+                document.getElementById('paymentStatus').textContent = 'Paid';
+            } else {
+                statusBadge.innerHTML = '<i class="fas fa-clock"></i> Awaiting Payment';
+                statusBadge.className = 'status-badge status-pending';
+                document.getElementById('paymentStatus').textContent = 'Payment Pending - Our team will contact you';
+            }
+            
+            // Personal/Company details
+            const detailsContainer = document.getElementById('personalDetails');
+            const detailsTitle = document.getElementById('detailsTitle');
+            
+            if (type === 'college') {
+                detailsTitle.innerHTML = '<i class="fas fa-user"></i> Student Details';
+                detailsContainer.innerHTML += `
+                    <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${registrationData.firstName} ${registrationData.lastName}</span></div>
+                    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${registrationData.email}</span></div>
+                    <div class="detail-row"><span class="detail-label">Mobile</span><span class="detail-value">${registrationData.mobile}</span></div>
+                    <div class="detail-row"><span class="detail-label">College</span><span class="detail-value">${registrationData.collegeName}</span></div>
+                    <div class="detail-row"><span class="detail-label">University</span><span class="detail-value">${registrationData.universityName}</span></div>
+                    <div class="detail-row"><span class="detail-label">Roll Number</span><span class="detail-value">${registrationData.rollNumber}</span></div>
+                    <div class="detail-row"><span class="detail-label">Course</span><span class="detail-value">${registrationData.course}</span></div>
+                    <div class="detail-row"><span class="detail-label">Year of Study</span><span class="detail-value">${registrationData.yearOfStudy}</span></div>
+                `;
+            } else {
+                detailsTitle.innerHTML = '<i class="fas fa-building"></i> Company Details';
+                detailsContainer.innerHTML += `
+                    <div class="detail-row"><span class="detail-label">Company</span><span class="detail-value">${registrationData.companyName}</span></div>
+                    <div class="detail-row"><span class="detail-label">Industry</span><span class="detail-value">${registrationData.industry}</span></div>
+                    <div class="detail-row"><span class="detail-label">Headcount</span><span class="detail-value">${registrationData.companyHC}</span></div>
+                    <div class="detail-row"><span class="detail-label">Contact Person</span><span class="detail-value">${registrationData.contactName}</span></div>
+                    <div class="detail-row"><span class="detail-label">Designation</span><span class="detail-value">${registrationData.contactDesignation}</span></div>
+                    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${registrationData.contactEmail}</span></div>
+                    <div class="detail-row"><span class="detail-label">Mobile</span><span class="detail-value">${registrationData.contactMobile}</span></div>
+                `;
+            }
+            
+            // Payment details
+            const employeeCount = parseInt(registrationData.employeeCount) || 1;
+            const basePrice = courseInfo.price;
+            const totalPrice = basePrice * employeeCount;
+            
+            document.getElementById('courseFee').textContent = `₹${basePrice.toLocaleString('en-IN')}`;
+            
+            if (type === 'company' && employeeCount > 1) {
+                document.getElementById('participantsRow').style.display = 'flex';
+                document.getElementById('participantsCount').textContent = `${employeeCount} employees`;
+            }
+            
+            document.getElementById('totalAmount').textContent = `₹${totalPrice.toLocaleString('en-IN')}`;
+        }
+        
+        // Download confirmation as PDF
+        window.downloadConfirmation = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Colors
+            const primaryColor = '#4f46e5';
+            const successColor = '#10b981';
+            const darkColor = '#1f2937';
+            const grayColor = '#6b7280';
+            
+            let yPos = 20;
+            
+            // Header
+            doc.setFillColor(16, 185, 129); // success color
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Registration Confirmed!', 105, 25, { align: 'center' });
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Thank you for registering with Skreenit Training Programs', 105, 33, { align: 'center' });
+            
+            yPos = 55;
+            
+            // Registration ID Box
+            doc.setFillColor(79, 70, 229); // primary color
+            doc.roundedRect(15, yPos, 180, 25, 3, 3, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(9);
+            doc.text('YOUR REGISTRATION ID', 105, yPos + 8, { align: 'center' });
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text(document.getElementById('regId').textContent, 105, yPos + 19, { align: 'center' });
+            
+            yPos += 40;
+            
+            // Course Details Section
+            doc.setTextColor(primaryColor);
+            doc.setFontSize(13);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Course Details', 15, yPos);
+            doc.setDrawColor(229, 231, 235);
+            doc.line(15, yPos + 3, 195, yPos + 3);
+            
+            yPos += 12;
+            doc.setTextColor(darkColor);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text(document.getElementById('courseName').textContent, 15, yPos);
+            
+            yPos += 7;
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(grayColor);
+            doc.setFontSize(10);
+            doc.text(`Duration: ${document.getElementById('courseDuration').textContent}`, 15, yPos);
+            doc.text(`Type: ${document.getElementById('courseType').textContent}`, 105, yPos);
+            
+            yPos += 10;
+            doc.text(`Registration Date: ${document.getElementById('regDate').textContent}`, 15, yPos);
+            doc.text(`Batch: ${document.getElementById('batchTiming').textContent}`, 105, yPos);
+            
+            yPos += 15;
+            
+            // Payment Summary Section
+            doc.setTextColor(primaryColor);
+            doc.setFontSize(13);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Payment Summary', 15, yPos);
+            doc.setDrawColor(229, 231, 235);
+            doc.line(15, yPos + 3, 195, yPos + 3);
+            
+            yPos += 15;
+            
+            // Amount box
+            doc.setFillColor(249, 250, 251);
+            doc.roundedRect(15, yPos - 5, 180, 30, 3, 3, 'F');
+            
+            doc.setTextColor(grayColor);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Total Amount', 25, yPos + 5);
+            
+            doc.setTextColor(primaryColor);
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text(document.getElementById('totalAmount').textContent, 25, yPos + 18);
+            
+            doc.setTextColor(grayColor);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Status: ${document.getElementById('paymentStatus').textContent}`, 105, yPos + 12);
+            
+            yPos += 40;
+            
+            // Next Steps Section
+            doc.setTextColor(primaryColor);
+            doc.setFontSize(13);
+            doc.setFont('helvetica', 'bold');
+            doc.text("What's Next?", 15, yPos);
+            doc.setDrawColor(229, 231, 235);
+            doc.line(15, yPos + 3, 195, yPos + 3);
+            
+            yPos += 10;
+            doc.setTextColor(darkColor);
+            doc.setFontSize(9);
+            const steps = [
+                '1. A confirmation email has been sent to your registered email address',
+                '2. Our team will contact you within 24 hours for payment processing',
+                '3. Course materials will be shared 2 days before the start date',
+                '4. Please keep your Registration ID handy for future reference'
+            ];
+            
+            steps.forEach(step => {
+                const lines = doc.splitTextToSize(step, 175);
+                doc.text(lines, 15, yPos);
+                yPos += lines.length * 5 + 2;
+            });
+            
+            // Footer
+            yPos = 270;
+            doc.setDrawColor(229, 231, 235);
+            doc.line(15, yPos, 195, yPos);
+            yPos += 8;
+            doc.setTextColor(grayColor);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text('For any queries, contact us at support@skreenit.com | www.skreenit.com', 105, yPos, { align: 'center' });
+            doc.setFontSize(8);
+            doc.text('Thank you for choosing Skreenit Training Programs!', 105, yPos + 5, { align: 'center' });
+            
+            // Save PDF
+            const regId = document.getElementById('regId').textContent.replace(/[^a-zA-Z0-9]/g, '_');
+            doc.save(`Skreenit_Registration_${regId}.pdf`);
+        };
+        
+        // Course data (should match training.js)
+        const TRAINING_COURSES = {
+            behavioral: { name: 'Behavioral Training', price: 1999, duration: '2 Days' },
+            corporate: { name: 'Corporate Training', price: 7999, duration: '3 Days' },
+            interview: { name: 'Interview Etiquette', price: 1999, duration: '1 Day' },
+            communication: { name: 'Communication Skills', price: 2999, duration: '2 Days' },
+            leadership: { name: 'Leadership Development', price: 9999, duration: '5 Days' },
+            technical: { name: 'Technical Skills Development', price: 8999, duration: '5 Days' },
+            softskills: { name: 'Soft Skills Mastery', price: 3999, duration: '3 Days' },
+            resume: { name: 'Resume Building Workshop', price: 1999, duration: '1 Day' },
+            gd: { name: 'Group Discussion Mastery', price: 1499, duration: '1 Day' },
+            combo: { name: 'Complete Package (All Courses)', price: 34999, duration: '4 Weeks' },
+            custom: { name: 'Custom Corporate Package', price: 0, duration: 'Custom' }
+        };
+        
+        // Populate page on load
+        populateConfirmation();
+    </script>
+</body>
+</html>

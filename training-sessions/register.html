@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enroll - Training Sessions | Skreenit</title>
+    
+    <meta name="description" content="Enroll in Skreenit professional training programs. Register as a college student or corporate entity.">
+    
+    <link rel="icon" type="image/png" href="../assets/assets/images/favicon-32x32.png">
+    
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+    })();
+    </script>
+
+    <script>
+        loadSharedCSS('core.css');
+        loadSharedCSS('layout.css');
+        loadSharedCSS('components.css');
+    </script>
+    
+    <link rel="stylesheet" href="../assets/assets/css/training.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="training-body">
+
+    <!-- Header -->
+    <header class="training-header">
+        <div class="container">
+            <nav class="nav">
+                <a href="../index.html" class="logo">
+                    <img src="../assets/assets/images/logo.png" id="logoImg" alt="Skreenit">
+                </a>
+                <ul class="nav-menu">
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="index.html">Programs</a></li>
+                    <li><a href="index.html#why-us">Why Us</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Registration Hero -->
+    <section class="registration-hero">
+        <div class="container">
+            <h1>Enroll in Training Program</h1>
+            <p>Choose your registration type and take the first step towards professional excellence</p>
+        </div>
+    </section>
+
+    <!-- Registration Type Selection -->
+    <section class="registration-type" id="typeSelection">
+        <div class="container">
+            <div class="section-header">
+                <h2>Select Registration Type</h2>
+            </div>
+            <p class="section-subtitle-center">Are you registering as a College/Student or a Company?</p>
+            
+            <div class="type-selection-grid">
+                <div class="type-card" id="collegeCard" onclick="selectType('college')">
+                    <div class="type-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3>College / Student</h3>
+                    <p>Individual students or college representatives registering on behalf of students</p>
+                    <ul class="type-features">
+                        <li><i class="fas fa-check"></i> Personal Learning Track</li>
+                        <li><i class="fas fa-check"></i> Individual Certificates</li>
+                        <li><i class="fas fa-check"></i> Student Pricing</li>
+                    </ul>
+                    <button class="btn btn-outline-primary">Select College</button>
+                </div>
+
+                <div class="type-card" id="companyCard" onclick="selectType('company')">
+                    <div class="type-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3>Company / Corporate</h3>
+                    <p>Organizations registering for corporate training programs</p>
+                    <ul class="type-features">
+                        <li><i class="fas fa-check"></i> Bulk Training Options</li>
+                        <li><i class="fas fa-check"></i> Corporate Certificates</li>
+                        <li><i class="fas fa-check"></i> Custom Scheduling</li>
+                    </ul>
+                    <button class="btn btn-outline-primary">Select Company</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- College Registration Form -->
+    <section class="registration-form-section" id="collegeForm" style="display: none;">
+        <div class="container">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2><i class="fas fa-graduation-cap"></i> College Registration</h2>
+                    <p>Enter your details to enroll in the training program</p>
+                </div>
+
+                <form id="collegeRegistrationForm" class="registration-form">
+                    <!-- Personal Details -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-user"></i> Personal Details</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="studentFirstName">First Name *</label>
+                                <input type="text" id="studentFirstName" name="firstName" required placeholder="Enter first name">
+                            </div>
+                            <div class="form-group">
+                                <label for="studentLastName">Last Name *</label>
+                                <input type="text" id="studentLastName" name="lastName" required placeholder="Enter last name">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="studentEmail">Personal Email ID *</label>
+                                <input type="email" id="studentEmail" name="email" required placeholder="your.email@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="studentMobile">Mobile Number *</label>
+                                <input type="tel" id="studentMobile" name="mobile" required placeholder="+91 XXXXX XXXXX" pattern="[\+]?[0-9\-\s]{10,15}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- College Details -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-university"></i> College Details</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="collegeName">College Name *</label>
+                                <input type="text" id="collegeName" name="collegeName" required placeholder="Enter college name">
+                            </div>
+                            <div class="form-group">
+                                <label for="universityName">University Name *</label>
+                                <input type="text" id="universityName" name="universityName" required placeholder="Enter university name">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="collegeAddress">College Address *</label>
+                            <textarea id="collegeAddress" name="collegeAddress" rows="3" required placeholder="Enter complete college address"></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rollNumber">Roll Number / Student ID *</label>
+                                <input type="text" id="rollNumber" name="rollNumber" required placeholder="Enter roll number">
+                            </div>
+                            <div class="form-group">
+                                <label for="course">Course / Degree *</label>
+                                <input type="text" id="course" name="course" required placeholder="e.g., B.Tech Computer Science">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="yearOfStudy">Year of Study *</label>
+                                <select id="yearOfStudy" name="yearOfStudy" required>
+                                    <option value="">Select Year</option>
+                                    <option value="1">1st Year</option>
+                                    <option value="2">2nd Year</option>
+                                    <option value="3">3rd Year</option>
+                                    <option value="4">4th Year</option>
+                                    <option value="5">5th Year</option>
+                                    <option value="passed_out">Passed Out</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="passingYear" id="passingYearLabel">Expected Passing Year *</label>
+                                <input type="number" id="passingYear" name="passingYear" required placeholder="e.g., 2025" min="2020" max="2030">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Training Selection -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-book"></i> Training Selection</h3>
+                        
+                        <div class="form-group">
+                            <label for="collegeTrainingCourse">Select Training Course *</label>
+                            <select id="collegeTrainingCourse" name="trainingCourse" required>
+                                <option value="">Select a course</option>
+                                <option value="behavioral">Behavioral Training</option>
+                                <option value="corporate">Corporate Training</option>
+                                <option value="interview">Interview Etiquette</option>
+                                <option value="communication">Communication Skills</option>
+                                <option value="leadership">Leadership Development</option>
+                                <option value="technical">Technical Skills Development</option>
+                                <option value="softskills">Soft Skills Mastery</option>
+                                <option value="resume">Resume Building Workshop</option>
+                                <option value="gd">Group Discussion Mastery</option>
+                                <option value="combo">Complete Package (All Courses)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Preferred Batch Timing</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="batchTiming" value="morning" checked>
+                                    <span>Morning (9 AM - 12 PM)</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="batchTiming" value="afternoon">
+                                    <span>Afternoon (2 PM - 5 PM)</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="batchTiming" value="evening">
+                                    <span>Evening (6 PM - 9 PM)</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="batchTiming" value="weekend">
+                                    <span>Weekend Batch</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    <div class="form-section">
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="collegeTnC" name="tnc" required>
+                                <span>I agree to the <a href="https://legal.skreenit.com/terms-conditions.html" target="_blank">Terms & Conditions</a> and <a href="https://legal.skreenit.com/privacy-policy.html" target="_blank">Privacy Policy</a>. I confirm that all information provided is accurate. *</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="backToSelection()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <i class="fas fa-check-circle"></i> Save and Proceed
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Company Registration Form -->
+    <section class="registration-form-section" id="companyForm" style="display: none;">
+        <div class="container">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2><i class="fas fa-building"></i> Corporate Registration</h2>
+                    <p>Enter your company details to enroll in corporate training programs</p>
+                </div>
+
+                <form id="companyRegistrationForm" class="registration-form">
+                    <!-- Company Details -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-building"></i> Company Details</h3>
+                        
+                        <div class="form-group">
+                            <label for="companyName">Company Name *</label>
+                            <input type="text" id="companyName" name="companyName" required placeholder="Enter company name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="companyHQ">Headquarters Address *</label>
+                            <textarea id="companyHQ" name="companyHQ" rows="3" required placeholder="Enter complete HQ address"></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="companyHC">Company Headcount *</label>
+                                <select id="companyHC" name="companyHC" required>
+                                    <option value="">Select headcount</option>
+                                    <option value="1-50">1-50 employees</option>
+                                    <option value="51-200">51-200 employees</option>
+                                    <option value="201-500">201-500 employees</option>
+                                    <option value="501-1000">501-1000 employees</option>
+                                    <option value="1000+">1000+ employees</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="industry">Industry *</label>
+                                <select id="industry" name="industry" required>
+                                    <option value="">Select industry</option>
+                                    <option value="it">Information Technology</option>
+                                    <option value="manufacturing">Manufacturing</option>
+                                    <option value="healthcare">Healthcare</option>
+                                    <option value="finance">Finance & Banking</option>
+                                    <option value="consulting">Consulting</option>
+                                    <option value="retail">Retail & E-commerce</option>
+                                    <option value="education">Education</option>
+                                    <option value="telecom">Telecommunications</option>
+                                    <option value="real estate">Real Estate</option>
+                                    <option value="automotive">Automotive</option>
+                                    <option value="others">Others</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="companyType">Company Type *</label>
+                                <select id="companyType" name="companyType" required>
+                                    <option value="">Select type</option>
+                                    <option value="startup">Startup</option>
+                                    <option value="sme">Small & Medium Enterprise (SME)</option>
+                                    <option value="enterprise">Enterprise / MNC</option>
+                                    <option value="government">Government / PSU</option>
+                                    <option value="ngo">NGO / Non-profit</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="companyWebsite">Company Website</label>
+                                <input type="url" id="companyWebsite" name="companyWebsite" placeholder="https://www.company.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Details -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-address-card"></i> Contact Person Details</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="contactName">Contact Person Name *</label>
+                                <input type="text" id="contactName" name="contactName" required placeholder="Full name">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactDesignation">Designation *</label>
+                                <input type="text" id="contactDesignation" name="contactDesignation" required placeholder="e.g., HR Manager">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="contactEmail">Email ID *</label>
+                                <input type="email" id="contactEmail" name="contactEmail" required placeholder="contact@company.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactMobile">Mobile Number *</label>
+                                <input type="tel" id="contactMobile" name="contactMobile" required placeholder="+91 XXXXX XXXXX" pattern="[\+]?[0-9\-\s]{10,15}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Training Requirements -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-chalkboard"></i> Training Requirements</h3>
+                        
+                        <div class="form-group">
+                            <label for="companyTrainingCourse">Select Training Course *</label>
+                            <select id="companyTrainingCourse" name="trainingCourse" required>
+                                <option value="">Select a course</option>
+                                <option value="behavioral">Behavioral Training</option>
+                                <option value="corporate">Corporate Training</option>
+                                <option value="interview">Interview Etiquette</option>
+                                <option value="communication">Communication Skills</option>
+                                <option value="leadership">Leadership Development</option>
+                                <option value="technical">Technical Skills Development</option>
+                                <option value="softskills">Soft Skills Mastery</option>
+                                <option value="resume">Resume Building Workshop</option>
+                                <option value="gd">Group Discussion Mastery</option>
+                                <option value="custom">Custom Corporate Package</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="employeeCount">Number of Employees for Training *</label>
+                            <input type="number" id="employeeCount" name="employeeCount" required placeholder="e.g., 25" min="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Preferred Training Mode</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="trainingMode" value="online" checked>
+                                    <span>Online Virtual Training</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="trainingMode" value="onsite">
+                                    <span>On-site at Company</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="trainingMode" value="hybrid">
+                                    <span>Hybrid Model</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="preferredDate">Preferred Start Date</label>
+                                <input type="date" id="preferredDate" name="preferredDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="duration">Preferred Duration</label>
+                                <select id="duration" name="duration">
+                                    <option value="1_day">1 Day Workshop</option>
+                                    <option value="2_days">2 Days</option>
+                                    <option value="1_week" selected>1 Week</option>
+                                    <option value="2_weeks">2 Weeks</option>
+                                    <option value="1_month">1 Month</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="additionalRequirements">Additional Requirements / Notes</label>
+                            <textarea id="additionalRequirements" name="additionalRequirements" rows="3" placeholder="Any specific requirements, custom topics, or questions..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    <div class="form-section">
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="companyTnC" name="tnc" required>
+                                <span>I agree to the <a href="https://legal.skreenit.com/terms-conditions.html" target="_blank">Terms & Conditions</a>, <a href="https://legal.skreenit.com/privacy-policy.html" target="_blank">Privacy Policy</a>, and <a href="#" target="_blank">Corporate Training Agreement</a>. I confirm that I am authorized to register on behalf of the company. *</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="backToSelection()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <i class="fas fa-check-circle"></i> Save and Proceed
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Payment Section (Hidden initially) -->
+    <section class="payment-section" id="paymentSection" style="display: none;">
+        <div class="container">
+            <div class="payment-container">
+                <div class="payment-header">
+                    <h2><i class="fas fa-credit-card"></i> Complete Payment</h2>
+                    <p>Secure payment powered by Razorpay</p>
+                </div>
+
+                <div class="payment-summary" id="paymentSummary">
+                    <!-- Dynamically populated -->
+                </div>
+
+                <div class="payment-actions">
+                    <button type="button" class="btn btn-secondary" onclick="backToForm()">
+                        <i class="fas fa-arrow-left"></i> Back to Form
+                    </button>
+                    <button type="button" class="btn btn-primary btn-large" id="payNowBtn">
+                        <i class="fas fa-file-alt"></i> View Details
+                    </button>
+                </div>
+
+                <div class="payment-security">
+                    <p><i class="fas fa-shield-alt"></i> 256-bit SSL Encryption | PCI DSS Compliant</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="training-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Skreenit Training</h3>
+                    <p>Professional development programs for career excellence.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <p><a href="../index.html">Home</a></p>
+                    <p><a href="index.html">Programs</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>Support</h3>
+                    <p><i class="fas fa-envelope"></i> training@skreenit.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Skreenit. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="../assets/assets/js/training.js"></script>
+</body>
+</html>

@@ -485,6 +485,22 @@ async function submitAnswer() {
         const result = await handleResponse(response);
         updateInterviewProgress(90);
         if(result.data) {
+            // Save to database immediately after upload
+            const responsePayload = {
+                question: interviewQuestions[currentQuestionIndex],
+                video_path: result.data.path,
+                video_url: result.data.url,
+                question_index: currentQuestionIndex
+            };
+            
+            try {
+                const saveResponse = await backendPost('/applicant/save-intro-response', responsePayload);
+                await handleResponse(saveResponse);
+                console.log('Interview response saved to database successfully');
+            } catch (saveError) {
+                console.warn('Failed to save response to database, but video was uploaded:', saveError);
+            }
+            
             interviewResponses.push({ 
                 question: interviewQuestions[currentQuestionIndex], 
                 video_path: result.data.path, 

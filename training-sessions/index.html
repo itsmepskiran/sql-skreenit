@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Sessions - Skreenit</title>
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Professional training programs by Skreenit - Behavioral Training, Corporate Training, Interview Etiquette and more.">
+    <meta name="keywords" content="corporate training, behavioral training, interview preparation, soft skills, professional development">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/assets/images/favicon-32x32.png">
+    
+    <script>
+    (function() {
+      const isLocal = ['localhost', '127.0.0.1',''].includes(window.location.hostname);
+      const assetsBase = isLocal ? '../assets' : 'https://assets.skreenit.com';
+      const im = document.createElement('script');
+      im.type = 'importmap';
+      im.textContent = JSON.stringify({ imports: { "@shared/": `${assetsBase}/assets/` } });
+      document.head.appendChild(im);
+      
+      window.loadSharedCSS = function(file) {
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.href = `${assetsBase}/assets/css/${file}?v=` + new Date().getTime(); 
+        document.head.appendChild(link);
+      };
+    })();
+    </script>
+
+    <script>
+        loadSharedCSS('core.css');
+        loadSharedCSS('layout.css');
+        loadSharedCSS('components.css');
+    </script>
+    
+    <link rel="stylesheet" href="../assets/assets/css/training.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="training-body">
+
+    <!-- Header -->
+    <header class="training-header">
+        <div class="container">
+            <nav class="nav">
+                <a href="../index.html" class="logo">
+                    <img src="../assets/assets/images/logo.png" id="logoImg" alt="Skreenit">
+                </a>
+                <ul class="nav-menu">
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="#programs">Programs</a></li>
+                    <li><a href="#why-us">Why Us</a></li>
+                    <li><a href="register.html" class="btn btn-primary btn-glow">Enroll Now</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="training-hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-brand">
+                    <img src="../assets/assets/images/logobrand.png" alt="Skreenit Training" />
+                </div>
+                <h1>Transform Your Career with Expert Training</h1>
+                <p>Industry-leading training programs designed to prepare you for success. From behavioral skills to technical mastery, we equip you with the tools to excel.</p>
+                <a href="register.html" class="btn btn-primary btn-large">
+                    <i class="fas fa-graduation-cap"></i> Explore Programs
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Training Programs Section -->
+    <section class="training-programs" id="programs">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Training Programs</h2>
+            </div>
+            <p class="section-subtitle">Comprehensive training modules designed by industry experts to accelerate your professional growth</p>
+            
+            <div class="programs-grid">
+                <!-- Behavioral Training -->
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Behavioral Training</h3>
+                    <p>Master the art of professional behavior, emotional intelligence, and workplace adaptability. Learn to handle stress, conflicts, and build positive relationships.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> Emotional Intelligence</li>
+                        <li><i class="fas fa-check"></i> Stress Management</li>
+                        <li><i class="fas fa-check"></i> Conflict Resolution</li>
+                        <li><i class="fas fa-check"></i> Adaptability Skills</li>
+                    </ul>
+                    <a href="register.html?course=behavioral" class="btn btn-primary btn-glow">Enroll Now</a>
+                </div>
+
+                <!-- Corporate Training -->
+                <div class="program-card featured">
+                    <div class="program-badge">Most Popular</div>
+                    <div class="program-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3>Corporate Training</h3>
+                    <p>Comprehensive corporate readiness program covering business etiquette, professional communication, and corporate culture alignment for seamless workplace integration.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> Business Etiquette</li>
+                        <li><i class="fas fa-check"></i> Corporate Communication</li>
+                        <li><i class="fas fa-check"></i> Team Collaboration</li>
+                        <li><i class="fas fa-check"></i> Professional Ethics</li>
+                    </ul>
+                    <a href="register.html?course=corporate" class="btn btn-primary btn-glow">Enroll Now</a>
+                </div>
+
+                <!-- Interview Etiquette -->
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3>Interview Etiquette</h3>
+                    <p>Perfect your interview skills with expert guidance on body language, communication, and professional presentation. Make lasting first impressions.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> Body Language Mastery</li>
+                        <li><i class="fas fa-check"></i> Effective Communication</li>
+                        <li><i class="fas fa-check"></i> Dress Code Guidelines</li>
+                        <li><i class="fas fa-check"></i> Virtual Interview Skills</li>
+                    </ul>
+                    <a href="register.html?course=interview" class="btn btn-primary btn-glow">Enroll Now</a>
+                </div>
+
+                <!-- Communication Skills -->
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Communication Skills</h3>
+                    <p>Develop powerful verbal and written communication skills. From presentations to emails, learn to express ideas clearly and persuasively in any professional setting.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> Public Speaking</li>
+                        <li><i class="fas fa-check"></i> Business Writing</li>
+                        <li><i class="fas fa-check"></i> Active Listening</li>
+                        <li><i class="fas fa-check"></i> Presentation Skills</li>
+                    </ul>
+                    <a href="register.html?course=communication" class="btn btn-primary btn-glow">Enroll Now</a>
+                </div>
+
+                <!-- Leadership Development -->
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <h3>Leadership Development</h3>
+                    <p>Build essential leadership qualities including decision-making, team motivation, strategic thinking, and people management for emerging leaders.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> Strategic Thinking</li>
+                        <li><i class="fas fa-check"></i> Team Motivation</li>
+                        <li><i class="fas fa-check"></i> Decision Making</li>
+                        <li><i class="fas fa-check"></i> People Management</li>
+                    </ul>
+                    <a href="register.html?course=leadership" class="btn btn-primary btn-glow">Enroll Now</a>
+                </div>
+
+                <!-- Technical Skills -->
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <h3>Technical Skills Development</h3>
+                    <p>Stay ahead with cutting-edge technical training. From coding fundamentals to advanced technologies, prepare yourself for the digital workforce.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> Programming Fundamentals</li>
+                        <li><i class="fas fa-check"></i> Data Analysis</li>
+                        <li><i class="fas fa-check"></i> Cloud Technologies</li>
+                        <li><i class="fas fa-check"></i> AI/ML Basics</li>
+                    </ul>
+                    <a href="register.html?course=technical" class="btn btn-primary btn-glow">Enroll Now</a>
+                </div>
+
+                <!-- Soft Skills -->
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3>Soft Skills Mastery</h3>
+                    <p>Develop critical soft skills that employers value most - problem-solving, critical thinking, creativity, and time management for career excellence.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> Problem Solving</li>
+                        <li><i class="fas fa-check"></i> Critical Thinking</li>
+                        <li><i class="fas fa-check"></i> Time Management</li>
+                        <li><i class="fas fa-check"></i> Creativity & Innovation</li>
+                    </ul>
+                    <a href="register.html?course=softskills" class="btn btn-primary btn-glow">Enroll Now</a>
+                </div>
+
+                <!-- Resume Building -->
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3>Resume Building Workshop</h3>
+                    <p>Create impactful resumes that stand out. Learn ATS optimization, effective formatting, and how to showcase your achievements to catch recruiter attention.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> ATS Optimization</li>
+                        <li><i class="fas fa-check"></i> Professional Formatting</li>
+                        <li><i class="fas fa-check"></i> Achievement Highlighting</li>
+                        <li><i class="fas fa-check"></i> Cover Letter Writing</li>
+                    </ul>
+                    <a href="register.html?course=resume" class="btn btn-primary btn-glow">Enroll Now</a>
+                </div>
+
+                <!-- Group Discussion -->
+                <div class="program-card">
+                    <div class="program-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Group Discussion Mastery</h3>
+                    <p>Excel in group discussions with techniques for effective participation, topic analysis, structured thinking, and confident communication in group settings.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> Topic Analysis</li>
+                        <li><i class="fas fa-check"></i> Structured Thinking</li>
+                        <li><i class="fas fa-check"></i> Effective Participation</li>
+                        <li><i class="fas fa-check"></i> Consensus Building</li>
+                    </ul>
+                    <a href="register.html?course=gd" class="btn btn-primary btn-glow">Enroll Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="why-choose-us" id="why-us">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why Choose Skreenit Training</h2>
+            </div>
+            <p class="section-subtitle">Industry-leading training methodology designed for real-world success</p>
+            
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <h3>Expert Trainers</h3>
+                    <p>Learn from industry veterans with 15+ years of experience in top corporations</p>
+                </div>
+                <div class="benefit-card">
+                    <i class="fas fa-certificate"></i>
+                    <h3>Certified Programs</h3>
+                    <p>Receive industry-recognized certificates upon successful completion</p>
+                </div>
+                <div class="benefit-card">
+                    <i class="fas fa-laptop"></i>
+                    <h3>Hands-on Learning</h3>
+                    <p>Practical exercises, real-world scenarios, and interactive sessions</p>
+                </div>
+                <div class="benefit-card">
+                    <i class="fas fa-headset"></i>
+                    <h3>Career Support</h3>
+                    <p>Dedicated placement assistance and career counseling post-training</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="training-cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Transform Your Career?</h2>
+                <p>Join thousands of professionals who have accelerated their careers with Skreenit training programs</p>
+                <a href="register.html" class="btn btn-primary btn-large">
+                    <i class="fas fa-rocket"></i> Get Started Today
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Skreenit</h3>
+                    <p>AI-powered recruitment platform transforming how companies hire top talent. Streamline your hiring process with intelligent matching and automated screening.</p>
+                    <div style="margin-top: 1rem;">
+                        <img src="../assets/assets/images/logo.png" alt="Skreenit" class="footer-logo-clean">
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Services</h3>
+                    <p><a href="../index.html#services">AI-Powered Matching</a></p>
+                    <p><a href="../index.html#services">Video Screening</a></p>
+                    <p><a href="../index.html#services">Analytics Dashboard</a></p>
+                    <p><a href="../index.html#services">Talent Management</a></p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <p><a href="../index.html#about">About Us</a></p>
+                    <p><a href="https://portfolio.pskservices.co.in" target="_blank">Portfolio</a></p>
+                    <p><a href="../index.html#pricing">Pricing</a></p>
+                    <p><a href="#contact">Contact</a></p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <h4>Email Us</h4>
+                                <p><a href="mailto:support@skreenit.com">support@skreenit.com</a></p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <div>
+                                <h4>Call Us</h4>
+                                <p>+91 4035730309</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <h4>Location</h4>
+                                <p>
+                                    <b>Corporate Office:</b><br>
+                                    BMG Group, Flat 304,<br>
+                                    New Bowenpally,<br>
+                                    Secunderabad, 500009, India
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Training</h3>
+                    <p><a href="index.html">All Programs</a></p>
+                    <p><a href="register.html">Enroll Now</a></p>
+                    <p><a href="index.html#why-us">Why Choose Us</a></p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>
+                    &copy; 2025 Skreenit. Product of BMG Group and PSK Services. All rights reserved.
+                    <span style="margin: 0 10px; opacity: 0.5;">|</span>
+                    <a href="https://legal.skreenit.com/privacy-policy.html">Privacy Policy</a>
+                    <span style="margin: 0 10px; opacity: 0.5;">|</span>
+                    <a href="https://legal.skreenit.com/terms-conditions.html">Terms & Conditions</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="../assets/assets/js/training.js"></script>
+</body>
+</html>
