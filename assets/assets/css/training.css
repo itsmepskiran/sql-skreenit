@@ -821,3 +821,85 @@
 .program-card .btn-glow:hover {
     animation: glow 1s ease-in-out infinite, pulse-scale 1s ease-in-out infinite;
 }
+
+/* =========================================
+   College Search Dropdown
+   ========================================= */
+.college-search-wrapper {
+    position: relative;
+}
+
+.college-search-wrapper input {
+    width: 100%;
+}
+
+.college-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 250px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-top: none;
+    border-radius: 0 0 var(--radius-md, 8px) var(--radius-md, 8px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 1000;
+}
+
+.college-dropdown.active {
+    display: block;
+}
+
+.college-dropdown-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.15s ease;
+}
+
+.college-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.college-dropdown-item:hover,
+.college-dropdown-item.highlighted {
+    background: var(--primary-color-light, #eef2ff);
+}
+
+.college-dropdown-item .college-name {
+    font-weight: 500;
+    color: var(--text-dark, #1f2937);
+    font-size: 0.9rem;
+}
+
+.college-dropdown-item .college-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted, #6b7280);
+    margin-top: 2px;
+}
+
+.college-dropdown-item .college-meta span {
+    margin-right: 10px;
+}
+
+.college-dropdown-empty {
+    padding: 14px;
+    text-align: center;
+    color: var(--text-muted, #6b7280);
+    font-size: 0.85rem;
+}
+
+.college-dropdown-loading {
+    padding: 14px;
+    text-align: center;
+    color: var(--text-muted, #6b7280);
+    font-size: 0.85rem;
+}
+
+.college-search-wrapper input:focus + .college-dropdown,
+.college-search-wrapper input:active + .college-dropdown {
+    border-color: var(--primary-color, #4f46e5);
+}

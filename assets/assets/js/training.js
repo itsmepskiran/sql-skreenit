@@ -663,6 +663,291 @@ function initLogo() {
     }
 }
 
+// =========================================
+// COLLEGE SEARCH DROPDOWN
+// =========================================
+
+let collegesData = [];
+let universitiesData = [];
+let collegeSearchTimeout = null;
+let universitySearchTimeout = null;
+
+async function loadCollegesData() {
+    if (collegesData.length > 0) return;
+    try {
+        const assetsBase = CONFIG.IS_LOCAL ? '../assets' : 'https://assets.skreenit.com';
+        const response = await fetch(`${assetsBase}/database/colleges.json`);
+        collegesData = await response.json();
+        console.log(`Loaded ${collegesData.length} colleges`);
+    } catch (error) {
+        console.error('Failed to load colleges data:', error);
+    }
+}
+
+async function loadUniversitiesData() {
+    if (universitiesData.length > 0) return;
+    try {
+        const assetsBase = CONFIG.IS_LOCAL ? '../assets' : 'https://assets.skreenit.com';
+        const response = await fetch(`${assetsBase}/database/universities.json`);
+        universitiesData = await response.json();
+        console.log(`Loaded ${universitiesData.length} universities`);
+    } catch (error) {
+        console.error('Failed to load universities data:', error);
+    }
+}
+
+function initCollegeSearch() {
+    const collegeInput = document.getElementById('collegeName');
+    const dropdown = document.getElementById('collegeDropdown');
+
+    if (!collegeInput || !dropdown) return;
+
+    // Load colleges data
+    loadCollegesData();
+
+    // Search on input
+    collegeInput.addEventListener('input', function() {
+        clearTimeout(collegeSearchTimeout);
+        const query = this.value.trim().toLowerCase();
+
+        if (query.length < 2) {
+            dropdown.classList.remove('active');
+            dropdown.innerHTML = '';
+            return;
+        }
+
+        collegeSearchTimeout = setTimeout(() => {
+            const results = collegesData.filter(c =>
+                c.name.toLowerCase().includes(query) ||
+                c.district.toLowerCase().includes(query) ||
+                c.state.toLowerCase().includes(query)
+            ).slice(0, 50);
+
+            if (results.length === 0) {
+                dropdown.innerHTML = '<div class="college-dropdown-empty">No colleges found. Type your college name manually.</div>';
+                dropdown.classList.add('active');
+                return;
+            }
+
+            dropdown.innerHTML = results.map((college, idx) => `
+                <div class="college-dropdown-item" data-index="${idx}">
+                    <div class="college-name">${highlightMatch(college.name, query)}</div>
+                    <div class="college-meta">
+                        <span><i class="fas fa-map-marker-alt"></i> ${college.district}, ${college.state}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            dropdown.classList.add('active');
+
+            // Click handler for each item
+            dropdown.querySelectorAll('.college-dropdown-item').forEach((item, i) => {
+                item.addEventListener('mousedown', function(e) {
+                    e.preventDefault(); // Prevent blur from closing dropdown before click registers
+                    selectCollege(results[i]);
+                });
+            });
+        }, 200);
+    });
+
+    // Show dropdown on focus if there's text
+    collegeInput.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2) {
+            this.dispatchEvent(new Event('input'));
+        }
+    });
+
+    // Hide dropdown on blur
+    collegeInput.addEventListener('blur', function() {
+        setTimeout(() => {
+            dropdown.classList.remove('active');
+        }, 200);
+    });
+
+    // Keyboard navigation
+    collegeInput.addEventListener('keydown', function(e) {
+        const items = dropdown.querySelectorAll('.college-dropdown-item');
+        if (!items.length) return;
+
+        const highlighted = dropdown.querySelector('.college-dropdown-item.highlighted');
+        let idx = highlighted ? Array.from(items).indexOf(highlighted) : -1;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (highlighted) highlighted.classList.remove('highlighted');
+            idx = (idx + 1) % items.length;
+            items[idx].classList.add('highlighted');
+            items[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (highlighted) highlighted.classList.remove('highlighted');
+            idx = idx <= 0 ? items.length - 1 : idx - 1;
+            items[idx].classList.add('highlighted');
+            items[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter' && highlighted) {
+            e.preventDefault();
+            const collegeIdx = parseInt(highlighted.dataset.index);
+            const results = collegesData.filter(c =>
+                c.name.toLowerCase().includes(collegeInput.value.trim().toLowerCase()) ||
+                c.district.toLowerCase().includes(collegeInput.value.trim().toLowerCase()) ||
+                c.state.toLowerCase().includes(collegeInput.value.trim().toLowerCase())
+            ).slice(0, 50);
+            if (results[collegeIdx]) selectCollege(results[collegeIdx]);
+        } else if (e.key === 'Escape') {
+            dropdown.classList.remove('active');
+        }
+    });
+
+    // Allow manual entry if college not found
+    collegeInput.addEventListener('change', function() {
+        const hiddenInput = document.getElementById('collegeNameHidden');
+        if (hiddenInput) hiddenInput.value = this.value;
+    });
+}
+
+function selectCollege(college) {
+    const collegeInput = document.getElementById('collegeName');
+    const universityInput = document.getElementById('universityName');
+    const dropdown = document.getElementById('collegeDropdown');
+    const hiddenInput = document.getElementById('collegeNameHidden');
+
+    collegeInput.value = college.name;
+    if (hiddenInput) hiddenInput.value = college.name;
+
+    // Auto-fill university if data is loaded
+    if (college.university && universityInput) {
+        universityInput.value = college.university;
+        const uniHidden = document.getElementById('universityNameHidden');
+        if (uniHidden) uniHidden.value = college.university;
+    }
+
+    dropdown.classList.remove('active');
+}
+
+function highlightMatch(text, query) {
+    if (!query) return text;
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(regex, '<strong style="color:var(--primary-color)">$1</strong>');
+}
+
+function initUniversitySearch() {
+    const uniInput = document.getElementById('universityName');
+    const dropdown = document.getElementById('universityDropdown');
+
+    if (!uniInput || !dropdown) return;
+
+    // Load universities data
+    loadUniversitiesData();
+
+    // Search on input
+    uniInput.addEventListener('input', function() {
+        clearTimeout(universitySearchTimeout);
+        const query = this.value.trim().toLowerCase();
+
+        if (query.length < 2) {
+            dropdown.classList.remove('active');
+            dropdown.innerHTML = '';
+            return;
+        }
+
+        universitySearchTimeout = setTimeout(() => {
+            const results = universitiesData.filter(u =>
+                u.name.toLowerCase().includes(query) ||
+                u.state.toLowerCase().includes(query)
+            ).slice(0, 50);
+
+            if (results.length === 0) {
+                dropdown.innerHTML = '<div class="college-dropdown-empty">No universities found. Type your university name manually.</div>';
+                dropdown.classList.add('active');
+                return;
+            }
+
+            dropdown.innerHTML = results.map((uni, idx) => `
+                <div class="college-dropdown-item" data-index="${idx}">
+                    <div class="college-name">${highlightMatch(uni.name, query)}</div>
+                    <div class="college-meta">
+                        <span><i class="fas fa-map-marker-alt"></i> ${uni.state}</span>
+                        <span><i class="fas fa-landmark"></i> ${uni.type}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            dropdown.classList.add('active');
+
+            // Click handler for each item
+            dropdown.querySelectorAll('.college-dropdown-item').forEach((item, i) => {
+                item.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    selectUniversity(results[i]);
+                });
+            });
+        }, 200);
+    });
+
+    // Show dropdown on focus if there's text
+    uniInput.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2) {
+            this.dispatchEvent(new Event('input'));
+        }
+    });
+
+    // Hide dropdown on blur
+    uniInput.addEventListener('blur', function() {
+        setTimeout(() => {
+            dropdown.classList.remove('active');
+        }, 200);
+    });
+
+    // Keyboard navigation
+    uniInput.addEventListener('keydown', function(e) {
+        const items = dropdown.querySelectorAll('.college-dropdown-item');
+        if (!items.length) return;
+
+        const highlighted = dropdown.querySelector('.college-dropdown-item.highlighted');
+        let idx = highlighted ? Array.from(items).indexOf(highlighted) : -1;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (highlighted) highlighted.classList.remove('highlighted');
+            idx = (idx + 1) % items.length;
+            items[idx].classList.add('highlighted');
+            items[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (highlighted) highlighted.classList.remove('highlighted');
+            idx = idx <= 0 ? items.length - 1 : idx - 1;
+            items[idx].classList.add('highlighted');
+            items[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter' && highlighted) {
+            e.preventDefault();
+            const uniIdx = parseInt(highlighted.dataset.index);
+            const results = universitiesData.filter(u =>
+                u.name.toLowerCase().includes(uniInput.value.trim().toLowerCase()) ||
+                u.state.toLowerCase().includes(uniInput.value.trim().toLowerCase())
+            ).slice(0, 50);
+            if (results[uniIdx]) selectUniversity(results[uniIdx]);
+        } else if (e.key === 'Escape') {
+            dropdown.classList.remove('active');
+        }
+    });
+
+    // Allow manual entry
+    uniInput.addEventListener('change', function() {
+        const hiddenInput = document.getElementById('universityNameHidden');
+        if (hiddenInput) hiddenInput.value = this.value;
+    });
+}
+
+function selectUniversity(uni) {
+    const uniInput = document.getElementById('universityName');
+    const dropdown = document.getElementById('universityDropdown');
+    const hiddenInput = document.getElementById('universityNameHidden');
+
+    uniInput.value = uni.name;
+    if (hiddenInput) hiddenInput.value = uni.name;
+    dropdown.classList.remove('active');
+}
+
 function initForms() {
     // College form
     const collegeForm = document.getElementById('collegeRegistrationForm');
@@ -694,7 +979,7 @@ function initForms() {
         yearOfStudy.addEventListener('change', function() {
             const passingYear = document.getElementById('passingYear');
             const passingYearLabel = document.getElementById('passingYearLabel');
-            
+
             if (this.value === 'passed_out') {
                 passingYearLabel.textContent = 'Year of Passing *';
                 passingYear.placeholder = 'e.g., 2020';
@@ -708,6 +993,12 @@ function initForms() {
             }
         });
     }
+
+    // College search dropdown
+    initCollegeSearch();
+
+    // University search dropdown
+    initUniversitySearch();
 }
 
 function prefillCourseFromURL() {

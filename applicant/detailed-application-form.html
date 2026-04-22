@@ -35,6 +35,7 @@
     loadSharedCSS('location-components.css');
     loadSharedCSS('warning-ribbon.css');
     loadSharedCSS('mobile.css');
+    loadSharedCSS('cascading-dropdowns.css');
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -217,21 +218,15 @@
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Country*</label>
-                            <select name="current_country" id="currentCountrySelect">
-                                <option value="">Select Country</option>
-                            </select>
+                            <input type="text" name="current_country" id="currentCountryInput" data-location="country" placeholder="Search country..." autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label>State*</label>
-                            <select name="current_state" id="currentStateSelect" disabled>
-                                <option value="">Select State</option>
-                            </select>
+                            <input type="text" name="current_state" id="currentStateInput" data-location="state" placeholder="Search state..." autocomplete="off" disabled>
                         </div>
                         <div class="form-group">
                             <label>City*</label>
-                            <select name="current_city" id="currentCitySelect" disabled>
-                                <option value="">Select City</option>
-                            </select>
+                            <input type="text" name="current_city" id="currentCityInput" data-location="city" placeholder="Search city..." autocomplete="off" disabled>
                         </div>
                     </div>
                     
@@ -251,21 +246,15 @@
                         <div class="form-row-3">
                             <div class="form-group">
                                 <label>Country*</label>
-                                <select name="permanent_country" id="permanentCountrySelect">
-                                    <option value="">Select Country</option>
-                                </select>
+                                <input type="text" name="permanent_country" id="permanentCountryInput" data-location="country" placeholder="Search country..." autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label>State*</label>
-                                <select name="permanent_state" id="permanentStateSelect" disabled>
-                                    <option value="">Select State</option>
-                                </select>
+                                <input type="text" name="permanent_state" id="permanentStateInput" data-location="state" placeholder="Search state..." autocomplete="off" disabled>
                             </div>
                             <div class="form-group">
                                 <label>City*</label>
-                                <select name="permanent_city" id="permanentCitySelect" disabled>
-                                    <option value="">Select City</option>
-                                </select>
+                                <input type="text" name="permanent_city" id="permanentCityInput" data-location="city" placeholder="Search city..." autocomplete="off" disabled>
                             </div>
                         </div>
                     </div>
@@ -375,7 +364,10 @@
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>College Name</label>
-                            <input type="text" name="pre_university" placeholder="College name" />
+                            <div class="college-search-wrapper">
+                                <input type="text" id="preUniversityCollege" name="pre_university" placeholder="Search college name" autocomplete="off">
+                                <div class="college-dropdown" id="preUniversityDropdown"></div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Year of Pass</label>
@@ -392,7 +384,10 @@
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>College/University</label>
-                            <input type="text" name="graduation" placeholder="College/University name" />
+                            <div class="college-search-wrapper">
+                                <input type="text" id="graduationCollege" name="graduation" placeholder="Search college/university" autocomplete="off">
+                                <div class="college-dropdown" id="graduationDropdown"></div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Year of Pass</label>
@@ -409,7 +404,10 @@
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>College/University</label>
-                            <input type="text" name="post_graduation" placeholder="College/University name" />
+                            <div class="college-search-wrapper">
+                                <input type="text" id="postGraduationCollege" name="post_graduation" placeholder="Search college/university" autocomplete="off">
+                                <div class="college-dropdown" id="postGraduationDropdown"></div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Year of Pass</label>
@@ -777,5 +775,24 @@
   </div>
 
   <script type="module" src="js/application-form.js"></script>
+  <script type="module">
+    import { setupLocationDropdowns } from '../assets/assets/js/cascading-dropdowns.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Setup current address location dropdowns
+      await setupLocationDropdowns('applicationForm', {
+        countryField: 'current_country',
+        stateField: 'current_state',
+        cityField: 'current_city'
+      });
+
+      // Setup permanent address location dropdowns
+      await setupLocationDropdowns('applicationForm', {
+        countryField: 'permanent_country',
+        stateField: 'permanent_state',
+        cityField: 'permanent_city'
+      });
+    });
+  </script>
 </body>
 </html>

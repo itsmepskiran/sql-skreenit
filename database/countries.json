@@ -1,0 +1,1744 @@
+[
+  {
+    "common name": "Aruba",
+    "official name": "Aruba",
+    "iso alpha-2": "AW",
+    "iso alpha-3": "ABW",
+    "continent": "North America"
+  },
+  {
+    "common name": "Afghanistan",
+    "official name": "Islamic Republic of Afghanistan",
+    "iso alpha-2": "AF",
+    "iso alpha-3": "AFG",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Angola",
+    "official name": "Republic of Angola",
+    "iso alpha-2": "AO",
+    "iso alpha-3": "AGO",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Anguilla",
+    "official name": "Anguilla",
+    "iso alpha-2": "AI",
+    "iso alpha-3": "AIA",
+    "continent": "North America"
+  },
+  {
+    "common name": "Åland Islands",
+    "official name": "Åland Islands",
+    "iso alpha-2": "AX",
+    "iso alpha-3": "ALA",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Albania",
+    "official name": "Republic of Albania",
+    "iso alpha-2": "AL",
+    "iso alpha-3": "ALB",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Andorra",
+    "official name": "Principality of Andorra",
+    "iso alpha-2": "AD",
+    "iso alpha-3": "AND",
+    "continent": "Europe"
+  },
+  {
+    "common name": "United Arab Emirates",
+    "official name": "United Arab Emirates",
+    "iso alpha-2": "AE",
+    "iso alpha-3": "ARE",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Argentina",
+    "official name": "Argentine Republic",
+    "iso alpha-2": "AR",
+    "iso alpha-3": "ARG",
+    "continent": "South America"
+  },
+  {
+    "common name": "Armenia",
+    "official name": "Republic of Armenia",
+    "iso alpha-2": "AM",
+    "iso alpha-3": "ARM",
+    "continent": "Asia"
+  },
+  {
+    "common name": "American Samoa",
+    "official name": "American Samoa",
+    "iso alpha-2": "AS",
+    "iso alpha-3": "ASM",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Antarctica",
+    "official name": "Antarctica",
+    "iso alpha-2": "AQ",
+    "iso alpha-3": "ATA",
+    "continent": "Other"
+  },
+  {
+    "common name": "French Southern Territories",
+    "official name": "French Southern Territories",
+    "iso alpha-2": "TF",
+    "iso alpha-3": "ATF",
+    "continent": "Other"
+  },
+  {
+    "common name": "Antigua and Barbuda",
+    "official name": "Antigua and Barbuda",
+    "iso alpha-2": "AG",
+    "iso alpha-3": "ATG",
+    "continent": "North America"
+  },
+  {
+    "common name": "Australia",
+    "official name": "Australia",
+    "iso alpha-2": "AU",
+    "iso alpha-3": "AUS",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Austria",
+    "official name": "Republic of Austria",
+    "iso alpha-2": "AT",
+    "iso alpha-3": "AUT",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Azerbaijan",
+    "official name": "Republic of Azerbaijan",
+    "iso alpha-2": "AZ",
+    "iso alpha-3": "AZE",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Burundi",
+    "official name": "Republic of Burundi",
+    "iso alpha-2": "BI",
+    "iso alpha-3": "BDI",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Belgium",
+    "official name": "Kingdom of Belgium",
+    "iso alpha-2": "BE",
+    "iso alpha-3": "BEL",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Benin",
+    "official name": "Republic of Benin",
+    "iso alpha-2": "BJ",
+    "iso alpha-3": "BEN",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Bonaire, Sint Eustatius and Saba",
+    "official name": "Bonaire, Sint Eustatius and Saba",
+    "iso alpha-2": "BQ",
+    "iso alpha-3": "BES",
+    "continent": "North America"
+  },
+  {
+    "common name": "Burkina Faso",
+    "official name": "Burkina Faso",
+    "iso alpha-2": "BF",
+    "iso alpha-3": "BFA",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Bangladesh",
+    "official name": "People's Republic of Bangladesh",
+    "iso alpha-2": "BD",
+    "iso alpha-3": "BGD",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Bulgaria",
+    "official name": "Republic of Bulgaria",
+    "iso alpha-2": "BG",
+    "iso alpha-3": "BGR",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Bahrain",
+    "official name": "Kingdom of Bahrain",
+    "iso alpha-2": "BH",
+    "iso alpha-3": "BHR",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Bahamas",
+    "official name": "Commonwealth of the Bahamas",
+    "iso alpha-2": "BS",
+    "iso alpha-3": "BHS",
+    "continent": "North America"
+  },
+  {
+    "common name": "Bosnia and Herzegovina",
+    "official name": "Republic of Bosnia and Herzegovina",
+    "iso alpha-2": "BA",
+    "iso alpha-3": "BIH",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Saint Barthélemy",
+    "official name": "Saint Barthélemy",
+    "iso alpha-2": "BL",
+    "iso alpha-3": "BLM",
+    "continent": "North America"
+  },
+  {
+    "common name": "Belarus",
+    "official name": "Republic of Belarus",
+    "iso alpha-2": "BY",
+    "iso alpha-3": "BLR",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Belize",
+    "official name": "Belize",
+    "iso alpha-2": "BZ",
+    "iso alpha-3": "BLZ",
+    "continent": "North America"
+  },
+  {
+    "common name": "Bermuda",
+    "official name": "Bermuda",
+    "iso alpha-2": "BM",
+    "iso alpha-3": "BMU",
+    "continent": "North America"
+  },
+  {
+    "common name": "Bolivia, Plurinational State of",
+    "official name": "Plurinational State of Bolivia",
+    "iso alpha-2": "BO",
+    "iso alpha-3": "BOL",
+    "continent": "South America"
+  },
+  {
+    "common name": "Brazil",
+    "official name": "Federative Republic of Brazil",
+    "iso alpha-2": "BR",
+    "iso alpha-3": "BRA",
+    "continent": "South America"
+  },
+  {
+    "common name": "Barbados",
+    "official name": "Barbados",
+    "iso alpha-2": "BB",
+    "iso alpha-3": "BRB",
+    "continent": "North America"
+  },
+  {
+    "common name": "Brunei Darussalam",
+    "official name": "Brunei Darussalam",
+    "iso alpha-2": "BN",
+    "iso alpha-3": "BRN",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Bhutan",
+    "official name": "Kingdom of Bhutan",
+    "iso alpha-2": "BT",
+    "iso alpha-3": "BTN",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Bouvet Island",
+    "official name": "Bouvet Island",
+    "iso alpha-2": "BV",
+    "iso alpha-3": "BVT",
+    "continent": "Antarctica"
+  },
+  {
+    "common name": "Botswana",
+    "official name": "Republic of Botswana",
+    "iso alpha-2": "BW",
+    "iso alpha-3": "BWA",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Central African Republic",
+    "official name": "Central African Republic",
+    "iso alpha-2": "CF",
+    "iso alpha-3": "CAF",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Canada",
+    "official name": "Canada",
+    "iso alpha-2": "CA",
+    "iso alpha-3": "CAN",
+    "continent": "North America"
+  },
+  {
+    "common name": "Cocos (Keeling) Islands",
+    "official name": "Cocos (Keeling) Islands",
+    "iso alpha-2": "CC",
+    "iso alpha-3": "CCK",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Switzerland",
+    "official name": "Swiss Confederation",
+    "iso alpha-2": "CH",
+    "iso alpha-3": "CHE",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Chile",
+    "official name": "Republic of Chile",
+    "iso alpha-2": "CL",
+    "iso alpha-3": "CHL",
+    "continent": "South America"
+  },
+  {
+    "common name": "China",
+    "official name": "People's Republic of China",
+    "iso alpha-2": "CN",
+    "iso alpha-3": "CHN",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Côte d'Ivoire",
+    "official name": "Republic of Côte d'Ivoire",
+    "iso alpha-2": "CI",
+    "iso alpha-3": "CIV",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Cameroon",
+    "official name": "Republic of Cameroon",
+    "iso alpha-2": "CM",
+    "iso alpha-3": "CMR",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Congo, The Democratic Republic of the",
+    "official name": "Congo, The Democratic Republic of the",
+    "iso alpha-2": "CD",
+    "iso alpha-3": "COD",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Congo",
+    "official name": "Republic of the Congo",
+    "iso alpha-2": "CG",
+    "iso alpha-3": "COG",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Cook Islands",
+    "official name": "Cook Islands",
+    "iso alpha-2": "CK",
+    "iso alpha-3": "COK",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Colombia",
+    "official name": "Republic of Colombia",
+    "iso alpha-2": "CO",
+    "iso alpha-3": "COL",
+    "continent": "South America"
+  },
+  {
+    "common name": "Comoros",
+    "official name": "Union of the Comoros",
+    "iso alpha-2": "KM",
+    "iso alpha-3": "COM",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Cabo Verde",
+    "official name": "Republic of Cabo Verde",
+    "iso alpha-2": "CV",
+    "iso alpha-3": "CPV",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Costa Rica",
+    "official name": "Republic of Costa Rica",
+    "iso alpha-2": "CR",
+    "iso alpha-3": "CRI",
+    "continent": "North America"
+  },
+  {
+    "common name": "Cuba",
+    "official name": "Republic of Cuba",
+    "iso alpha-2": "CU",
+    "iso alpha-3": "CUB",
+    "continent": "North America"
+  },
+  {
+    "common name": "Curaçao",
+    "official name": "Curaçao",
+    "iso alpha-2": "CW",
+    "iso alpha-3": "CUW",
+    "continent": "North America"
+  },
+  {
+    "common name": "Christmas Island",
+    "official name": "Christmas Island",
+    "iso alpha-2": "CX",
+    "iso alpha-3": "CXR",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Cayman Islands",
+    "official name": "Cayman Islands",
+    "iso alpha-2": "KY",
+    "iso alpha-3": "CYM",
+    "continent": "North America"
+  },
+  {
+    "common name": "Cyprus",
+    "official name": "Republic of Cyprus",
+    "iso alpha-2": "CY",
+    "iso alpha-3": "CYP",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Czechia",
+    "official name": "Czech Republic",
+    "iso alpha-2": "CZ",
+    "iso alpha-3": "CZE",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Germany",
+    "official name": "Federal Republic of Germany",
+    "iso alpha-2": "DE",
+    "iso alpha-3": "DEU",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Djibouti",
+    "official name": "Republic of Djibouti",
+    "iso alpha-2": "DJ",
+    "iso alpha-3": "DJI",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Dominica",
+    "official name": "Commonwealth of Dominica",
+    "iso alpha-2": "DM",
+    "iso alpha-3": "DMA",
+    "continent": "North America"
+  },
+  {
+    "common name": "Denmark",
+    "official name": "Kingdom of Denmark",
+    "iso alpha-2": "DK",
+    "iso alpha-3": "DNK",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Dominican Republic",
+    "official name": "Dominican Republic",
+    "iso alpha-2": "DO",
+    "iso alpha-3": "DOM",
+    "continent": "North America"
+  },
+  {
+    "common name": "Algeria",
+    "official name": "People's Democratic Republic of Algeria",
+    "iso alpha-2": "DZ",
+    "iso alpha-3": "DZA",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Ecuador",
+    "official name": "Republic of Ecuador",
+    "iso alpha-2": "EC",
+    "iso alpha-3": "ECU",
+    "continent": "South America"
+  },
+  {
+    "common name": "Egypt",
+    "official name": "Arab Republic of Egypt",
+    "iso alpha-2": "EG",
+    "iso alpha-3": "EGY",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Eritrea",
+    "official name": "the State of Eritrea",
+    "iso alpha-2": "ER",
+    "iso alpha-3": "ERI",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Western Sahara",
+    "official name": "Western Sahara",
+    "iso alpha-2": "EH",
+    "iso alpha-3": "ESH",
+    "continent": "Other"
+  },
+  {
+    "common name": "Spain",
+    "official name": "Kingdom of Spain",
+    "iso alpha-2": "ES",
+    "iso alpha-3": "ESP",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Estonia",
+    "official name": "Republic of Estonia",
+    "iso alpha-2": "EE",
+    "iso alpha-3": "EST",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Ethiopia",
+    "official name": "Federal Democratic Republic of Ethiopia",
+    "iso alpha-2": "ET",
+    "iso alpha-3": "ETH",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Finland",
+    "official name": "Republic of Finland",
+    "iso alpha-2": "FI",
+    "iso alpha-3": "FIN",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Fiji",
+    "official name": "Republic of Fiji",
+    "iso alpha-2": "FJ",
+    "iso alpha-3": "FJI",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Falkland Islands (Malvinas)",
+    "official name": "Falkland Islands (Malvinas)",
+    "iso alpha-2": "FK",
+    "iso alpha-3": "FLK",
+    "continent": "South America"
+  },
+  {
+    "common name": "France",
+    "official name": "French Republic",
+    "iso alpha-2": "FR",
+    "iso alpha-3": "FRA",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Faroe Islands",
+    "official name": "Faroe Islands",
+    "iso alpha-2": "FO",
+    "iso alpha-3": "FRO",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Micronesia, Federated States of",
+    "official name": "Federated States of Micronesia",
+    "iso alpha-2": "FM",
+    "iso alpha-3": "FSM",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Gabon",
+    "official name": "Gabonese Republic",
+    "iso alpha-2": "GA",
+    "iso alpha-3": "GAB",
+    "continent": "Africa"
+  },
+  {
+    "common name": "United Kingdom",
+    "official name": "United Kingdom of Great Britain and Northern Ireland",
+    "iso alpha-2": "GB",
+    "iso alpha-3": "GBR",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Georgia",
+    "official name": "Georgia",
+    "iso alpha-2": "GE",
+    "iso alpha-3": "GEO",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Guernsey",
+    "official name": "Guernsey",
+    "iso alpha-2": "GG",
+    "iso alpha-3": "GGY",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Ghana",
+    "official name": "Republic of Ghana",
+    "iso alpha-2": "GH",
+    "iso alpha-3": "GHA",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Gibraltar",
+    "official name": "Gibraltar",
+    "iso alpha-2": "GI",
+    "iso alpha-3": "GIB",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Guinea",
+    "official name": "Republic of Guinea",
+    "iso alpha-2": "GN",
+    "iso alpha-3": "GIN",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Guadeloupe",
+    "official name": "Guadeloupe",
+    "iso alpha-2": "GP",
+    "iso alpha-3": "GLP",
+    "continent": "North America"
+  },
+  {
+    "common name": "Gambia",
+    "official name": "Republic of the Gambia",
+    "iso alpha-2": "GM",
+    "iso alpha-3": "GMB",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Guinea-Bissau",
+    "official name": "Republic of Guinea-Bissau",
+    "iso alpha-2": "GW",
+    "iso alpha-3": "GNB",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Equatorial Guinea",
+    "official name": "Republic of Equatorial Guinea",
+    "iso alpha-2": "GQ",
+    "iso alpha-3": "GNQ",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Greece",
+    "official name": "Hellenic Republic",
+    "iso alpha-2": "GR",
+    "iso alpha-3": "GRC",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Grenada",
+    "official name": "Grenada",
+    "iso alpha-2": "GD",
+    "iso alpha-3": "GRD",
+    "continent": "North America"
+  },
+  {
+    "common name": "Greenland",
+    "official name": "Greenland",
+    "iso alpha-2": "GL",
+    "iso alpha-3": "GRL",
+    "continent": "North America"
+  },
+  {
+    "common name": "Guatemala",
+    "official name": "Republic of Guatemala",
+    "iso alpha-2": "GT",
+    "iso alpha-3": "GTM",
+    "continent": "North America"
+  },
+  {
+    "common name": "French Guiana",
+    "official name": "French Guiana",
+    "iso alpha-2": "GF",
+    "iso alpha-3": "GUF",
+    "continent": "South America"
+  },
+  {
+    "common name": "Guam",
+    "official name": "Guam",
+    "iso alpha-2": "GU",
+    "iso alpha-3": "GUM",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Guyana",
+    "official name": "Republic of Guyana",
+    "iso alpha-2": "GY",
+    "iso alpha-3": "GUY",
+    "continent": "South America"
+  },
+  {
+    "common name": "Hong Kong",
+    "official name": "Hong Kong Special Administrative Region of China",
+    "iso alpha-2": "HK",
+    "iso alpha-3": "HKG",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Heard Island and McDonald Islands",
+    "official name": "Heard Island and McDonald Islands",
+    "iso alpha-2": "HM",
+    "iso alpha-3": "HMD",
+    "continent": "Antarctica"
+  },
+  {
+    "common name": "Honduras",
+    "official name": "Republic of Honduras",
+    "iso alpha-2": "HN",
+    "iso alpha-3": "HND",
+    "continent": "North America"
+  },
+  {
+    "common name": "Croatia",
+    "official name": "Republic of Croatia",
+    "iso alpha-2": "HR",
+    "iso alpha-3": "HRV",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Haiti",
+    "official name": "Republic of Haiti",
+    "iso alpha-2": "HT",
+    "iso alpha-3": "HTI",
+    "continent": "North America"
+  },
+  {
+    "common name": "Hungary",
+    "official name": "Hungary",
+    "iso alpha-2": "HU",
+    "iso alpha-3": "HUN",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Indonesia",
+    "official name": "Republic of Indonesia",
+    "iso alpha-2": "ID",
+    "iso alpha-3": "IDN",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Isle of Man",
+    "official name": "Isle of Man",
+    "iso alpha-2": "IM",
+    "iso alpha-3": "IMN",
+    "continent": "Europe"
+  },
+  {
+    "common name": "India",
+    "official name": "Republic of India",
+    "iso alpha-2": "IN",
+    "iso alpha-3": "IND",
+    "continent": "Asia"
+  },
+  {
+    "common name": "British Indian Ocean Territory",
+    "official name": "British Indian Ocean Territory",
+    "iso alpha-2": "IO",
+    "iso alpha-3": "IOT",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Ireland",
+    "official name": "Ireland",
+    "iso alpha-2": "IE",
+    "iso alpha-3": "IRL",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Iran, Islamic Republic of",
+    "official name": "Islamic Republic of Iran",
+    "iso alpha-2": "IR",
+    "iso alpha-3": "IRN",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Iraq",
+    "official name": "Republic of Iraq",
+    "iso alpha-2": "IQ",
+    "iso alpha-3": "IRQ",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Iceland",
+    "official name": "Republic of Iceland",
+    "iso alpha-2": "IS",
+    "iso alpha-3": "ISL",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Israel",
+    "official name": "State of Israel",
+    "iso alpha-2": "IL",
+    "iso alpha-3": "ISR",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Italy",
+    "official name": "Italian Republic",
+    "iso alpha-2": "IT",
+    "iso alpha-3": "ITA",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Jamaica",
+    "official name": "Jamaica",
+    "iso alpha-2": "JM",
+    "iso alpha-3": "JAM",
+    "continent": "North America"
+  },
+  {
+    "common name": "Jersey",
+    "official name": "Jersey",
+    "iso alpha-2": "JE",
+    "iso alpha-3": "JEY",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Jordan",
+    "official name": "Hashemite Kingdom of Jordan",
+    "iso alpha-2": "JO",
+    "iso alpha-3": "JOR",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Japan",
+    "official name": "Japan",
+    "iso alpha-2": "JP",
+    "iso alpha-3": "JPN",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Kazakhstan",
+    "official name": "Republic of Kazakhstan",
+    "iso alpha-2": "KZ",
+    "iso alpha-3": "KAZ",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Kenya",
+    "official name": "Republic of Kenya",
+    "iso alpha-2": "KE",
+    "iso alpha-3": "KEN",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Kyrgyzstan",
+    "official name": "Kyrgyz Republic",
+    "iso alpha-2": "KG",
+    "iso alpha-3": "KGZ",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Cambodia",
+    "official name": "Kingdom of Cambodia",
+    "iso alpha-2": "KH",
+    "iso alpha-3": "KHM",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Kiribati",
+    "official name": "Republic of Kiribati",
+    "iso alpha-2": "KI",
+    "iso alpha-3": "KIR",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Saint Kitts and Nevis",
+    "official name": "Saint Kitts and Nevis",
+    "iso alpha-2": "KN",
+    "iso alpha-3": "KNA",
+    "continent": "North America"
+  },
+  {
+    "common name": "Korea, Republic of",
+    "official name": "Korea, Republic of",
+    "iso alpha-2": "KR",
+    "iso alpha-3": "KOR",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Kuwait",
+    "official name": "State of Kuwait",
+    "iso alpha-2": "KW",
+    "iso alpha-3": "KWT",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Lao People's Democratic Republic",
+    "official name": "Lao People's Democratic Republic",
+    "iso alpha-2": "LA",
+    "iso alpha-3": "LAO",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Lebanon",
+    "official name": "Lebanese Republic",
+    "iso alpha-2": "LB",
+    "iso alpha-3": "LBN",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Liberia",
+    "official name": "Republic of Liberia",
+    "iso alpha-2": "LR",
+    "iso alpha-3": "LBR",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Libya",
+    "official name": "Libya",
+    "iso alpha-2": "LY",
+    "iso alpha-3": "LBY",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Saint Lucia",
+    "official name": "Saint Lucia",
+    "iso alpha-2": "LC",
+    "iso alpha-3": "LCA",
+    "continent": "North America"
+  },
+  {
+    "common name": "Liechtenstein",
+    "official name": "Principality of Liechtenstein",
+    "iso alpha-2": "LI",
+    "iso alpha-3": "LIE",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Sri Lanka",
+    "official name": "Democratic Socialist Republic of Sri Lanka",
+    "iso alpha-2": "LK",
+    "iso alpha-3": "LKA",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Lesotho",
+    "official name": "Kingdom of Lesotho",
+    "iso alpha-2": "LS",
+    "iso alpha-3": "LSO",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Lithuania",
+    "official name": "Republic of Lithuania",
+    "iso alpha-2": "LT",
+    "iso alpha-3": "LTU",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Luxembourg",
+    "official name": "Grand Duchy of Luxembourg",
+    "iso alpha-2": "LU",
+    "iso alpha-3": "LUX",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Latvia",
+    "official name": "Republic of Latvia",
+    "iso alpha-2": "LV",
+    "iso alpha-3": "LVA",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Macao",
+    "official name": "Macao Special Administrative Region of China",
+    "iso alpha-2": "MO",
+    "iso alpha-3": "MAC",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Saint Martin (French part)",
+    "official name": "Saint Martin (French part)",
+    "iso alpha-2": "MF",
+    "iso alpha-3": "MAF",
+    "continent": "North America"
+  },
+  {
+    "common name": "Morocco",
+    "official name": "Kingdom of Morocco",
+    "iso alpha-2": "MA",
+    "iso alpha-3": "MAR",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Monaco",
+    "official name": "Principality of Monaco",
+    "iso alpha-2": "MC",
+    "iso alpha-3": "MCO",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Moldova, Republic of",
+    "official name": "Republic of Moldova",
+    "iso alpha-2": "MD",
+    "iso alpha-3": "MDA",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Madagascar",
+    "official name": "Republic of Madagascar",
+    "iso alpha-2": "MG",
+    "iso alpha-3": "MDG",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Maldives",
+    "official name": "Republic of Maldives",
+    "iso alpha-2": "MV",
+    "iso alpha-3": "MDV",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Mexico",
+    "official name": "United Mexican States",
+    "iso alpha-2": "MX",
+    "iso alpha-3": "MEX",
+    "continent": "North America"
+  },
+  {
+    "common name": "Marshall Islands",
+    "official name": "Republic of the Marshall Islands",
+    "iso alpha-2": "MH",
+    "iso alpha-3": "MHL",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "North Macedonia",
+    "official name": "Republic of North Macedonia",
+    "iso alpha-2": "MK",
+    "iso alpha-3": "MKD",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Mali",
+    "official name": "Republic of Mali",
+    "iso alpha-2": "ML",
+    "iso alpha-3": "MLI",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Malta",
+    "official name": "Republic of Malta",
+    "iso alpha-2": "MT",
+    "iso alpha-3": "MLT",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Myanmar",
+    "official name": "Republic of Myanmar",
+    "iso alpha-2": "MM",
+    "iso alpha-3": "MMR",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Montenegro",
+    "official name": "Montenegro",
+    "iso alpha-2": "ME",
+    "iso alpha-3": "MNE",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Mongolia",
+    "official name": "Mongolia",
+    "iso alpha-2": "MN",
+    "iso alpha-3": "MNG",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Northern Mariana Islands",
+    "official name": "Commonwealth of the Northern Mariana Islands",
+    "iso alpha-2": "MP",
+    "iso alpha-3": "MNP",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Mozambique",
+    "official name": "Republic of Mozambique",
+    "iso alpha-2": "MZ",
+    "iso alpha-3": "MOZ",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Mauritania",
+    "official name": "Islamic Republic of Mauritania",
+    "iso alpha-2": "MR",
+    "iso alpha-3": "MRT",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Montserrat",
+    "official name": "Montserrat",
+    "iso alpha-2": "MS",
+    "iso alpha-3": "MSR",
+    "continent": "North America"
+  },
+  {
+    "common name": "Martinique",
+    "official name": "Martinique",
+    "iso alpha-2": "MQ",
+    "iso alpha-3": "MTQ",
+    "continent": "North America"
+  },
+  {
+    "common name": "Mauritius",
+    "official name": "Republic of Mauritius",
+    "iso alpha-2": "MU",
+    "iso alpha-3": "MUS",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Malawi",
+    "official name": "Republic of Malawi",
+    "iso alpha-2": "MW",
+    "iso alpha-3": "MWI",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Malaysia",
+    "official name": "Malaysia",
+    "iso alpha-2": "MY",
+    "iso alpha-3": "MYS",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Mayotte",
+    "official name": "Mayotte",
+    "iso alpha-2": "YT",
+    "iso alpha-3": "MYT",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Namibia",
+    "official name": "Republic of Namibia",
+    "iso alpha-3": "NAM",
+    "continent": "Africa"
+  },
+  {
+    "common name": "New Caledonia",
+    "official name": "New Caledonia",
+    "iso alpha-2": "NC",
+    "iso alpha-3": "NCL",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Niger",
+    "official name": "Republic of the Niger",
+    "iso alpha-2": "NE",
+    "iso alpha-3": "NER",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Norfolk Island",
+    "official name": "Norfolk Island",
+    "iso alpha-2": "NF",
+    "iso alpha-3": "NFK",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Nigeria",
+    "official name": "Federal Republic of Nigeria",
+    "iso alpha-2": "NG",
+    "iso alpha-3": "NGA",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Nicaragua",
+    "official name": "Republic of Nicaragua",
+    "iso alpha-2": "NI",
+    "iso alpha-3": "NIC",
+    "continent": "North America"
+  },
+  {
+    "common name": "Niue",
+    "official name": "Niue",
+    "iso alpha-2": "NU",
+    "iso alpha-3": "NIU",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Netherlands",
+    "official name": "Kingdom of the Netherlands",
+    "iso alpha-2": "NL",
+    "iso alpha-3": "NLD",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Norway",
+    "official name": "Kingdom of Norway",
+    "iso alpha-2": "NO",
+    "iso alpha-3": "NOR",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Nepal",
+    "official name": "Federal Democratic Republic of Nepal",
+    "iso alpha-2": "NP",
+    "iso alpha-3": "NPL",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Nauru",
+    "official name": "Republic of Nauru",
+    "iso alpha-2": "NR",
+    "iso alpha-3": "NRU",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "New Zealand",
+    "official name": "New Zealand",
+    "iso alpha-2": "NZ",
+    "iso alpha-3": "NZL",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Oman",
+    "official name": "Sultanate of Oman",
+    "iso alpha-2": "OM",
+    "iso alpha-3": "OMN",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Pakistan",
+    "official name": "Islamic Republic of Pakistan",
+    "iso alpha-2": "PK",
+    "iso alpha-3": "PAK",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Panama",
+    "official name": "Republic of Panama",
+    "iso alpha-2": "PA",
+    "iso alpha-3": "PAN",
+    "continent": "North America"
+  },
+  {
+    "common name": "Pitcairn",
+    "official name": "Pitcairn",
+    "iso alpha-2": "PN",
+    "iso alpha-3": "PCN",
+    "continent": "Other"
+  },
+  {
+    "common name": "Peru",
+    "official name": "Republic of Peru",
+    "iso alpha-2": "PE",
+    "iso alpha-3": "PER",
+    "continent": "South America"
+  },
+  {
+    "common name": "Philippines",
+    "official name": "Republic of the Philippines",
+    "iso alpha-2": "PH",
+    "iso alpha-3": "PHL",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Palau",
+    "official name": "Republic of Palau",
+    "iso alpha-2": "PW",
+    "iso alpha-3": "PLW",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Papua New Guinea",
+    "official name": "Independent State of Papua New Guinea",
+    "iso alpha-2": "PG",
+    "iso alpha-3": "PNG",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Poland",
+    "official name": "Republic of Poland",
+    "iso alpha-2": "PL",
+    "iso alpha-3": "POL",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Puerto Rico",
+    "official name": "Puerto Rico",
+    "iso alpha-2": "PR",
+    "iso alpha-3": "PRI",
+    "continent": "North America"
+  },
+  {
+    "common name": "Korea, Democratic People's Republic of",
+    "official name": "Democratic People's Republic of Korea",
+    "iso alpha-2": "KP",
+    "iso alpha-3": "PRK",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Portugal",
+    "official name": "Portuguese Republic",
+    "iso alpha-2": "PT",
+    "iso alpha-3": "PRT",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Paraguay",
+    "official name": "Republic of Paraguay",
+    "iso alpha-2": "PY",
+    "iso alpha-3": "PRY",
+    "continent": "South America"
+  },
+  {
+    "common name": "Palestine, State of",
+    "official name": "the State of Palestine",
+    "iso alpha-2": "PS",
+    "iso alpha-3": "PSE",
+    "continent": "Asia"
+  },
+  {
+    "common name": "French Polynesia",
+    "official name": "French Polynesia",
+    "iso alpha-2": "PF",
+    "iso alpha-3": "PYF",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Qatar",
+    "official name": "State of Qatar",
+    "iso alpha-2": "QA",
+    "iso alpha-3": "QAT",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Réunion",
+    "official name": "Réunion",
+    "iso alpha-2": "RE",
+    "iso alpha-3": "REU",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Romania",
+    "official name": "Romania",
+    "iso alpha-2": "RO",
+    "iso alpha-3": "ROU",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Russian Federation",
+    "official name": "Russian Federation",
+    "iso alpha-2": "RU",
+    "iso alpha-3": "RUS",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Rwanda",
+    "official name": "Rwandese Republic",
+    "iso alpha-2": "RW",
+    "iso alpha-3": "RWA",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Saudi Arabia",
+    "official name": "Kingdom of Saudi Arabia",
+    "iso alpha-2": "SA",
+    "iso alpha-3": "SAU",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Sudan",
+    "official name": "Republic of the Sudan",
+    "iso alpha-2": "SD",
+    "iso alpha-3": "SDN",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Senegal",
+    "official name": "Republic of Senegal",
+    "iso alpha-2": "SN",
+    "iso alpha-3": "SEN",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Singapore",
+    "official name": "Republic of Singapore",
+    "iso alpha-2": "SG",
+    "iso alpha-3": "SGP",
+    "continent": "Asia"
+  },
+  {
+    "common name": "South Georgia and the South Sandwich Islands",
+    "official name": "South Georgia and the South Sandwich Islands",
+    "iso alpha-2": "GS",
+    "iso alpha-3": "SGS",
+    "continent": "South America"
+  },
+  {
+    "common name": "Saint Helena, Ascension and Tristan da Cunha",
+    "official name": "Saint Helena, Ascension and Tristan da Cunha",
+    "iso alpha-2": "SH",
+    "iso alpha-3": "SHN",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Svalbard and Jan Mayen",
+    "official name": "Svalbard and Jan Mayen",
+    "iso alpha-2": "SJ",
+    "iso alpha-3": "SJM",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Solomon Islands",
+    "official name": "Solomon Islands",
+    "iso alpha-2": "SB",
+    "iso alpha-3": "SLB",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Sierra Leone",
+    "official name": "Republic of Sierra Leone",
+    "iso alpha-2": "SL",
+    "iso alpha-3": "SLE",
+    "continent": "Africa"
+  },
+  {
+    "common name": "El Salvador",
+    "official name": "Republic of El Salvador",
+    "iso alpha-2": "SV",
+    "iso alpha-3": "SLV",
+    "continent": "North America"
+  },
+  {
+    "common name": "San Marino",
+    "official name": "Republic of San Marino",
+    "iso alpha-2": "SM",
+    "iso alpha-3": "SMR",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Somalia",
+    "official name": "Federal Republic of Somalia",
+    "iso alpha-2": "SO",
+    "iso alpha-3": "SOM",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Saint Pierre and Miquelon",
+    "official name": "Saint Pierre and Miquelon",
+    "iso alpha-2": "PM",
+    "iso alpha-3": "SPM",
+    "continent": "North America"
+  },
+  {
+    "common name": "Serbia",
+    "official name": "Republic of Serbia",
+    "iso alpha-2": "RS",
+    "iso alpha-3": "SRB",
+    "continent": "Europe"
+  },
+  {
+    "common name": "South Sudan",
+    "official name": "Republic of South Sudan",
+    "iso alpha-2": "SS",
+    "iso alpha-3": "SSD",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Sao Tome and Principe",
+    "official name": "Democratic Republic of Sao Tome and Principe",
+    "iso alpha-2": "ST",
+    "iso alpha-3": "STP",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Suriname",
+    "official name": "Republic of Suriname",
+    "iso alpha-2": "SR",
+    "iso alpha-3": "SUR",
+    "continent": "South America"
+  },
+  {
+    "common name": "Slovakia",
+    "official name": "Slovak Republic",
+    "iso alpha-2": "SK",
+    "iso alpha-3": "SVK",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Slovenia",
+    "official name": "Republic of Slovenia",
+    "iso alpha-2": "SI",
+    "iso alpha-3": "SVN",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Sweden",
+    "official name": "Kingdom of Sweden",
+    "iso alpha-2": "SE",
+    "iso alpha-3": "SWE",
+    "continent": "Europe"
+  },
+  {
+    "common name": "Eswatini",
+    "official name": "Kingdom of Eswatini",
+    "iso alpha-2": "SZ",
+    "iso alpha-3": "SWZ",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Sint Maarten (Dutch part)",
+    "official name": "Sint Maarten (Dutch part)",
+    "iso alpha-2": "SX",
+    "iso alpha-3": "SXM",
+    "continent": "Other"
+  },
+  {
+    "common name": "Seychelles",
+    "official name": "Republic of Seychelles",
+    "iso alpha-2": "SC",
+    "iso alpha-3": "SYC",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Syrian Arab Republic",
+    "official name": "Syrian Arab Republic",
+    "iso alpha-2": "SY",
+    "iso alpha-3": "SYR",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Turks and Caicos Islands",
+    "official name": "Turks and Caicos Islands",
+    "iso alpha-2": "TC",
+    "iso alpha-3": "TCA",
+    "continent": "North America"
+  },
+  {
+    "common name": "Chad",
+    "official name": "Republic of Chad",
+    "iso alpha-2": "TD",
+    "iso alpha-3": "TCD",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Togo",
+    "official name": "Togolese Republic",
+    "iso alpha-2": "TG",
+    "iso alpha-3": "TGO",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Thailand",
+    "official name": "Kingdom of Thailand",
+    "iso alpha-2": "TH",
+    "iso alpha-3": "THA",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Tajikistan",
+    "official name": "Republic of Tajikistan",
+    "iso alpha-2": "TJ",
+    "iso alpha-3": "TJK",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Tokelau",
+    "official name": "Tokelau",
+    "iso alpha-2": "TK",
+    "iso alpha-3": "TKL",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Turkmenistan",
+    "official name": "Turkmenistan",
+    "iso alpha-2": "TM",
+    "iso alpha-3": "TKM",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Timor-Leste",
+    "official name": "Democratic Republic of Timor-Leste",
+    "iso alpha-2": "TL",
+    "iso alpha-3": "TLS",
+    "continent": "Other"
+  },
+  {
+    "common name": "Tonga",
+    "official name": "Kingdom of Tonga",
+    "iso alpha-2": "TO",
+    "iso alpha-3": "TON",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Trinidad and Tobago",
+    "official name": "Republic of Trinidad and Tobago",
+    "iso alpha-2": "TT",
+    "iso alpha-3": "TTO",
+    "continent": "North America"
+  },
+  {
+    "common name": "Tunisia",
+    "official name": "Republic of Tunisia",
+    "iso alpha-2": "TN",
+    "iso alpha-3": "TUN",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Türkiye",
+    "official name": "Republic of Türkiye",
+    "iso alpha-2": "TR",
+    "iso alpha-3": "TUR",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Tuvalu",
+    "official name": "Tuvalu",
+    "iso alpha-2": "TV",
+    "iso alpha-3": "TUV",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Taiwan, Province of China",
+    "official name": "Taiwan, Province of China",
+    "iso alpha-2": "TW",
+    "iso alpha-3": "TWN",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Tanzania, United Republic of",
+    "official name": "United Republic of Tanzania",
+    "iso alpha-2": "TZ",
+    "iso alpha-3": "TZA",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Uganda",
+    "official name": "Republic of Uganda",
+    "iso alpha-2": "UG",
+    "iso alpha-3": "UGA",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Ukraine",
+    "official name": "Ukraine",
+    "iso alpha-2": "UA",
+    "iso alpha-3": "UKR",
+    "continent": "Europe"
+  },
+  {
+    "common name": "United States Minor Outlying Islands",
+    "official name": "United States Minor Outlying Islands",
+    "iso alpha-2": "UM",
+    "iso alpha-3": "UMI",
+    "continent": "Other"
+  },
+  {
+    "common name": "Uruguay",
+    "official name": "Eastern Republic of Uruguay",
+    "iso alpha-2": "UY",
+    "iso alpha-3": "URY",
+    "continent": "South America"
+  },
+  {
+    "common name": "United States",
+    "official name": "United States of America",
+    "iso alpha-2": "US",
+    "iso alpha-3": "USA",
+    "continent": "North America"
+  },
+  {
+    "common name": "Uzbekistan",
+    "official name": "Republic of Uzbekistan",
+    "iso alpha-2": "UZ",
+    "iso alpha-3": "UZB",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Holy See (Vatican City State)",
+    "official name": "Holy See (Vatican City State)",
+    "iso alpha-2": "VA",
+    "iso alpha-3": "VAT",
+    "continent": "Other"
+  },
+  {
+    "common name": "Saint Vincent and the Grenadines",
+    "official name": "Saint Vincent and the Grenadines",
+    "iso alpha-2": "VC",
+    "iso alpha-3": "VCT",
+    "continent": "North America"
+  },
+  {
+    "common name": "Venezuela, Bolivarian Republic of",
+    "official name": "Bolivarian Republic of Venezuela",
+    "iso alpha-2": "VE",
+    "iso alpha-3": "VEN",
+    "continent": "South America"
+  },
+  {
+    "common name": "Virgin Islands, British",
+    "official name": "British Virgin Islands",
+    "iso alpha-2": "VG",
+    "iso alpha-3": "VGB",
+    "continent": "North America"
+  },
+  {
+    "common name": "Virgin Islands, U.S.",
+    "official name": "Virgin Islands of the United States",
+    "iso alpha-2": "VI",
+    "iso alpha-3": "VIR",
+    "continent": "North America"
+  },
+  {
+    "common name": "Viet Nam",
+    "official name": "Socialist Republic of Viet Nam",
+    "iso alpha-2": "VN",
+    "iso alpha-3": "VNM",
+    "continent": "Asia"
+  },
+  {
+    "common name": "Vanuatu",
+    "official name": "Republic of Vanuatu",
+    "iso alpha-2": "VU",
+    "iso alpha-3": "VUT",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Wallis and Futuna",
+    "official name": "Wallis and Futuna",
+    "iso alpha-2": "WF",
+    "iso alpha-3": "WLF",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Samoa",
+    "official name": "Independent State of Samoa",
+    "iso alpha-2": "WS",
+    "iso alpha-3": "WSM",
+    "continent": "Oceania"
+  },
+  {
+    "common name": "Yemen",
+    "official name": "Republic of Yemen",
+    "iso alpha-2": "YE",
+    "iso alpha-3": "YEM",
+    "continent": "Asia"
+  },
+  {
+    "common name": "South Africa",
+    "official name": "Republic of South Africa",
+    "iso alpha-2": "ZA",
+    "iso alpha-3": "ZAF",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Zambia",
+    "official name": "Republic of Zambia",
+    "iso alpha-2": "ZM",
+    "iso alpha-3": "ZMB",
+    "continent": "Africa"
+  },
+  {
+    "common name": "Zimbabwe",
+    "official name": "Republic of Zimbabwe",
+    "iso alpha-2": "ZW",
+    "iso alpha-3": "ZWE",
+    "continent": "Africa"
+  }
+]

@@ -31,6 +31,7 @@
         loadSharedCSS('core.css');
         loadSharedCSS('layout.css');
         loadSharedCSS('components.css');
+        loadSharedCSS('cascading-dropdowns.css');
     </script>
     
     <link rel="stylesheet" href="../assets/assets/css/training.css">
@@ -145,12 +146,20 @@
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="collegeName">College Name *</label>
-                                <input type="text" id="collegeName" name="collegeName" required placeholder="Enter college name">
+                                <label for="universityName">University Name *</label>
+                                <div class="college-search-wrapper">
+                                    <input type="text" id="universityName" name="universityName" data-education="university" required placeholder="Search and select your university" autocomplete="off">
+                                    <input type="hidden" id="universityNameHidden" name="universityName">
+                                    <div class="college-dropdown" id="universityDropdown"></div>
+                                </div>
                             </div>
                             <div class="form-group">
-                                <label for="universityName">University Name *</label>
-                                <input type="text" id="universityName" name="universityName" required placeholder="Enter university name">
+                                <label for="collegeName">College Name *</label>
+                                <div class="college-search-wrapper">
+                                    <input type="text" id="collegeName" name="collegeName" data-education="college" required placeholder="Search and select your college" autocomplete="off">
+                                    <input type="hidden" id="collegeNameHidden" name="collegeName">
+                                    <div class="college-dropdown" id="collegeDropdown"></div>
+                                </div>
                             </div>
                         </div>
 
@@ -281,7 +290,23 @@
                             <textarea id="companyHQ" name="companyHQ" rows="3" required placeholder="Enter complete HQ address"></textarea>
                         </div>
 
+                        <!-- Company Location Fields -->
                         <div class="form-row">
+                            <div class="form-group location-field-wrapper">
+                                <label for="companyCountry">Company Country *</label>
+                                <input type="text" id="companyCountry" name="company_country" data-location="country" required placeholder="Search country...">
+                            </div>
+                            <div class="form-group location-field-wrapper">
+                                <label for="companyState">State/Province *</label>
+                                <input type="text" id="companyState" name="company_state" data-location="state" required placeholder="Search state...">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group location-field-wrapper">
+                                <label for="companyCity">City *</label>
+                                <input type="text" id="companyCity" name="company_city" data-location="city" required placeholder="Search city...">
+                            </div>
                             <div class="form-group">
                                 <label for="companyHC">Company Headcount *</label>
                                 <select id="companyHC" name="companyHC" required>
@@ -503,5 +528,30 @@
     </footer>
 
     <script type="module" src="../assets/assets/js/training.js"></script>
+    <script type="module">
+        import { setupLocationDropdowns, setupEducationDropdowns } from '../assets/assets/js/cascading-dropdowns.js';
+        
+        // Initialize dropdowns for both forms when they become visible
+        document.addEventListener('DOMContentLoaded', async () => {
+            // For company form - location dropdowns
+            const companyForm = document.getElementById('companyRegistrationForm');
+            if (companyForm) {
+                await setupLocationDropdowns('companyRegistrationForm', {
+                    countryField: 'company_country',
+                    stateField: 'company_state',
+                    cityField: 'company_city'
+                });
+            }
+            
+            // For college form - education dropdowns (university -> college)
+            const collegeForm = document.getElementById('collegeRegistrationForm');
+            if (collegeForm) {
+                await setupEducationDropdowns('collegeRegistrationForm', {
+                    universityField: 'universityName',
+                    collegeField: 'collegeName'
+                });
+            }
+        });
+    </script>
 </body>
 </html>
