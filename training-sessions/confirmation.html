@@ -276,9 +276,8 @@
         }
         
         .btn-home {
-            background: transparent;
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
+            background: var(--primary-color);
+            color: white;
             padding: 12px 24px;
             border-radius: var(--radius-md);
             text-decoration: none;
@@ -287,12 +286,12 @@
             gap: 8px;
             font-weight: 500;
             transition: all 0.3s ease;
+            border: none;
             cursor: pointer;
         }
-        
+
         .btn-home:hover {
-            background: var(--primary-color);
-            color: white;
+            background: var(--secondary-color);
             transform: translateY(-2px);
         }
         
@@ -312,11 +311,8 @@
     <!-- Header -->
     <header class="training-header">
         <div class="training-header-content">
-            <a href="index.html" class="training-logo">
-                <img id="logoImg" src="" alt="Skreenit">
-            </a>
             <nav class="training-nav">
-                <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Courses</a>
+                <a href="index.html"><i class="fas fa-home"></i> Back to Courses</a>
             </nav>
         </div>
     </header>
@@ -415,9 +411,9 @@
             <button class="btn-download" onclick="window.print()">
                 <i class="fas fa-print"></i> Print
             </button>
-            <a href="index.html" class="btn-home">
+            <button class="btn-home" onclick="location.href='index.html'">
                 <i class="fas fa-home"></i> Back to Home
-            </a>
+            </button>
         </div>
     </main>
 
