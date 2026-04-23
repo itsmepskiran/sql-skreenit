@@ -5,7 +5,7 @@
 
 // API Base URL - adjust based on environment
 const isLocal = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-const API_BASE = isLocal ? 'http://localhost:8000' : 'https://api.skreenit.com';
+const API_BASE = isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://backend.skreenit.com/api/v1';
 
 // Debounce function for search
 function debounce(func, wait) {
