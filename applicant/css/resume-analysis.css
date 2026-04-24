@@ -1,0 +1,204 @@
+/* Resume Analysis Modal Styles */
+.custom-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 2rem;
+}
+
+.custom-modal-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Resume Analysis Specific Styles */
+.resume-analysis-modal .custom-modal-card {
+    max-width: 900px;
+}
+
+.score-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.template-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.template-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.template-card.selected {
+    border-color: var(--primary-color);
+    background: #f0f9ff;
+}
+
+.template-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
+.issue-item {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.issue-item.success {
+    background: #d1fae5;
+    border-color: #6ee7b7;
+}
+
+.issue-item.error {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+.loading-placeholder {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+    font-style: italic;
+}
+
+.template-preview {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 2rem;
+    min-height: 400px;
+    font-family: 'Times New Roman', serif;
+    line-height: 1.6;
+}
+
+/* Template specific styles */
+.template-preview.modern {
+    font-family: 'Calibri', 'Arial', sans-serif;
+}
+
+.template-preview.ats {
+    font-family: 'Times New Roman', serif;
+    font-size: 12pt;
+}
+
+.template-preview.creative {
+    font-family: 'Helvetica', 'Arial', sans-serif;
+}
+
+.template-preview.traditional {
+    font-family: 'Times New Roman', serif;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .custom-modal-backdrop {
+        padding: 1rem;
+    }
+    
+    .custom-modal-card {
+        max-width: 100%;
+        margin: 1rem;
+    }
+    
+    .templates-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .template-card {
+        padding: 1rem;
+    }
+    
+    .modal-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .score-circle {
+        width: 50px;
+        height: 50px;
+        font-size: 1rem;
+    }
+}
+
+/* Animation for modal appearance */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.custom-modal-card {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+/* Button hover effects */
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Template preview print styles */
+@media print {
+    .template-preview {
+        border: none;
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .modal-header,
+    .modal-body > div:not(.template-preview) {
+        display: none !important;
+    }
+}

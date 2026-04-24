@@ -6,6 +6,7 @@ import { showError, showSuccess, showWarning, hideWarning } from '@shared/js/not
 import { sidebarManager } from '@shared/js/profile-checker.js';
 import { getCountries, getStates, getCities, searchLocations, CityAutocomplete } from '@shared/js/location.js';
 import { setupInterviewRecording, interviewQuestions, interviewResponses, setInterviewQuestions } from './interview-functions.js';
+import { analyzeResume, hideResumeAnalysisModal } from './resume-analysis.js';
 import '@shared/js/mobile.js';
 
 // Global variables for video recording
@@ -956,13 +957,34 @@ async function handleResumeUpload(e) {
     const questionsStatus = document.getElementById('resumeQuestionsStatus');
     if(questionsStatus) {
         questionsStatus.style.display = 'block';
+        const statusText = document.getElementById('questionsStatusText');
+        if(statusText) {
+            statusText.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i>Analyzing resume and generating questions...';
+        }
     }
     
-    // Try to generate questions from resume
     try {
+        // Analyze resume first
+        await analyzeResume(file);
+        
+        // Then generate questions from resume
         await generateInterviewQuestions(file);
+        
+        // Update status
+        const statusText = document.getElementById('questionsStatusText');
+        if(statusText) {
+            statusText.textContent = `${interviewQuestions.length} personalized questions ready for your video interview!`;
+        }
+        
     } catch(err) {
-        console.warn('Failed to generate questions from resume:', err);
+        console.warn('Failed to process resume:', err);
+        
+        // Update status to show fallback
+        const statusText = document.getElementById('questionsStatusText');
+        if(statusText) {
+            statusText.textContent = 'Using default questions for your video interview.';
+        }
+        
         // Use fallback questions if generation fails
         setInterviewQuestions(getFallbackQuestions());
     }

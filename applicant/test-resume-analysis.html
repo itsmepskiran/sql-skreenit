@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analysis Test</title>
+    <link rel="stylesheet" href="css/resume-analysis.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: #f8fafc;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        .btn {
+            background: var(--primary-color, #2563eb);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: #64748b;
+        }
+        .btn-secondary:hover {
+            background: #475569;
+        }
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: var(--primary-color, #2563eb);
+            background: #f0f9ff;
+        }
+        .upload-area.dragover {
+            border-color: var(--primary-color, #2563eb);
+            background: #dbeafe;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Resume Analysis Feature Test</h1>
+        <p>This page tests the resume analysis functionality with template suggestions and preview.</p>
+
+        <div class="test-section">
+            <h2>1. Resume Upload Test</h2>
+            <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #94a3b8; margin-bottom: 1rem;"></i>
+                <h3>Upload Resume for Analysis</h3>
+                <p style="color: #64748b; margin: 1rem 0;">PDF, DOCX (Max 5MB)</p>
+                <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" style="display: none;">
+                <button type="button" class="btn" onclick="document.getElementById('resumeFile').click()">
+                    Choose File
+                </button>
+                <div id="fileInfo" style="margin-top: 1rem; font-weight: bold;"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Manual Analysis Test</h2>
+            <p>Test the analysis modal with mock data without uploading a file:</p>
+            <button type="button" class="btn btn-secondary" onclick="testMockAnalysis()">
+                Test Mock Analysis
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Template Preview Test</h2>
+            <p>Test individual template previews:</p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button type="button" class="btn" onclick="testTemplatePreview('modern')">
+                    Modern Template
+                </button>
+                <button type="button" class="btn" onclick="testTemplatePreview('ats')">
+                    ATS Template
+                </button>
+                <button type="button" class="btn" onclick="testTemplatePreview('traditional')">
+                    Traditional Template
+                </button>
+                <button type="button" class="btn" onclick="testTemplatePreview('creative')">
+                    Creative Template
+                </button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. Test Results</h2>
+            <div id="testResults" style="background: #f8fafc; padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem;">
+                <p>Test results will appear here...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resume Analysis Modal (from main application) -->
+    <div class="custom-modal-backdrop" id="resumeAnalysisModal" style="display: none;">
+        <div class="custom-modal-card" style="max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto;">
+            <!-- Modal Header -->
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #e2e8f0;">
+                <div>
+                    <h2 style="margin: 0; font-size: 1.5rem; color: var(--text-dark);">
+                        <i class="fas fa-file-alt" style="margin-right: 8px; color: var(--primary-color);"></i>
+                        Resume Analysis Results
+                    </h2>
+                    <p style="margin: 0.5rem 0 0 0; color: var(--text-light); font-size: 0.95rem;">
+                        Your resume has been analyzed. Here are our recommendations for improvement.
+                    </p>
+                </div>
+                <button type="button" id="closeResumeAnalysisBtn" class="btn btn-outline-secondary btn-sm" style="border: none; background: none; cursor: pointer; font-size: 1.5rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="modal-body" style="padding: 1.5rem;">
+                <!-- Analysis Summary -->
+                <div id="analysisSummary" style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-dark);">Overall Score</h3>
+                        <div id="overallScore" class="score-circle" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; color: white;">
+                            --
+                        </div>
+                    </div>
+                    <div id="scoreInterpretation" style="color: var(--text-light); font-size: 0.9rem;"></div>
+                </div>
+
+                <!-- Format Issues -->
+                <div id="formatIssues" style="margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-dark);">
+                        <i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: #f59e0b;"></i>
+                        Format Issues Found
+                    </h3>
+                    <div id="formatIssuesList" class="issues-list"></div>
+                </div>
+
+                <!-- Template Recommendations -->
+                <div id="templateRecommendations" style="margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-dark);">
+                        <i class="fas fa-magic" style="margin-right: 8px; color: var(--primary-color);"></i>
+                        Recommended Templates
+                    </h3>
+                    <div id="templatesList" class="templates-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;"></div>
+                </div>
+
+                <!-- Template Preview Section -->
+                <div id="templatePreviewSection" style="display: none;">
+                    <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text-dark);">
+                        <i class="fas fa-eye" style="margin-right: 8px; color: var(--primary-color);"></i>
+                        Template Preview
+                    </h3>
+                    <div id="templatePreview" style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 2rem; min-height: 400px;"></div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="button" id="downloadImprovedResume" class="btn" style="flex: 1;">
+                            <i class="fas fa-download" style="margin-right: 8px;"></i>
+                            Download Improved Resume
+                        </button>
+                        <button type="button" id="applyTemplateBtn" class="btn" style="flex: 1; background: #10b981;">
+                            <i class="fas fa-check" style="margin-right: 8px;"></i>
+                            Use This Template
+                        </button>
+                        <button type="button" id="backToTemplatesBtn" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
+                            Back to Templates
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div id="analysisActions" style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                    <button type="button" id="skipAnalysisBtn" class="btn btn-secondary" style="flex: 1;">
+                        <i class="fas fa-forward" style="margin-right: 8px;"></i>
+                        Skip & Continue
+                    </button>
+                    <button type="button" id="viewTemplatesBtn" class="btn" style="flex: 1;">
+                        <i class="fas fa-th-large" style="margin-right: 8px;"></i>
+                        View Templates
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Mock data for testing
+        const mockAnalysisData = {
+            success: true,
+            filename: "test-resume.pdf",
+            overall_score: 65.5,
+            sections: [
+                {
+                    name: "summary",
+                    score: 75.0,
+                    issues: ["Summary could be more concise"],
+                    suggestions: ["Condense summary to 2-3 sentences"]
+                },
+                {
+                    name: "experience",
+                    score: 60.0,
+                    issues: ["Missing quantifiable achievements"],
+                    suggestions: ["Add metrics like 'increased sales by 25%'"]
+                }
+            ],
+            format_issues: [
+                "Missing LinkedIn profile",
+                "Contact information incomplete"
+            ],
+            recommendations: [
+                "Add LinkedIn profile URL",
+                "Include more quantifiable achievements"
+            ],
+            parsed_data: {
+                contact_info: {
+                    emails: ["john.doe@email.com"],
+                    phones: ["(555) 123-4567"],
+                    linkedin: [],
+                    github: [],
+                    website: []
+                },
+                sections: {
+                    summary: "Experienced software developer with 5 years of experience in web development.",
+                    experience: "Senior Software Engineer at Tech Corp (2020-Present)\n- Developed web applications\n- Led team of 3 developers",
+                    education: "Bachelor of Science in Computer Science\nUniversity of Technology (2018)",
+                    skills: ["Python", "JavaScript", "React", "Node.js", "AWS"]
+                },
+                skills: ["Python", "JavaScript", "React", "Node.js", "AWS"],
+                raw_text: "John Doe\njohn.doe@email.com\n\nPROFESSIONAL SUMMARY\nExperienced software developer..."
+            }
+        };
+
+        const mockTemplates = [
+            {
+                id: 'modern',
+                name: 'Modern Professional',
+                description: 'Clean, contemporary format with clear sections',
+                features: ['Contact info at top', 'Professional summary', 'Bullet points', 'Clean layout']
+            },
+            {
+                id: 'ats',
+                name: 'ATS Optimized',
+                description: 'Optimized for Applicant Tracking Systems',
+                features: ['Simple formatting', 'Keyword optimization', 'Standard headings', 'No tables/columns']
+            },
+            {
+                id: 'traditional',
+                name: 'Traditional Conservative',
+                description: 'Classic format for traditional industries',
+                features: ['Formal structure', 'Objective statement', 'Chronological order', 'Standard fonts']
+            }
+        ];
+
+        let currentAnalysisData = null;
+        let selectedTemplate = null;
+
+        // Test functions
+        window.testMockAnalysis = function() {
+            logTest('Testing mock resume analysis...');
+            currentAnalysisData = mockAnalysisData;
+            showResumeAnalysisResults(mockAnalysisData);
+            displayTemplates(mockTemplates);
+            document.getElementById('resumeAnalysisModal').style.display = 'flex';
+            logTest('✅ Mock analysis completed successfully');
+        };
+
+        window.testTemplatePreview = function(templateId) {
+            logTest(`Testing ${templateId} template preview...`);
+            selectedTemplate = mockTemplates.find(t => t.id === templateId);
+            if (selectedTemplate) {
+                previewTemplate(templateId);
+                document.getElementById('resumeAnalysisModal').style.display = 'flex';
+                logTest(`✅ ${templateId} template preview generated`);
+            }
+        };
+
+        function logTest(message) {
+            const results = document.getElementById('testResults');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+
+        function showResumeAnalysisResults(analysisData) {
+            const overallScore = document.getElementById('overallScore');
+            const scoreInterpretation = document.getElementById('scoreInterpretation');
+            const formatIssuesList = document.getElementById('formatIssuesList');
+
+            // Update score
+            if (overallScore) {
+                const score = Math.round(analysisData.overall_score);
+                overallScore.textContent = score;
+                overallScore.style.background = getScoreColor(score);
+            }
+
+            // Update score interpretation
+            if (scoreInterpretation) {
+                scoreInterpretation.textContent = getScoreInterpretation(analysisData.overall_score);
+            }
+
+            // Display format issues
+            if (formatIssuesList && analysisData.format_issues.length > 0) {
+                formatIssuesList.innerHTML = analysisData.format_issues
+                    .map(issue => `
+                        <div class="issue-item">
+                            <i class="fas fa-exclamation-circle" style="color: #f59e0b; margin-right: 8px;"></i>
+                            <span>${issue}</span>
+                        </div>
+                    `)
+                    .join('');
+            } else if (formatIssuesList) {
+                formatIssuesList.innerHTML = `
+                    <div class="issue-item success">
+                        <i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i>
+                        <span>Great! No major format issues found.</span>
+                    </div>
+                `;
+            }
+        }
+
+        function displayTemplates(templates) {
+            const templatesList = document.getElementById('templatesList');
+
+            if (templatesList) {
+                templatesList.innerHTML = templates
+                    .map(template => `
+                        <div class="template-card" data-template-id="${template.id}">
+                            <div class="template-header">
+                                <h4>${template.name}</h4>
+                                <div class="template-badge">RECOMMENDED</div>
+                            </div>
+                            <p>${template.description}</p>
+                            <div class="template-features">
+                                ${template.features.map(feature => `
+                                    <div>
+                                        <i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i>
+                                        <span>${feature}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button class="btn preview-template-btn" data-template-id="${template.id}" style="width: 100%; margin-top: 1rem;">
+                                <i class="fas fa-eye" style="margin-right: 8px;"></i>
+                                Preview Template
+                            </button>
+                        </div>
+                    `)
+                    .join('');
+
+                // Add click handlers
+                templatesList.querySelectorAll('.preview-template-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const templateId = btn.dataset.templateId;
+                        previewTemplate(templateId);
+                    });
+                });
+            }
+        }
+
+        function previewTemplate(templateId) {
+            selectedTemplate = mockTemplates.find(t => t.id === templateId);
+            
+            const previewSection = document.getElementById('templatePreviewSection');
+            const templatePreview = document.getElementById('templatePreview');
+            const templateRecommendations = document.getElementById('templateRecommendations');
+            const analysisActions = document.getElementById('analysisActions');
+
+            if (previewSection && templatePreview) {
+                previewSection.style.display = 'block';
+                templatePreview.innerHTML = generateTemplatePreview(templateId, mockAnalysisData.parsed_data);
+
+                // Hide other sections
+                if (templateRecommendations) templateRecommendations.style.display = 'none';
+                if (analysisActions) analysisActions.style.display = 'none';
+            }
+        }
+
+        function generateTemplatePreview(templateId, parsedData) {
+            const templates = {
+                modern: generateModernTemplate,
+                ats: generateATSTemplate,
+                traditional: generateTraditionalTemplate,
+                creative: generateCreativeTemplate
+            };
+
+            const generator = templates[templateId] || templates.modern;
+            return generator(parsedData);
+        }
+
+        function generateModernTemplate(data) {
+            const contact = data.contact_info || {};
+            const sections = data.sections || {};
+            const skills = data.skills || [];
+
+            return `
+                <div style="font-family: 'Calibri', 'Arial', sans-serif; line-height: 1.6; color: #333;">
+                    <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #2563eb;">
+                        <h1 style="margin: 0; font-size: 2rem; color: #1e40af; font-weight: 600;">YOUR NAME</h1>
+                        <div style="margin-top: 0.5rem; color: #64748b;">
+                            ${contact.emails?.[0] || 'email@example.com'} • ${contact.phones?.[0] || '+1 234-567-8900'}
+                        </div>
+                    </div>
+                    ${sections.summary ? `
+                        <div style="margin-bottom: 2rem;">
+                            <h2 style="color: #1e40af; font-size: 1.2rem; margin-bottom: 0.5rem;">Professional Summary</h2>
+                            <p style="margin: 0;">${sections.summary}</p>
+                        </div>
+                    ` : ''}
+                    ${sections.experience ? `
+                        <div style="margin-bottom: 2rem;">
+                            <h2 style="color: #1e40af; font-size: 1.2rem; margin-bottom: 0.5rem;">Professional Experience</h2>
+                            <div style="white-space: pre-line;">${sections.experience}</div>
+                        </div>
+                    ` : ''}
+                    ${skills.length > 0 ? `
+                        <div style="margin-bottom: 2rem;">
+                            <h2 style="color: #1e40af; font-size: 1.2rem; margin-bottom: 0.5rem;">Technical Skills</h2>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                ${skills.map(skill => `
+                                    <span style="background: #e0e7ff; color: #3730a3; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem;">${skill}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function generateATSTemplate(data) {
+            const contact = data.contact_info || {};
+            const sections = data.sections || {};
+            const skills = data.skills || [];
+
+            return `
+                <div style="font-family: 'Times New Roman', serif; line-height: 1.5; color: #000;">
+                    <div style="margin-bottom: 1rem;">
+                        <h1 style="margin: 0; font-size: 16pt; font-weight: bold;">YOUR NAME</h1>
+                        <div style="margin-top: 0.25rem;">
+                            ${contact.emails?.[0] || 'email@example.com'} | ${contact.phones?.[0] || '+1 234-567-8900'}
+                        </div>
+                    </div>
+                    ${sections.summary ? `
+                        <div style="margin-bottom: 1rem;">
+                            <h2 style="font-size: 14pt; font-weight: bold; text-transform: uppercase;">PROFESSIONAL SUMMARY</h2>
+                            <p style="margin: 0;">${sections.summary}</p>
+                        </div>
+                    ` : ''}
+                    ${skills.length > 0 ? `
+                        <div style="margin-bottom: 1rem;">
+                            <h2 style="font-size: 14pt; font-weight: bold; text-transform: uppercase;">TECHNICAL SKILLS</h2>
+                            <p style="margin: 0;">${skills.join(', ')}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function generateTraditionalTemplate(data) {
+            const contact = data.contact_info || {};
+            const sections = data.sections || {};
+            const skills = data.skills || [];
+
+            return `
+                <div style="font-family: 'Times New Roman', serif; line-height: 1.6; color: #000;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h1 style="margin: 0; font-size: 18pt; font-weight: bold;">YOUR NAME</h1>
+                        <div style="margin-top: 0.5rem;">
+                            ${contact.emails?.[0] || 'email@example.com'} • ${contact.phones?.[0] || '+1 234-567-8900'}
+                        </div>
+                    </div>
+                    ${sections.summary ? `
+                        <div style="margin-bottom: 2rem;">
+                            <h2 style="font-size: 14pt; font-weight: bold; text-align: center; text-transform: uppercase;">OBJECTIVE</h2>
+                            <p style="text-align: center; margin: 0; font-style: italic;">${sections.summary}</p>
+                        </div>
+                    ` : ''}
+                    ${skills.length > 0 ? `
+                        <div style="margin-bottom: 2rem;">
+                            <h2 style="font-size: 14pt; font-weight: bold; text-align: center; text-transform: uppercase;">SKILLS</h2>
+                            <p style="text-align: center; margin: 0;">${skills.join(' • ')}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function generateCreativeTemplate(data) {
+            const contact = data.contact_info || {};
+            const sections = data.sections || {};
+            const skills = data.skills || [];
+
+            return `
+                <div style="font-family: 'Helvetica', 'Arial', sans-serif; line-height: 1.6; color: #333;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; margin: -2rem -2rem 2rem -2rem; border-radius: 8px 8px 0 0;">
+                        <h1 style="margin: 0; font-size: 2.5rem; font-weight: 300;">YOUR NAME</h1>
+                        <div style="margin-top: 1rem; opacity: 0.9;">
+                            ${contact.emails?.[0] || 'email@example.com'} • ${contact.phones?.[0] || '+1 234-567-8900'}
+                        </div>
+                    </div>
+                    ${sections.summary ? `
+                        <div style="margin-bottom: 2rem;">
+                            <h2 style="color: #667eea; font-size: 1.3rem; margin-bottom: 0.5rem;">✨ About Me</h2>
+                            <p style="margin: 0;">${sections.summary}</p>
+                        </div>
+                    ` : ''}
+                    ${skills.length > 0 ? `
+                        <div style="margin-bottom: 2rem;">
+                            <h2 style="color: #667eea; font-size: 1.3rem; margin-bottom: 0.5rem;">🚀 Tech Stack</h2>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem;">
+                                ${skills.map(skill => `
+                                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.5rem; border-radius: 8px; text-align: center; font-weight: 500;">${skill}</div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function getScoreColor(score) {
+            if (score >= 80) return '#10b981';
+            if (score >= 60) return '#f59e0b';
+            return '#ef4444';
+        }
+
+        function getScoreInterpretation(score) {
+            if (score >= 80) return 'Excellent! Your resume is well-formatted and professional.';
+            if (score >= 60) return 'Good! Your resume has some areas for improvement.';
+            if (score >= 40) return 'Fair. Your resume needs significant improvements.';
+            return 'Poor. Your resume requires major formatting and content improvements.';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // File upload
+            const resumeFile = document.getElementById('resumeFile');
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInfo = document.getElementById('fileInfo');
+
+            resumeFile.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    fileInfo.innerHTML = `<i class="fas fa-file" style="margin-right: 8px;"></i>Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                    logTest(`✅ File selected: ${file.name}`);
+                    
+                    // Test with mock analysis
+                    setTimeout(() => {
+                        testMockAnalysis();
+                    }, 1000);
+                }
+            });
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    resumeFile.files = files;
+                    const event = new Event('change', { bubbles: true });
+                    resumeFile.dispatchEvent(event);
+                }
+            });
+
+            // Modal controls
+            document.getElementById('closeResumeAnalysisBtn').addEventListener('click', () => {
+                document.getElementById('resumeAnalysisModal').style.display = 'none';
+            });
+
+            document.getElementById('skipAnalysisBtn').addEventListener('click', () => {
+                document.getElementById('resumeAnalysisModal').style.display = 'none';
+                logTest('✅ Analysis skipped');
+            });
+
+            document.getElementById('viewTemplatesBtn').addEventListener('click', () => {
+                document.getElementById('templateRecommendations').style.display = 'block';
+                document.getElementById('analysisActions').style.display = 'none';
+            });
+
+            document.getElementById('backToTemplatesBtn').addEventListener('click', () => {
+                document.getElementById('templatePreviewSection').style.display = 'none';
+                document.getElementById('templateRecommendations').style.display = 'block';
+                document.getElementById('analysisActions').style.display = 'flex';
+            });
+
+            document.getElementById('downloadImprovedResume').addEventListener('click', () => {
+                logTest('✅ Download functionality triggered (mock)');
+                alert('Download functionality would generate and download the improved resume');
+            });
+
+            document.getElementById('applyTemplateBtn').addEventListener('click', () => {
+                logTest('✅ Template applied successfully');
+                document.getElementById('resumeAnalysisModal').style.display = 'none';
+                alert('Template applied! Your resume will be formatted accordingly.');
+            });
+
+            // Close modal on backdrop click
+            document.getElementById('resumeAnalysisModal').addEventListener('click', (e) => {
+                if (e.target.id === 'resumeAnalysisModal') {
+                    document.getElementById('resumeAnalysisModal').style.display = 'none';
+                }
+            });
+
+            logTest('✅ Resume analysis test page loaded successfully');
+        });
+    </script>
+</body>
+</html>
