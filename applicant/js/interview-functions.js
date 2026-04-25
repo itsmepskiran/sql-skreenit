@@ -313,11 +313,8 @@ async function startInterview() {
         closeCompletedBtn.onclick = () => {
             // Just close the modal - don't reset state, user may want to submit application
             closeInterviewModal();
-            // Submit the form after interview is complete
-            const submitBtn = document.querySelector('button[type="submit"]');
-            if(submitBtn) {
-                submitBtn.click();
-            }
+            // Don't auto-submit - let user manually submit when ready
+            notify('Interview completed! You can now submit your application.', 'success');
         };
     }
     

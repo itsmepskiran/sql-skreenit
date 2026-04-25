@@ -23,13 +23,13 @@ export const CONFIG = {
         SUPPORT: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://support.skreenit.com',
         STORAGE: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://storage.skreenit.com',
         ASSETS: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://assets.skreenit.com',
-        BACKEND: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://backend.skreenit.com',
+        BACKEND: isLocal ? 'http://127.0.0.1:8083/api/v1' : 'https://api.skreenit.com',
     },
     */    
 
     // API Configuration
     // Backend runs on port 8080 for local development
-    API_BASE: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://backend.skreenit.com/api/v1',
+    API_BASE: isLocal ? 'http://127.0.0.1:8080/api/v1' : 'https://api.skreenit.com/api/v1',
 
     // Centralized Page Paths
     PAGES: {
