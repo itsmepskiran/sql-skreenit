@@ -1402,7 +1402,21 @@ async function handleFormSubmit(e) {
             console.warn('User update failed, but profile was saved:', updateError);
         }
 
-        if(successModal) successModal.classList.add('active');
+        // Show profile completion modal with correct content
+        if(successModal) {
+            const titleElement = successModal.querySelector('h2');
+            const buttonElement = successModal.querySelector('button');
+            
+            if(titleElement) {
+                titleElement.textContent = 'Profile Completed!';
+            }
+            
+            if(buttonElement) {
+                buttonElement.textContent = 'Back to Profile';
+            }
+            
+            successModal.classList.add('active');
+        }
 
     } catch (err) {
         showError("errorBox", "Submission failed: " + (err.message || "Unknown error"), "Application Failed");

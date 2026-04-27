@@ -584,6 +584,29 @@ export function hideWarning(elementId) {
  * Show a success message
  */
 export function showSuccess(elementId, message, title = null) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    // Check if this is a modal (like successModal) that needs dynamic content
+    if (elementId === 'successModal' && element.classList.contains('custom-modal-backdrop')) {
+        // Update modal content dynamically
+        const titleElement = element.querySelector('h2');
+        const buttonElement = element.querySelector('button');
+        
+        if (titleElement) {
+            titleElement.textContent = title || 'Success!';
+        }
+        
+        if (buttonElement) {
+            buttonElement.textContent = 'Close';
+        }
+        
+        // Show the modal
+        element.classList.add('active');
+        return;
+    }
+    
+    // For regular warning ribbons, use the existing showWarning function
     showWarning(elementId, message, title, 'success');
 }
 
