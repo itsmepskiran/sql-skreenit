@@ -46,7 +46,15 @@ export async function setupLocationDropdowns(formId, options = {}) {
     const stateInput = form.querySelector(`[name="${stateField}"]`);
     const cityInput = form.querySelector(`[name="${cityField}"]`);
 
-    if (!countryInput || !stateInput || !cityInput) return;
+    if (!countryInput || !stateInput || !cityInput) {
+        console.warn(`Location dropdowns not found: country="${countryField}", state="${stateField}", city="${cityField}"`);
+        return;
+    }
+
+    // Set data-location attributes for identification
+    countryInput.dataset.location = 'country';
+    stateInput.dataset.location = 'state';
+    cityInput.dataset.location = 'city';
 
     // Create dropdown containers
     setupSearchDropdown(countryInput, 'country');

@@ -96,6 +96,31 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="sampleQuestionsModal" tabindex="-1" aria-labelledby="sampleQuestionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+        <div class="modal-header" style="background: #f0f9ff; border-bottom: 1px solid #bae6fd;">
+          <h5 class="modal-title" id="sampleQuestionsModalLabel" style="font-weight: 600; color: #0c4a6e;">
+            <i class="fas fa-lightbulb me-2"></i>Sample Interview Questions
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="sampleQuestionsModalBody" style="padding: 1.5rem; max-height: 60vh; overflow-y: auto;">
+          <div class="text-center p-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Loading sample questions...</p>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid #e2e8f0;">
+          <button type="button" class="btn btn-outline-secondary" id="copySampleQuestionsBtn">
+            <i class="fas fa-copy me-1"></i> Copy All
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
   
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module" src="js/my-applications.js"></script>

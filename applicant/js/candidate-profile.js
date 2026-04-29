@@ -138,6 +138,11 @@ async function loadProfile(userId) {
         } else {
             // console.log('❌ No profile data found, data:', data);
         }
+
+        // Load real-time specializations, achievements, and activity
+        loadCandidateSpecializations();
+        loadCandidateAchievements();
+        loadCandidateRecentActivity();
     } catch (err) {
         // console.error('❌ Failed to load profile:', err);
     }
@@ -1562,6 +1567,104 @@ function setupEditProfileButton() {
         console.log('✅ Edit Profile button setup complete');
     } else {
         console.log('❌ Edit Profile button not found');
+    }
+}
+
+// Load candidate specializations
+async function loadCandidateSpecializations() {
+    try {
+        const res = await backendGet('/applicant/profile/specializations');
+        const result = await handleResponse(res);
+        const specializations = result?.data?.specializations || [];
+        const message = result?.data?.message;
+
+        const container = document.getElementById('specializationsList');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (specializations.length > 0) {
+            specializations.forEach(spec => {
+                const tag = document.createElement('span');
+                tag.style.cssText = 'padding: 0.5rem 1rem; background: #e0e7ff; color: #4f46e5; border-radius: 50px; font-size: 0.85rem; font-weight: 500;';
+                tag.textContent = spec;
+                container.appendChild(tag);
+            });
+        } else if (message) {
+            const tag = document.createElement('span');
+            tag.style.cssText = 'padding: 0.5rem 1rem; background: #f1f5f9; color: #64748b; border-radius: 50px; font-size: 0.85rem;';
+            tag.textContent = message;
+            container.appendChild(tag);
+        }
+    } catch (err) {
+        console.error('Failed to load specializations:', err);
+    }
+}
+
+// Load candidate achievements
+async function loadCandidateAchievements() {
+    try {
+        const res = await backendGet('/applicant/profile/achievements');
+        const result = await handleResponse(res);
+        const achievements = result?.data?.achievements || [];
+
+        const container = document.getElementById('achievementsList');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (achievements.length > 0) {
+            achievements.forEach(achievement => {
+                const card = document.createElement('div');
+                card.style.cssText = 'display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f8fafc; border-radius: 12px; margin-bottom: 0.75rem;';
+                card.innerHTML = `
+                    <div style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: ${achievement.bg_color}; color: ${achievement.color};">
+                        <i class="fas ${achievement.icon}" style="font-size: 1.25rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #1e293b;">${achievement.title}</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #64748b;">${achievement.description}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+    } catch (err) {
+        console.error('Failed to load achievements:', err);
+    }
+}
+
+// Load candidate recent activity
+async function loadCandidateRecentActivity() {
+    try {
+        const res = await backendGet('/applicant/profile/activity');
+        const result = await handleResponse(res);
+        const activities = result?.data?.activities || [];
+
+        const container = document.getElementById('activityList');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (activities.length > 0) {
+            activities.forEach(activity => {
+                const item = document.createElement('div');
+                item.style.cssText = 'display: flex; align-items: flex-start; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9;';
+                item.innerHTML = `
+                    <div style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${activity.bg_color}; color: ${activity.color}; flex-shrink: 0;">
+                        <i class="fas ${activity.icon}" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 0.9rem; font-weight: 500; color: #1e293b;">${activity.title}</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #64748b;">${activity.description}</p>
+                        <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">${activity.time_ago}</p>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+    } catch (err) {
+        console.error('Failed to load recent activity:', err);
     }
 }
 

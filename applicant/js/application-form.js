@@ -763,16 +763,23 @@ function setupEventListeners() {
             updateUI(); 
         } 
     });
-    if(prevBtn) prevBtn.addEventListener('click', () => { 
-        if(currentStep > 1) { 
-            // Prevent going back from interview step if in progress
-            if(currentStep === 7 && interviewQuestions.length > 0 && !window.isInterviewComplete) {
-                notify('Please complete or submit the interview before going back.', 'warning');
-                return;
+    if(prevBtn) prevBtn.addEventListener('click', () => {
+        if(currentStep > 1) {
+            // When going back from step 7, clear interview state to allow re-entry
+            if(currentStep === 7) {
+                // Clear interview state
+                window.isInterviewComplete = false;
+                currentQuestionIndex = 0;
+                interviewResponses = [];
+                // Clear the interview questions cache
+                if(typeof setInterviewQuestions === 'function') {
+                    setInterviewQuestions([]);
+                }
+                console.log('Interview state cleared when going back from step 7');
             }
-            currentStep--; 
-            updateUI(); 
-        } 
+            currentStep--;
+            updateUI();
+        }
     });
     if(addExpBtn) addExpBtn.addEventListener('click', () => addExperienceField());
     if(addEduBtn) addEduBtn.addEventListener('click', () => addEducationField());

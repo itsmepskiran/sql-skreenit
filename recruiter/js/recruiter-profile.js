@@ -156,6 +156,11 @@ function populateForm(data) {
 
     // Update stats (fetch from backend or use defaults)
     loadProfileStats();
+
+    // Load real-time specializations and achievements
+    loadSpecializations();
+    loadAchievements();
+    loadRecentActivity();
 }
 
 function setValue(id, val) {
@@ -189,6 +194,106 @@ async function loadProfileStats() {
         const completedTasks = tasks.filter(t => t.status === 'completed').length;
         document.getElementById('statAnalysis').textContent = completedTasks;
 
+    } catch (err) {
+        // Keep default values on error
+    }
+}
+
+// Load hiring specializations
+async function loadSpecializations() {
+    try {
+        const res = await backendGet('/recruiter/profile/specializations');
+        const result = await handleResponse(res);
+        const specializations = result?.data?.specializations || [];
+        const message = result?.data?.message;
+
+        const container = document.getElementById('specializationsList');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (specializations.length > 0) {
+            specializations.forEach(spec => {
+                const tag = document.createElement('span');
+                tag.className = 'specialization-tag';
+                tag.textContent = spec;
+                container.appendChild(tag);
+            });
+        } else if (message) {
+            const tag = document.createElement('span');
+            tag.className = 'specialization-tag';
+            tag.textContent = message;
+            tag.style.background = '#f1f5f9';
+            tag.style.color = '#64748b';
+            container.appendChild(tag);
+        }
+    } catch (err) {
+        // Keep default values on error
+    }
+}
+
+// Load achievements
+async function loadAchievements() {
+    try {
+        const res = await backendGet('/recruiter/profile/achievements');
+        const result = await handleResponse(res);
+        const achievements = result?.data?.achievements || [];
+
+        const container = document.getElementById('achievementsList');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (achievements.length > 0) {
+            achievements.forEach(achievement => {
+                const card = document.createElement('div');
+                card.className = 'achievement-card';
+                card.innerHTML = `
+                    <div class="achievement-icon" style="background: ${achievement.bg_color}; color: ${achievement.color};">
+                        <i class="fas ${achievement.icon}"></i>
+                    </div>
+                    <div class="achievement-info">
+                        <h4>${achievement.title}</h4>
+                        <p>${achievement.description}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+    } catch (err) {
+        // Keep default values on error
+    }
+}
+
+// Load recent activity
+async function loadRecentActivity() {
+    try {
+        const res = await backendGet('/recruiter/profile/activity');
+        const result = await handleResponse(res);
+        const activities = result?.data?.activities || [];
+
+        const container = document.getElementById('activityList');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (activities.length > 0) {
+            activities.forEach(activity => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.innerHTML = `
+                    <div class="activity-icon" style="background: ${activity.bg_color}; color: ${activity.color};">
+                        <i class="fas ${activity.icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h4>${activity.title}</h4>
+                        <p>${activity.description}</p>
+                        <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">${activity.time_ago}</p>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
     } catch (err) {
         // Keep default values on error
     }

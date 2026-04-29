@@ -345,10 +345,50 @@
                     <h3><i class="fas fa-graduation-cap"></i> Education</h3>
                     <div id="viewEducationList" class="text-muted">No education details added.</div>
                 </div>
-                
+
                 <div class="profile-section">
                     <h3><i class="fas fa-tools"></i> Skills</h3>
                     <div id="viewSkills" class="text-muted">No skills added.</div>
+                </div>
+
+                <!-- Specializations -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-tags"></i> Specializations</h3>
+                    <div id="specializationsList" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="padding: 0.5rem 1rem; background: #f1f5f9; color: #64748b; border-radius: 50px; font-size: 0.85rem;">Loading...</span>
+                    </div>
+                </div>
+
+                <!-- Achievements -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-trophy"></i> Achievements</h3>
+                    <div id="achievementsList">
+                        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f8fafc; border-radius: 12px;">
+                            <div style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #f1f5f9; color: #64748b;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #1e293b;">Loading...</h4>
+                                <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #64748b;">Fetching your achievements</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-history"></i> Recent Activity</h3>
+                    <div id="activityList">
+                        <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; color: #64748b;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 0.9rem; font-weight: 500; color: #1e293b;">Loading...</h4>
+                                <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #64748b;">Fetching your recent activity</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="profile-section">

@@ -50,15 +50,15 @@ async function analyzeResume(file) {
  */
 async function getAvailableTemplates() {
     try {
-        const response = await backendPost('/resume-analysis/formats', {});
+        const response = await backendGet('/resume-analysis/formats');
         const result = await handleResponse(response);
-        
+
         if (result.formats) {
             availableTemplates = Object.entries(result.formats).map(([key, template]) => ({
                 id: key,
                 ...template
             }));
-            
+
             // Filter templates based on analysis recommendations
             const recommendedTemplates = getRecommendedTemplates(resumeAnalysisData);
             displayTemplates(recommendedTemplates);

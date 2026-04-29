@@ -1,5 +1,5 @@
 import { customAuth } from '@shared/js/auth-config.js';;
-import { backendGet, handleResponse } from '@shared/js/backend-client.js';
+import { backendGet, backendPost, handleResponse } from '@shared/js/backend-client.js';
 import { CONFIG } from '@shared/js/config.js';
 import { sidebarManager } from '@shared/js/profile-checker.js';
 import '@shared/js/mobile.js';
@@ -130,6 +130,14 @@ async function loadApplications() {
                                 <i class="fas fa-check-circle me-1"></i> Already Applied
                             </button>
                             ${actionButton}
+                            <button data-job-id="${app.job_id}" 
+                                    class="sample-questions-btn" 
+                                    style="display:block; width:100%; margin-top:0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border:none; color:white; cursor:pointer; padding: 0.6rem; border-radius: 8px; font-weight: 500; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
+                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';"
+                                    onclick="event.stopPropagation(); window.viewSampleQuestions('${app.job_id}', '${app.job_title || 'Unknown Role'}');">
+                                <i class="fas fa-lightbulb me-1"></i> Refer to Sample Questions
+                            </button>
                             <a href="${CONFIG.PAGES.JOB_DETAILS}?job_id=${app.job_id}" 
                                style="display:block; text-align:center; width:100%; margin-top:0.75rem; color:var(--text-light); text-decoration:underline; font-size:0.85rem;">
                                View Job Details
@@ -147,8 +155,6 @@ async function loadApplications() {
 
 // --- VIDEO REVIEW LOGIC ---
 async function viewMyResponse(applicationId) {
-    // Make globally accessible for inline onclick
-    window.viewMyResponse = viewMyResponse;
     const modalEl = document.getElementById('responseModal');
     const modalBody = document.getElementById('responseModalBody');
     const modal = new bootstrap.Modal(modalEl);
@@ -204,6 +210,78 @@ try {
     } catch (error) {
         // console.error('Error fetching interview responses:', error);
         modalBody.innerHTML = '<div class="alert alert-danger text-center border-0">Failed to load videos. Please try again.</div>';
+    }
+}
+
+// --- SAMPLE QUESTIONS LOGIC ---
+async function viewSampleQuestions(jobId, jobTitle) {
+    const modalEl = document.getElementById('sampleQuestionsModal');
+    const modalLabel = document.getElementById('sampleQuestionsModalLabel');
+    const modalBody = document.getElementById('sampleQuestionsModalBody');
+    const modal = new bootstrap.Modal(modalEl);
+    
+    modalLabel.innerHTML = `<i class="fas fa-lightbulb me-2"></i>Sample Interview Questions - ${jobTitle}`;
+    modalBody.innerHTML = `
+        <div class="text-center p-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Generating sample questions based on job description...</p>
+        </div>`;
+    modal.show();
+
+    try {
+        const response = await backendPost('/applicant/job-sample-questions', { job_id: jobId }, { timeout: 120000 }); // 2 minutes timeout for AI generation
+        const data = await handleResponse(response);
+        
+        const questions = data.questions || data.data || [];
+
+        if (!questions.length) {
+            modalBody.innerHTML = '<div class="alert alert-warning text-center border-0">No sample questions available for this job.</div>';
+            return;
+        }
+
+        modalBody.innerHTML = questions.map((q, i) => {
+            const priorityClass = q.priority === 'High' ? 'bg-danger' : q.priority === 'Medium' ? 'bg-warning' : 'bg-success';
+            const priorityText = q.priority || 'Medium';
+            
+            return `
+                <div class="card mb-3 border-0" style="background: #f8fafc;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start mb-2">
+                            <span class="badge ${priorityClass} me-2">${priorityText}</span>
+                            <h6 class="mb-0 flex-grow-1" style="color: #1e293b;">${i + 1}. ${q.question || 'Question'}</h6>
+                        </div>
+                        ${q.category ? `<small class="text-muted d-block mb-2"><i class="fas fa-tag me-1"></i>${q.category}</small>` : ''}
+                        ${q.preparation_tip ? `
+                            <div class="mt-2 p-2" style="background: #e0f2fe; border-radius: 6px; border-left: 3px solid #0284c7;">
+                                <small style="color: #0c4a6e;"><i class="fas fa-lightbulb me-1"></i><strong>Tip:</strong> ${q.preparation_tip}</small>
+                            </div>
+                        ` : ''}
+                        ${q.answer ? `
+                            <div class="mt-2 p-2" style="background: #f0fdf4; border-radius: 6px; border-left: 3px solid #16a34a;">
+                                <small style="color: #166534;"><i class="fas fa-check-circle me-1"></i><strong>Sample Answer:</strong> ${q.answer}</small>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Setup copy button
+        document.getElementById('copySampleQuestionsBtn').onclick = () => {
+            const text = questions.map((q, i) => `${i + 1}. ${q.question}${q.answer ? `\nAnswer: ${q.answer}` : ''}`).join('\n\n');
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copySampleQuestionsBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
+            });
+        };
+
+    } catch (error) {
+        console.error('Error fetching sample questions:', error);
+        modalBody.innerHTML = '<div class="alert alert-danger text-center border-0">Failed to load sample questions. Please try again.</div>';
     }
 }
 
@@ -271,3 +349,7 @@ function setupNavigation() {
         }
     });
 }
+
+// Make functions globally accessible for inline onclick handlers
+window.viewMyResponse = viewMyResponse;
+window.viewSampleQuestions = viewSampleQuestions;

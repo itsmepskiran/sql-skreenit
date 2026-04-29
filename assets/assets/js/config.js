@@ -55,6 +55,7 @@ export const CONFIG = {
         APPLICATION_LIST: isLocal ? '/dashboard/application-list.html' : 'https://dashboard.skreenit.com/application-list.html',
         INTERVIEW_ROOM: isLocal ? '/dashboard/interview-room.html' : 'https://dashboard.skreenit.com/interview-room.html',
         ANALYSIS: isLocal ? '/dashboard/analysis.html' : 'https://dashboard.skreenit.com/analysis.html',
+        RESUME_ANALYSIS: isLocal ? '/recruiter/resume-analysis.html' : 'https://recruiter.skreenit.com/resume-analysis.html',
 
         // --- Recruiter Features ---
         RECRUITER_PROFILE: isLocal ? '/recruiter/recruiter-profile.html' : 'https://recruiter.skreenit.com/recruiter-profile.html',
